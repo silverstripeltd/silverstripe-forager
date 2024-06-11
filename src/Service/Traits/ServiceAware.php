@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\SearchService\Service\Traits;
+namespace SilverStripe\Forager\Service\Traits;
 
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
 
 trait ServiceAware
 {

@@ -1,39 +1,39 @@
 ---
-Name: silverstripe-search-service-extensions
+Name: silverstripe-forager-extensions
 ---
 SilverStripe\ORM\FieldType\DBField:
   extensions:
-    - SilverStripe\SearchService\Extensions\DBFieldExtension
+    - SilverStripe\Forager\Extensions\DBFieldExtension
 SilverStripe\ORM\FieldType\DBDate:
   extensions:
-    - SilverStripe\SearchService\Extensions\DBDateExtension
+    - SilverStripe\Forager\Extensions\DBDateExtension
 SilverStripe\ORM\FieldType\DBBoolean:
   extensions:
-    - SilverStripe\SearchService\Extensions\DBBooleanExtension
+    - SilverStripe\Forager\Extensions\DBBooleanExtension
 SilverStripe\ORM\FieldType\DBHTMLText:
   extensions:
-    - SilverStripe\SearchService\Extensions\DBHTMLFieldExtension
+    - SilverStripe\Forager\Extensions\DBHTMLFieldExtension
 SilverStripe\ORM\FieldType\DBHTMLVarchar:
   extensions:
-    - SilverStripe\SearchService\Extensions\DBHTMLFieldExtension
+    - SilverStripe\Forager\Extensions\DBHTMLFieldExtension
 Symbiote\QueuedJobs\Controllers\QueuedJobsAdmin:
   extensions:
-    - SilverStripe\SearchService\Extensions\QueuedJobsAdminExtension
+    - SilverStripe\Forager\Extensions\QueuedJobsAdminExtension
 ---
-Name: 'silverstripe-search-service-cms'
+Name: 'silverstripe-forager-cms'
 Only:
   moduleexists: 'silverstripe/cms'
 ---
 SilverStripe\CMS\Model\SiteTree:
   extensions:
-    SearchServiceExtension: SilverStripe\SearchService\Extensions\SearchServiceExtension
-    SiteTreeHierarchyExtension: SilverStripe\SearchService\Extensions\SiteTreeHierarchyExtension
+    SearchServiceExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
+    SiteTreeHierarchyExtension: SilverStripe\Forager\Extensions\SiteTreeHierarchyExtension
 ---
-Name: search-service-form-extension
+Name: silverstripe-forager-form-extension
 ---
 SilverStripe\AssetAdmin\Forms\FileFormFactory:
   extensions:
-    - SilverStripe\SearchService\Extensions\SearchFormFactoryExtension
-SilverStripe\SearchService\Extensions\SearchFormFactoryExtension:
+    - SilverStripe\Forager\Extensions\SearchFormFactoryExtension
+SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
   exclude_classes:
     - SilverStripe\Assets\Image

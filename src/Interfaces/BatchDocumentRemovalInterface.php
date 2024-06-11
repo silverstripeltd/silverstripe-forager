@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Interfaces;
+namespace SilverStripe\Forager\Interfaces;
 
 interface BatchDocumentRemovalInterface
 {

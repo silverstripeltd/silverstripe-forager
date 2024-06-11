@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Jobs;
+namespace SilverStripe\Forager\Jobs;
 
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -8,10 +8,10 @@ use RuntimeException;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Interfaces\BatchDocumentRemovalInterface;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\Traits\ServiceAware;
+use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\Traits\ServiceAware;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 

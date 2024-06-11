@@ -1,10 +1,10 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions;
+namespace SilverStripe\Forager\Extensions;
 
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Extension;
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
 
 class SiteTreeHierarchyExtension extends Extension
 {

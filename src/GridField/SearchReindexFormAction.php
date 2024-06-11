@@ -1,15 +1,15 @@
 <?php
 
-namespace SilverStripe\SearchService\GridField;
+namespace SilverStripe\Forager\GridField;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
+use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridField_ActionMenuItem;
 use SilverStripe\Forms\GridField\GridField_ActionProvider;
 use SilverStripe\Forms\GridField\GridField_ColumnProvider;
 use SilverStripe\Forms\GridField\GridField_FormAction;
-use SilverStripe\SearchService\Tasks\SearchReindex;
 
 class SearchReindexFormAction implements GridField_ColumnProvider, GridField_ActionProvider, GridField_ActionMenuItem
 {

@@ -1,10 +1,10 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
 use SilverStripe\Dev\TestOnly;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\SearchService\Extensions\SearchServiceExtension;
 
 class ImageFake extends DataObject implements TestOnly
 {

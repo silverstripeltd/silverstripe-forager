@@ -1,7 +1,7 @@
 {
-    "name": "silverstripe-search-service",
-    "description": "Service agnostic abstraction of search indexing and configuration requirements",
+    "name": "silverstripe-forager",
+    "description": "Search Content Management for Silverstripe CMS",
     "main": "README.md",
-    "repository": "https://github.com/silverstripe/silverstripe-search-service",
+    "repository": "https://github.com/silverstripeltd/silverstripe-forager",
     "author": "Silverstripe Ltd"
   }

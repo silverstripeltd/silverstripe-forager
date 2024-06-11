@@ -1,17 +1,17 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Jobs;
+namespace SilverStripe\Forager\Tests\Jobs;
 
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\Jobs\RemoveDataObjectJob;
-use SilverStripe\SearchService\Schema\Field;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFakePrivate;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFakeVersioned;
-use SilverStripe\SearchService\Tests\Fake\ImageFake;
-use SilverStripe\SearchService\Tests\Fake\TagFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
+use SilverStripe\Forager\Tests\Fake\ImageFake;
+use SilverStripe\Forager\Tests\Fake\TagFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Security\Member;
 
 class RemoveDataObjectJobTest extends SearchServiceTest

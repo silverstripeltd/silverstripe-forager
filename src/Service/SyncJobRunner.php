@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use SilverStripe\Core\Injector\Injectable;
 use Symbiote\QueuedJobs\Services\QueuedJob;

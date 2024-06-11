@@ -1,6 +1,6 @@
 ---
-Name: search-service-default
+Name: search-forager-default
 ---
 SilverStripe\Core\Injector\Injector:
-  SilverStripe\SearchService\Interfaces\IndexingInterface:
-    class: SilverStripe\SearchService\Service\Naive\NaiveSearchService
+  SilverStripe\Forager\Interfaces\IndexingInterface:
+    class: SilverStripe\Forager\Service\Naive\NaiveSearchService

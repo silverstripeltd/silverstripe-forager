@@ -1,19 +1,19 @@
 <?php
 
-namespace SilverStripe\SearchService\Tasks;
+namespace SilverStripe\Forager\Tasks;
 
 use InvalidArgumentException;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\BuildTask;
-use SilverStripe\SearchService\Interfaces\BatchDocumentInterface;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Jobs\ClearIndexJob;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\SyncJobRunner;
-use SilverStripe\SearchService\Service\Traits\BatchProcessorAware;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
-use SilverStripe\SearchService\Service\Traits\ServiceAware;
+use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Jobs\ClearIndexJob;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\SyncJobRunner;
+use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
+use SilverStripe\Forager\Service\Traits\ServiceAware;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 class SearchClearIndex extends BuildTask

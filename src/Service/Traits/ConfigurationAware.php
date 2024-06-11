@@ -1,8 +1,8 @@
 <?php
 
-namespace SilverStripe\SearchService\Service\Traits;
+namespace SilverStripe\Forager\Service\Traits;
 
-use SilverStripe\SearchService\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\IndexConfiguration;
 
 trait ConfigurationAware
 {

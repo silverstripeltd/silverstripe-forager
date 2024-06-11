@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Schema\Field;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Schema\Field;
 
 class IndexConfiguration
 {

@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Tasks;
+namespace SilverStripe\Forager\Tests\Tasks;
 
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Tasks\SearchConfigure;
-use SilverStripe\SearchService\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Tasks\SearchConfigure;
+use SilverStripe\Forager\Tests\Fake\ServiceFake;
 
 class SearchConfigureTest extends SapphireTest
 {

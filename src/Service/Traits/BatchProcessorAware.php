@@ -1,8 +1,8 @@
 <?php
 
-namespace SilverStripe\SearchService\Service\Traits;
+namespace SilverStripe\Forager\Service\Traits;
 
-use SilverStripe\SearchService\Interfaces\BatchDocumentInterface;
+use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
 
 trait BatchProcessorAware
 {

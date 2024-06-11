@@ -1,18 +1,18 @@
 <?php
 
-namespace SilverStripe\SearchService\DataObject;
+namespace SilverStripe\Forager\DataObject;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\SearchService\Interfaces\DocumentFetcherInterface;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
 
 class DataObjectFetcher implements DocumentFetcherInterface
 {

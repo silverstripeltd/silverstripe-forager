@@ -1,48 +1,48 @@
 ---
-Name: silverstripe-search-service
+Name: silverstripe-forager
 ---
 SilverStripe\Core\Injector\Injector:
-  SilverStripe\SearchService\Interfaces\BatchDocumentInterface.default:
-    class: SilverStripe\SearchService\Service\BatchProcessor
+  SilverStripe\Forager\Interfaces\BatchDocumentInterface.default:
+    class: SilverStripe\Forager\Service\BatchProcessor
     constructor:
-      configuration: '%$SilverStripe\SearchService\Service\IndexConfiguration'
+      configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
 
-  SilverStripe\SearchService\Interfaces\BatchDocumentInterface.dataobject:
-    class: SilverStripe\SearchService\DataObject\DataObjectBatchProcessor
+  SilverStripe\Forager\Interfaces\BatchDocumentInterface.dataobject:
+    class: SilverStripe\Forager\DataObject\DataObjectBatchProcessor
     constructor:
-      configuration: '%$SilverStripe\SearchService\Service\IndexConfiguration'
+      configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
 
-  SilverStripe\SearchService\Extensions\SearchServiceExtension:
+  SilverStripe\Forager\Extensions\SearchServiceExtension:
     constructor:
-      indexService: '%$SilverStripe\SearchService\Interfaces\IndexingInterface'
-      configuration: '%$SilverStripe\SearchService\Service\IndexConfiguration'
-      batchProcessor: '%$SilverStripe\SearchService\Interfaces\BatchDocumentInterface.dataobject'
+      indexService: '%$SilverStripe\Forager\Interfaces\IndexingInterface'
+      configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
+      batchProcessor: '%$SilverStripe\Forager\Interfaces\BatchDocumentInterface.dataobject'
 
-  SilverStripe\SearchService\Tasks\SearchConfigure:
+  SilverStripe\Forager\Tasks\SearchConfigure:
     constructor:
-      indexService: '%$SilverStripe\SearchService\Interfaces\IndexingInterface'
+      indexService: '%$SilverStripe\Forager\Interfaces\IndexingInterface'
 
-  SilverStripe\SearchService\Tasks\SearchReindex:
+  SilverStripe\Forager\Tasks\SearchReindex:
     constructor:
-      indexService: '%$SilverStripe\SearchService\Interfaces\IndexingInterface'
-      configuration: '%$SilverStripe\SearchService\Service\IndexConfiguration'
-      batchProcessor: '%$SilverStripe\SearchService\Interfaces\BatchDocumentInterface.default'
+      indexService: '%$SilverStripe\Forager\Interfaces\IndexingInterface'
+      configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
+      batchProcessor: '%$SilverStripe\Forager\Interfaces\BatchDocumentInterface.default'
 
-  SilverStripe\SearchService\Tasks\SearchClearIndex:
+  SilverStripe\Forager\Tasks\SearchClearIndex:
     constructor:
-      indexService: '%$SilverStripe\SearchService\Interfaces\IndexingInterface'
-      configuration: '%$SilverStripe\SearchService\Service\IndexConfiguration'
-      batchProcessor: '%$SilverStripe\SearchService\Interfaces\BatchDocumentInterface.default'
+      indexService: '%$SilverStripe\Forager\Interfaces\IndexingInterface'
+      configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
+      batchProcessor: '%$SilverStripe\Forager\Interfaces\BatchDocumentInterface.default'
 
-  SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry:
+  SilverStripe\Forager\Service\DocumentFetchCreatorRegistry:
     constructor:
-      dataObject: '%$SilverStripe\SearchService\DataObject\DataObjectFetchCreator'
+      dataObject: '%$SilverStripe\Forager\DataObject\DataObjectFetchCreator'
 
-  SilverStripe\SearchService\Service\IndexConfiguration:
+  SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
       index_variant: '`SS_ENVIRONMENT_TYPE`'
 
-  SilverStripe\SearchService\Service\DocumentBuilder:
+  SilverStripe\Forager\Service\DocumentBuilder:
     constructor:
-      configuration: '%$SilverStripe\SearchService\Service\IndexConfiguration'
-      registry: '%$SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry'
+      configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
+      registry: '%$SilverStripe\Forager\Service\DocumentFetchCreatorRegistry'

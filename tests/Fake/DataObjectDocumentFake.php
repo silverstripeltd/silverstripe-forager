@@ -1,8 +1,8 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
 
 class DataObjectDocumentFake extends DataObjectDocument
 {

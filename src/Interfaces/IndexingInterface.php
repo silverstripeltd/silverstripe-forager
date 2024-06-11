@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\SearchService\Interfaces;
+namespace SilverStripe\Forager\Interfaces;
 
-use SilverStripe\SearchService\Exception\IndexConfigurationException;
-use SilverStripe\SearchService\Exception\IndexingServiceException;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
+use SilverStripe\Forager\Exception\IndexingServiceException;
 
 interface IndexingInterface extends BatchDocumentInterface
 {

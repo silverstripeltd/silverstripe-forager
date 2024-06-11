@@ -1,11 +1,11 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Jobs;
+namespace SilverStripe\Forager\Tests\Jobs;
 
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class IndexJobTest extends SearchServiceTest
 {

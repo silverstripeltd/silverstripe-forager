@@ -1,10 +1,10 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
 use Page;
 use SilverStripe\Dev\TestOnly;
-use SilverStripe\SearchService\Extensions\SearchServiceExtension;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
 
 class PageFake extends Page implements TestOnly
 {

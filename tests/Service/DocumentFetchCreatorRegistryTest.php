@@ -1,14 +1,14 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Service;
+namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\SearchService\DataObject\DataObjectFetchCreator;
-use SilverStripe\SearchService\DataObject\DataObjectFetcher;
-use SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\FakeFetchCreator;
-use SilverStripe\SearchService\Tests\Fake\FakeFetcher;
+use SilverStripe\Forager\DataObject\DataObjectFetchCreator;
+use SilverStripe\Forager\DataObject\DataObjectFetcher;
+use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
+use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 
 class DocumentFetchCreatorRegistryTest extends SapphireTest
 {

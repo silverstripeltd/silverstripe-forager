@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Extensions;
+namespace SilverStripe\Forager\Tests\Extensions;
 
 use Page;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Extensions\SiteTreeHierarchyExtension;
 use SilverStripe\ORM\ArrayList;
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\Extensions\SiteTreeHierarchyExtension;
 
 class SiteTreeHierarchyExtensionTest extends SapphireTest
 {

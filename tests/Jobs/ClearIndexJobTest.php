@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Jobs;
+namespace SilverStripe\Forager\Tests\Jobs;
 
 use InvalidArgumentException;
 use RuntimeException;
-use SilverStripe\SearchService\Jobs\ClearIndexJob;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Jobs\ClearIndexJob;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class ClearIndexJobTest extends SearchServiceTest
 {

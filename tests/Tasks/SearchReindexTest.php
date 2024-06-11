@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Tasks;
+namespace SilverStripe\Forager\Tests\Tasks;
 
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Jobs\ReindexJob;
-use SilverStripe\SearchService\Service\SyncJobRunner;
-use SilverStripe\SearchService\Tasks\SearchReindex;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Jobs\ReindexJob;
+use SilverStripe\Forager\Service\SyncJobRunner;
+use SilverStripe\Forager\Tasks\SearchReindex;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class SearchReindexTest extends SearchServiceTest
 {

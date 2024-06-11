@@ -1,16 +1,16 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Exception\IndexConfigurationException;
-use SilverStripe\SearchService\Exception\IndexingServiceException;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Interfaces\DocumentMetaProvider;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
-use SilverStripe\SearchService\Service\Traits\RegistryAware;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
+use SilverStripe\Forager\Exception\IndexingServiceException;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Interfaces\DocumentMetaProvider;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
+use SilverStripe\Forager\Service\Traits\RegistryAware;
 
 class DocumentBuilder
 {

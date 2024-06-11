@@ -1,14 +1,14 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Service;
+namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Service\BatchProcessor;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Service\SyncJobRunner;
-use SilverStripe\SearchService\Tests\Fake\DocumentFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Service\BatchProcessor;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Service\SyncJobRunner;
+use SilverStripe\Forager\Tests\Fake\DocumentFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 class BatchProcessorTest extends SearchServiceTest

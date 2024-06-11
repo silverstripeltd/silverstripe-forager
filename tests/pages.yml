@@ -1,4 +1,4 @@
-SilverStripe\SearchService\Tests\Fake\TagFake:
+SilverStripe\Forager\Tests\Fake\TagFake:
   four:
     Title: Tag four
   five:
@@ -6,19 +6,19 @@ SilverStripe\SearchService\Tests\Fake\TagFake:
   six:
     Title: Tag six
 
-SilverStripe\SearchService\Tests\Fake\ImageFake:
+SilverStripe\Forager\Tests\Fake\ImageFake:
   three:
     Title: Image Fake Three
     URL: "/image-three/"
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.four,=>SilverStripe\SearchService\Tests\Fake\TagFake.five
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.four,=>SilverStripe\Forager\Tests\Fake\TagFake.five
   four:
     Title: Image Fake Four
     URL: "/image-four/"
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.five,=>SilverStripe\SearchService\Tests\Fake\TagFake.six
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.five,=>SilverStripe\Forager\Tests\Fake\TagFake.six
   five:
     Title: Image Fake Five
     URL: "/image-five/"
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.six
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.six
 
 Page:
   page1:
@@ -52,22 +52,22 @@ Page:
     Parent: =>Page.page2
     ShowInSearch: 1
 
-SilverStripe\SearchService\Tests\Fake\PageFake:
+SilverStripe\Forager\Tests\Fake\PageFake:
   page9:
     Title: Child of Parent Page 2 - B
     Parent: =>Page.page4
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.four,=>SilverStripe\SearchService\Tests\Fake\TagFake.five
-    Images: =>SilverStripe\SearchService\Tests\Fake\ImageFake.three
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.four,=>SilverStripe\Forager\Tests\Fake\TagFake.five
+    Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.three
     ShowInSearch: 1
   page10:
     Title: Grandchild of Parent Page 2 - B1
-    Parent: =>SilverStripe\SearchService\Tests\Fake\PageFake.page9
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.five,=>SilverStripe\SearchService\Tests\Fake\TagFake.six
-    Images: =>SilverStripe\SearchService\Tests\Fake\ImageFake.four
+    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page9
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.five,=>SilverStripe\Forager\Tests\Fake\TagFake.six
+    Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.four
     ShowInSearch: 1
   page11:
     Title: Great Grandchild of Parent Page 2 - B1 - One
-    Parent: =>SilverStripe\SearchService\Tests\Fake\PageFake.page10
-    Images: =>SilverStripe\SearchService\Tests\Fake\ImageFake.five
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.four,=>SilverStripe\SearchService\Tests\Fake\TagFake.six
+    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page10
+    Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.five
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.four,=>SilverStripe\Forager\Tests\Fake\TagFake.six
     ShowInSearch: 1

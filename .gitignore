@@ -1,0 +1,11 @@
+# IDE
+.vscode
+
+# PHP
+composer.lock
+vendor
+.phpunit.result.cache
+
+#silverstripe
+.env
+public

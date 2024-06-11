@@ -1,15 +1,15 @@
 <?php
 
-namespace SilverStripe\SearchService\Jobs;
+namespace SilverStripe\Forager\Jobs;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\SearchService\Interfaces\DocumentFetcherInterface;
-use SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
+use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
+use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Versioned\Versioned;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;

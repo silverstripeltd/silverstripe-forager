@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Admin;
+namespace SilverStripe\Forager\Admin;
 
 use SilverStripe\View\ViewableData;
 

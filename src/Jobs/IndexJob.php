@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Jobs;
+namespace SilverStripe\Forager\Jobs;
 
 use Exception;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\Indexer;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\Indexer;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 

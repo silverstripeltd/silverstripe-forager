@@ -1,15 +1,15 @@
 <?php
 
-namespace SilverStripe\SearchService\DataObject;
+namespace SilverStripe\Forager\DataObject;
 
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Service\BatchProcessor;
+use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\ValidationException;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Jobs\RemoveDataObjectJob;
-use SilverStripe\SearchService\Service\BatchProcessor;
-use SilverStripe\SearchService\Service\Indexer;
 
 class DataObjectBatchProcessor extends BatchProcessor
 {

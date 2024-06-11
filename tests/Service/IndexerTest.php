@@ -1,15 +1,15 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Service;
+namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Tests\Fake\DataObjectDocumentFake;
-use SilverStripe\SearchService\Tests\Fake\DocumentFake;
-use SilverStripe\SearchService\Tests\Fake\ServiceFake;
-use SilverStripe\SearchService\Tests\Fake\TagFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Tests\Fake\DataObjectDocumentFake;
+use SilverStripe\Forager\Tests\Fake\DocumentFake;
+use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Tests\Fake\TagFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class IndexerTest extends SearchServiceTest
 {

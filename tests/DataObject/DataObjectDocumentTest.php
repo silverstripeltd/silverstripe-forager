@@ -1,26 +1,26 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\DataObject;
+namespace SilverStripe\Forager\Tests\DataObject;
 
 use Page;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
+use SilverStripe\Forager\Interfaces\DocumentAddHandler;
+use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
+use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
+use SilverStripe\Forager\Tests\Fake\ImageFake;
+use SilverStripe\Forager\Tests\Fake\PageFake;
+use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Tests\Fake\TagFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\RelationList;
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\Exception\IndexConfigurationException;
-use SilverStripe\SearchService\Interfaces\DocumentAddHandler;
-use SilverStripe\SearchService\Interfaces\DocumentRemoveHandler;
-use SilverStripe\SearchService\Schema\Field;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFakePrivate;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFakeVersioned;
-use SilverStripe\SearchService\Tests\Fake\DataObjectSubclassFake;
-use SilverStripe\SearchService\Tests\Fake\ImageFake;
-use SilverStripe\SearchService\Tests\Fake\PageFake;
-use SilverStripe\SearchService\Tests\Fake\ServiceFake;
-use SilverStripe\SearchService\Tests\Fake\TagFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
 use SilverStripe\Security\Member;
 use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\ReadingMode;
@@ -56,7 +56,7 @@ class DataObjectDocumentTest extends SearchServiceTest
     {
         $dataobject = new DataObjectFake(['ID' => 5]);
         $doc = DataObjectDocument::create($dataobject);
-        $this->assertEquals('silverstripe_searchservice_tests_fake_dataobjectfake_5', $doc->getIdentifier());
+        $this->assertEquals('silverstripe_forager_tests_fake_dataobjectfake_5', $doc->getIdentifier());
     }
 
     public function testGetSourceClass(): void

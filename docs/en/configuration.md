@@ -9,7 +9,7 @@ but it is also used to store platform agnostic settings.
 Let's index our pages!
 
 ```yaml
-SilverStripe\SearchService\Service\IndexConfiguration:
+SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
     myindex:
       includeClasses:
@@ -58,7 +58,7 @@ with the `SilverStripe\Versioned\Versioned` extension. Non-versioned content is 
 ```yaml
 MyProject\MyApp\Product:
   extensions:
-    - SilverStripe\SearchService\Extensions\SearchServiceExtension
+    - SilverStripe\Forager\Extensions\SearchServiceExtension
 ```
 
 ## Indexing relational data
@@ -66,7 +66,7 @@ MyProject\MyApp\Product:
 Content on related objects can be listed in the search document, but it must be flattened.
 
 ```yaml
-SilverStripe\SearchService\Service\IndexConfiguration:
+SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
     myindex:
       includeClasses:
@@ -189,7 +189,7 @@ variable it uses can be configured. By default, as described above, the environm
 
 ```yaml
 SilverStripe\Core\Injector\Injector:
-  SilverStripe\SearchService\Service\IndexConfiguration:
+  SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
       index_variant: '`MY_CUSTOM_VAR`'
 
@@ -208,7 +208,7 @@ The content is extracted using an XPath selector. By default, this is `//main`, 
 can be configured.
 
 ```yaml
-SilverStripe\SearchService\Service\PageCrawler:
+SilverStripe\Forager\Service\PageCrawler:
   content_xpath_selector: '//body'
 ```
 
@@ -219,7 +219,7 @@ each subsite's content into a separate engine. To do so, you can use the followi
 configuration:
 
 ```yaml
-SilverStripe\SearchService\Service\IndexConfiguration:
+SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
     content-subsite0:
       subsite_id: 0
@@ -261,9 +261,9 @@ setting, use the code snippet below.
 
 ```yaml
 ---
-After: search-service-form-extension
+After: silverstripe-forager-form-extension
 ---
-SilverStripe\SearchService\Extensions\SearchFormFactoryExtension:
+SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
   exclude_classes: null
 ```
 
@@ -271,7 +271,7 @@ If you want to exclude certain file extensions from being added to the search in
 the following configuration to your code base:
 
 ```yaml
-SilverStripe\SearchService\Extensions\SearchFormFactoryExtension:
+SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
   exclude_file_extensions: 
     - svg
     - mp4

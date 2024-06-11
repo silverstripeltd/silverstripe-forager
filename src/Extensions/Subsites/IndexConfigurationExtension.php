@@ -1,10 +1,10 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions\Subsites;
+namespace SilverStripe\Forager\Extensions\Subsites;
 
 use SilverStripe\Core\Extension;
-use SilverStripe\SearchService\Interfaces\DataObjectDocumentInterface;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Interfaces\DataObjectDocumentInterface;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
 
 class IndexConfigurationExtension extends Extension
 {

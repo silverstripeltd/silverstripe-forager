@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Jobs;
+namespace SilverStripe\Forager\Jobs;
 
 use Exception;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\FieldType\DBField;
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\Service\Indexer;
 use SilverStripe\Versioned\Versioned;
 
 /**

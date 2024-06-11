@@ -1,15 +1,15 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Extensions;
+namespace SilverStripe\Forager\Tests\Extensions;
 
 use SilverStripe\Assets\File;
 use SilverStripe\Assets\Image;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forager\Extensions\SearchFormFactoryExtension;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\TabSet;
-use SilverStripe\SearchService\Extensions\SearchFormFactoryExtension;
 
 class SearchFormFactoryExtensionTest extends SapphireTest
 {

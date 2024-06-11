@@ -1,10 +1,10 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\SearchService\Interfaces\DocumentFetcherInterface;
+use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 
 class DocumentChunkFetcher
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
-use SilverStripe\SearchService\Interfaces\DocumentFetchCreatorInterface;
-use SilverStripe\SearchService\Interfaces\DocumentFetcherInterface;
+use SilverStripe\Forager\Interfaces\DocumentFetchCreatorInterface;
+use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 
 class FakeFetchCreator implements DocumentFetchCreatorInterface
 {

@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\SearchService\Tasks;
+namespace SilverStripe\Forager\Tasks;
 
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Dev\BuildTask;
-use SilverStripe\SearchService\Exception\IndexingServiceException;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\Traits\ServiceAware;
+use SilverStripe\Forager\Exception\IndexingServiceException;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\Traits\ServiceAware;
 
 /**
  * Syncs index settings to a search service.

@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
 class DataObjectSubclassFake extends DataObjectFake
 {

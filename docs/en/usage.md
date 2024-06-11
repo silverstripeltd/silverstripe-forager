@@ -68,7 +68,7 @@ When dealing with relational data in search documents, managing these interdepen
 can range from a minor inconsistency to a serious concern. Imagine the following scenario:
 
 ```yaml
-SilverStripe\SearchService\Service\IndexConfiguration:
+SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
     myindex:
       includeClasses:
@@ -87,7 +87,7 @@ with a stale set of tags in the search index.
 It can be worse, too: 
 
 ```yaml
-SilverStripe\SearchService\Service\IndexConfiguration:
+SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
     myindex:
       includeClasses:

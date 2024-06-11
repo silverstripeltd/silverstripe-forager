@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions\Subsites;
+namespace SilverStripe\Forager\Extensions\Subsites;
 
 use SilverStripe\Core\Extension;
 use SilverStripe\ORM\ArrayList;

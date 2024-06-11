@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Exception;
+namespace SilverStripe\Forager\Exception;
 
 use Exception;
 

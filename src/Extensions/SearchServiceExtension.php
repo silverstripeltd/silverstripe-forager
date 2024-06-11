@@ -1,24 +1,24 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions;
+namespace SilverStripe\Forager\Extensions;
 
 use Exception;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\IndexingServiceException;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
+use SilverStripe\Forager\Service\Traits\ServiceAware;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\SearchService\DataObject\DataObjectBatchProcessor;
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\Exception\IndexingServiceException;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\Traits\BatchProcessorAware;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
-use SilverStripe\SearchService\Service\Traits\ServiceAware;
 use SilverStripe\Versioned\Versioned;
 use Throwable;
 

@@ -1,14 +1,14 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use Exception;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\ORM\ValidationException;
-use SilverStripe\SearchService\Interfaces\BatchDocumentInterface;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 

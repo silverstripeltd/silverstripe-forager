@@ -1,11 +1,11 @@
 <?php
 
-namespace SilverStripe\SearchService\DataObject;
+namespace SilverStripe\Forager\DataObject;
 
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\Interfaces\DocumentFetchCreatorInterface;
+use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\SearchService\Interfaces\DocumentFetchCreatorInterface;
-use SilverStripe\SearchService\Interfaces\DocumentFetcherInterface;
 
 class DataObjectFetchCreator implements DocumentFetchCreatorInterface
 {

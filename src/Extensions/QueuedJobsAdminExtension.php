@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions;
+namespace SilverStripe\Forager\Extensions;
 
 use SilverStripe\Core\Extension;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\Form;
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Jobs\RemoveDataObjectJob;
 
 class QueuedJobsAdminExtension extends Extension
 {

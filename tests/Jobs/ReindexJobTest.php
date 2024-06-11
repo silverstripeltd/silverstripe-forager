@@ -1,14 +1,14 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Jobs;
+namespace SilverStripe\Forager\Tests\Jobs;
 
-use SilverStripe\SearchService\DataObject\DataObjectFetcher;
-use SilverStripe\SearchService\Jobs\ReindexJob;
-use SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\FakeFetchCreator;
-use SilverStripe\SearchService\Tests\Fake\FakeFetcher;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\DataObject\DataObjectFetcher;
+use SilverStripe\Forager\Jobs\ReindexJob;
+use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
+use SilverStripe\Forager\Tests\Fake\FakeFetcher;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class ReindexJobTest extends SearchServiceTest
 {

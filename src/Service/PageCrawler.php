@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use DOMDocument;
 use DOMXPath;

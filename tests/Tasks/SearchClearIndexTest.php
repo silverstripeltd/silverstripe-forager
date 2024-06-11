@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Tasks;
+namespace SilverStripe\Forager\Tests\Tasks;
 
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Jobs\ClearIndexJob;
-use SilverStripe\SearchService\Service\SyncJobRunner;
-use SilverStripe\SearchService\Tasks\SearchClearIndex;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Jobs\ClearIndexJob;
+use SilverStripe\Forager\Service\SyncJobRunner;
+use SilverStripe\Forager\Tasks\SearchClearIndex;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class SearchClearIndexTest extends SearchServiceTest
 {

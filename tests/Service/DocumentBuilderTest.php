@@ -1,16 +1,16 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Service;
+namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\DocumentBuilder;
-use SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry;
-use SilverStripe\SearchService\Tests\Fake\DocumentFake;
-use SilverStripe\SearchService\Tests\Fake\FakeFetchCreator;
-use SilverStripe\SearchService\Tests\Fake\ServiceFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\DocumentBuilder;
+use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
+use SilverStripe\Forager\Tests\Fake\DocumentFake;
+use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
+use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class DocumentBuilderTest extends SearchServiceTest
 {

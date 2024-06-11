@@ -251,7 +251,7 @@ appropriate `DocumentFetcherInterface` instance.
 The fetch creator can now be registered.
 
 ```yaml
-  SilverStripe\SearchService\Service\DocumentFetchCreatorRegistry:
+  SilverStripe\Forager\Service\DocumentFetchCreatorRegistry:
     constructor:
       fileContent: '%$MyProject\MyApp\FileDocumentFetchCreator'
 ```

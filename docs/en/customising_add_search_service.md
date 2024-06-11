@@ -16,7 +16,7 @@ This could be done through setting the value of an environment variable to the c
 
 ```yaml
 SilverStripe\Core\Injector\Injector:
-  SilverStripe\SearchService\Service\IndexConfiguration:
+  SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
       index_variant: '`SEARCH_ENGINE_PREFIX`'
 ```
@@ -26,8 +26,8 @@ SilverStripe\Core\Injector\Injector:
 There are several methods that a class must implement as part of this spec.
 
 ```php
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
 
 class MySearchProvider implments IndexingInterface
 {
@@ -37,7 +37,7 @@ class MySearchProvider implments IndexingInterface
 
 ```yaml
 SilverStripe\Core\Injector\Injector:
-  SilverStripe\SearchService\Interfaces\IndexingInterface:
+  SilverStripe\Forager\Interfaces\IndexingInterface:
     class: MyProject\MySearchProvider
 ``` 
 

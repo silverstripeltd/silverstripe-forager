@@ -1,11 +1,11 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\DataObject;
+namespace SilverStripe\Forager\Tests\DataObject;
 
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\DataObject\DataObjectFetcher;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\DataObject\DataObjectFetcher;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 
 class DataObjectFetcherTest extends SearchServiceTest
 {

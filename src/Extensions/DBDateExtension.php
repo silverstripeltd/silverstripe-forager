@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions;
+namespace SilverStripe\Forager\Extensions;
 
 use SilverStripe\Core\Extension;
 

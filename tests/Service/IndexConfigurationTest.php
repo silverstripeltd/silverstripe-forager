@@ -1,18 +1,18 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Service;
+namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\SearchService\Schema\Field;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFakeAlternate;
-use SilverStripe\SearchService\Tests\Fake\DataObjectSubclassFake;
-use SilverStripe\SearchService\Tests\Fake\DocumentFake;
-use SilverStripe\SearchService\Tests\Fake\FakeFetcher;
-use SilverStripe\SearchService\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
+use SilverStripe\Forager\Tests\Fake\DocumentFake;
+use SilverStripe\Forager\Tests\Fake\FakeFetcher;
+use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Security\Member;
 use SilverStripe\View\ViewableData;
 

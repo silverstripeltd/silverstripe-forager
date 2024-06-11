@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Schema;
+namespace SilverStripe\Forager\Tests\Schema;
 
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\SearchService\Schema\Field;
+use SilverStripe\Forager\Schema\Field;
 
 class FieldTest extends SapphireTest
 {

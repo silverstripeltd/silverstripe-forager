@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions;
+namespace SilverStripe\Forager\Extensions;
 
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Core\Config\Config;
@@ -52,7 +52,7 @@ class SearchFormFactoryExtension extends Extension
             DatetimeField::create(
                 'SearchIndexed',
                 _t(
-                    'SilverStripe\\SearchService\\Extensions\\SearchServiceExtension.LastIndexed',
+                    'SilverStripe\\Forager\\Extensions\\SearchServiceExtension.LastIndexed',
                     'Last indexed in search'
                 )
             )

@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
-use SilverStripe\SearchService\Interfaces\BatchDocumentRemovalInterface;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\DocumentBuilder;
-use SilverStripe\SearchService\Service\IndexConfiguration;
+use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\DocumentBuilder;
+use SilverStripe\Forager\Service\IndexConfiguration;
 
 class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
 {

@@ -1,17 +1,17 @@
 <?php
 
-namespace SilverStripe\SearchService\Service;
+namespace SilverStripe\Forager\Service;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\SearchService\Interfaces\DependencyTracker;
-use SilverStripe\SearchService\Interfaces\DocumentAddHandler;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
-use SilverStripe\SearchService\Interfaces\DocumentRemoveHandler;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\Traits\ConfigurationAware;
-use SilverStripe\SearchService\Service\Traits\ServiceAware;
+use SilverStripe\Forager\Interfaces\DependencyTracker;
+use SilverStripe\Forager\Interfaces\DocumentAddHandler;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\Traits\ConfigurationAware;
+use SilverStripe\Forager\Service\Traits\ServiceAware;
 
 class Indexer
 {

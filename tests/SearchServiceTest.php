@@ -1,16 +1,16 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests;
+namespace SilverStripe\Forager\Tests;
 
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\SearchService\DataObject\DataObjectDocument;
-use SilverStripe\SearchService\Extensions\SearchServiceExtension;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\IndexConfigurationFake;
-use SilverStripe\SearchService\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
+use SilverStripe\Forager\Tests\Fake\ServiceFake;
 
 abstract class SearchServiceTest extends SapphireTest
 {

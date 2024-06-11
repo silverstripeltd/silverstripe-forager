@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\DataObject;
+namespace SilverStripe\Forager\Tests\DataObject;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\SearchService\DataObject\DataObjectFetchCreator;
-use SilverStripe\SearchService\DataObject\DataObjectFetcher;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\Fake\TagFake;
+use SilverStripe\Forager\DataObject\DataObjectFetchCreator;
+use SilverStripe\Forager\DataObject\DataObjectFetcher;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\TagFake;
 use SilverStripe\Security\Member;
 
 class DataObjectFetchCreatorTest extends SapphireTest

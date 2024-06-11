@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\SearchService\Schema;
+namespace SilverStripe\Forager\Schema;
 
 class Field
 {

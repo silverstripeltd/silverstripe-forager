@@ -1,4 +1,4 @@
-SilverStripe\SearchService\Tests\Fake\TagFake:
+SilverStripe\Forager\Tests\Fake\TagFake:
   one:
     Title: Tag one
   two:
@@ -6,13 +6,13 @@ SilverStripe\SearchService\Tests\Fake\TagFake:
   three:
     Title: Tag three
 
-SilverStripe\SearchService\Tests\Fake\ImageFake:
+SilverStripe\Forager\Tests\Fake\ImageFake:
   one:
     URL: '/image-one/'
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.two,=>SilverStripe\SearchService\Tests\Fake\TagFake.three
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.two,=>SilverStripe\Forager\Tests\Fake\TagFake.three
   two:
     URL: '/image-two/'
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.one,=>SilverStripe\SearchService\Tests\Fake\TagFake.two
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.one,=>SilverStripe\Forager\Tests\Fake\TagFake.two
 
 SilverStripe\Security\Member:
   one:
@@ -25,33 +25,33 @@ SilverStripe\Security\Member:
     FirstName: member-three-first
     Surname: member-three-last
 
-SilverStripe\SearchService\Tests\Fake\DataObjectFake:
+SilverStripe\Forager\Tests\Fake\DataObjectFake:
   one:
     Title: Dataobject one
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.one,=>SilverStripe\SearchService\Tests\Fake\TagFake.two
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.one,=>SilverStripe\Forager\Tests\Fake\TagFake.two
     Member: =>SilverStripe\Security\Member.one
-    Images: =>SilverStripe\SearchService\Tests\Fake\ImageFake.one
+    Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.one
     Sort: 1
     ShowInSearch: 1
   two:
     Title: Dataobject two
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.two,=>SilverStripe\SearchService\Tests\Fake\TagFake.three
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.two,=>SilverStripe\Forager\Tests\Fake\TagFake.three
     Member: =>SilverStripe\Security\Member.two
-    Images: =>SilverStripe\SearchService\Tests\Fake\ImageFake.two
+    Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.two
     Sort: 2
     ShowInSearch: 0
   three:
     Title: Dataobject three
-    Tags: =>SilverStripe\SearchService\Tests\Fake\TagFake.one
+    Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.one
     Member: =>SilverStripe\Security\Member.three
     Sort: 3
     ShowInSearch: 1
 
-SilverStripe\SearchService\Tests\Fake\DataObjectFakePrivate:
+SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate:
   one:
     Title: Dataobject one
 
-SilverStripe\SearchService\Tests\Fake\DataObjectFakeVersioned:
+SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned:
   one:
     Title: Dataobject one Versioned
     ShowInSearch: 1

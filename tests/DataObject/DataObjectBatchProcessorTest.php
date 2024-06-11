@@ -1,19 +1,19 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\DataObject;
+namespace SilverStripe\Forager\Tests\DataObject;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Service\SyncJobRunner;
+use SilverStripe\Forager\Tests\Fake\DataObjectDocumentFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\ORM\FieldType\DBDatetime;
-use SilverStripe\SearchService\DataObject\DataObjectBatchProcessor;
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Jobs\RemoveDataObjectJob;
-use SilverStripe\SearchService\Service\IndexConfiguration;
-use SilverStripe\SearchService\Service\Indexer;
-use SilverStripe\SearchService\Service\SyncJobRunner;
-use SilverStripe\SearchService\Tests\Fake\DataObjectDocumentFake;
-use SilverStripe\SearchService\Tests\Fake\DataObjectFake;
-use SilverStripe\SearchService\Tests\SearchServiceTest;
 
 class DataObjectBatchProcessorTest extends SearchServiceTest
 {
@@ -65,8 +65,8 @@ class DataObjectBatchProcessorTest extends SearchServiceTest
 
         $processor->removeDocuments(
             [
-                new DataObjectDocumentFake(new DataObjectFake()),
-                new DataObjectDocumentFake(new DataObjectFake()),
+                DataObjectDocumentFake::create(DataObjectFake::create()),
+                DataObjectDocumentFake::create(DataObjectFake::create()),
             ]
         );
     }

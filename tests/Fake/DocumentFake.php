@@ -1,9 +1,9 @@
 <?php
 
-namespace SilverStripe\SearchService\Tests\Fake;
+namespace SilverStripe\Forager\Tests\Fake;
 
-use SilverStripe\SearchService\Interfaces\DependencyTracker;
-use SilverStripe\SearchService\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Interfaces\DependencyTracker;
+use SilverStripe\Forager\Interfaces\DocumentInterface;
 
 class DocumentFake implements DocumentInterface, DependencyTracker
 {

@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\SearchService\Extensions\Elemental;
+namespace SilverStripe\Forager\Extensions\Elemental;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Extension;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\SearchService\Extensions\SearchServiceExtension;
-use SilverStripe\SearchService\Service\IndexConfiguration;
 
 /**
  * Extension class that hooks into BaseElement to ensure that the parent page is indexed whenever an element is

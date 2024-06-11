@@ -1,18 +1,18 @@
 ---
-Name: 'silverstripe-search-service-subsites'
-After: '#silverstripe-search-service'
+Name: 'silverstripe-forager-subsites'
+After: '#silverstripe-forager'
 Only:
   moduleexists: 'silverstripe/subsites'
 ---
-SilverStripe\SearchService\Service\IndexConfiguration:
+SilverStripe\Forager\Service\IndexConfiguration:
   extensions:
-    - SilverStripe\SearchService\Extensions\Subsites\IndexConfigurationExtension
-SilverStripe\SearchService\Admin\SearchAdmin:
+    - SilverStripe\Forager\Extensions\Subsites\IndexConfigurationExtension
+SilverStripe\Forager\Admin\SearchAdmin:
   extensions:
-    - SilverStripe\SearchService\Extensions\Subsites\SearchAdminExtension
-SilverStripe\SearchService\Jobs\ReindexJob:
+    - SilverStripe\Forager\Extensions\Subsites\SearchAdminExtension
+SilverStripe\Forager\Jobs\ReindexJob:
   extensions:
-    - SilverStripe\SearchService\Extensions\Subsites\IndexJobExtension
-SilverStripe\SearchService\Jobs\IndexJob:
+    - SilverStripe\Forager\Extensions\Subsites\IndexJobExtension
+SilverStripe\Forager\Jobs\IndexJob:
   extensions:
-    - SilverStripe\SearchService\Extensions\Subsites\IndexJobExtension
+    - SilverStripe\Forager\Extensions\Subsites\IndexJobExtension

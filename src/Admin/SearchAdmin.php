@@ -1,11 +1,20 @@
 <?php
 
-namespace SilverStripe\SearchService\Admin;
+namespace SilverStripe\Forager\Admin;
 
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forager\Exception\IndexingServiceException;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
+use SilverStripe\Forager\GridField\SearchReindexFormAction;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Jobs\ClearIndexJob;
+use SilverStripe\Forager\Jobs\IndexJob;
+use SilverStripe\Forager\Jobs\ReindexJob;
+use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\GridField\GridField;
@@ -16,15 +25,6 @@ use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataQuery;
-use SilverStripe\SearchService\Exception\IndexingServiceException;
-use SilverStripe\SearchService\Extensions\SearchServiceExtension;
-use SilverStripe\SearchService\GridField\SearchReindexFormAction;
-use SilverStripe\SearchService\Interfaces\IndexingInterface;
-use SilverStripe\SearchService\Jobs\ClearIndexJob;
-use SilverStripe\SearchService\Jobs\IndexJob;
-use SilverStripe\SearchService\Jobs\ReindexJob;
-use SilverStripe\SearchService\Jobs\RemoveDataObjectJob;
-use SilverStripe\SearchService\Tasks\SearchReindex;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
