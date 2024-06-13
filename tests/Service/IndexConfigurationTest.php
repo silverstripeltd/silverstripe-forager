@@ -5,6 +5,7 @@ namespace SilverStripe\Forager\Tests\Service;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
@@ -287,8 +288,10 @@ class IndexConfigurationTest extends SapphireTest
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(5, $names);
-        $this->assertContains('field1', $names);
+        $this->assertCount(8, $names);
+        $this->assertContains($config->getSourceClassField(), $names);
+        $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
+        $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
         $this->assertContains('field2', $names);
         $this->assertContains('field3', $names);
         $this->assertContains('field5', $names);
@@ -298,7 +301,10 @@ class IndexConfigurationTest extends SapphireTest
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(5, $names);
+        $this->assertCount(8, $names);
+        $this->assertContains($config->getSourceClassField(), $names);
+        $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
+        $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
         $this->assertContains('field1', $names);
         $this->assertContains('field2', $names);
         $this->assertContains('field6', $names);
@@ -309,7 +315,10 @@ class IndexConfigurationTest extends SapphireTest
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(5, $names);
+        $this->assertCount(8, $names);
+        $this->assertContains($config->getSourceClassField(), $names);
+        $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
+        $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
         $this->assertContains('field1', $names);
         $this->assertContains('field2', $names);
         $this->assertContains('field5', $names);
@@ -320,14 +329,29 @@ class IndexConfigurationTest extends SapphireTest
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(1, $names);
+        $this->assertCount(4, $names);
+        $this->assertContains($config->getSourceClassField(), $names);
+        $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
+        $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
         $this->assertContains('field9', $names);
 
         $result = $config->getFieldsForIndex('index5');
-        $this->assertEmpty($result);
+        $names = array_map(function (Field $field) {
+            return $field->getSearchFieldName();
+        }, $result);
+        $this->assertCount(3, $names);
+        $this->assertContains($config->getSourceClassField(), $names);
+        $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
+        $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
 
         $result = $config->getFieldsForIndex('index6');
-        $this->assertEmpty($result);
+        $names = array_map(function (Field $field) {
+            return $field->getSearchFieldName();
+        }, $result);
+        $this->assertCount(3, $names);
+        $this->assertContains($config->getSourceClassField(), $names);
+        $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
+        $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
     }
 
     protected function bootstrapIndexes(): void
