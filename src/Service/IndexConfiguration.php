@@ -6,6 +6,7 @@ use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Schema\Field;
 
@@ -264,6 +265,22 @@ class IndexConfiguration
     public function getFieldsForIndex(string $index): array
     {
         $fields = [];
+
+        $defaultFields = [
+            // Default fields that relate to our DataObjects
+            $this->getSourceClassField(),
+            DataObjectDocument::config()->get('base_class_field'),
+            DataObjectDocument::config()->get('record_id_field'),
+        ];
+
+        foreach ($defaultFields as $defaultField) {
+            $fields[$defaultField] = new Field(
+                $defaultField,
+                null,
+                []
+            );
+        }
+
         $classes = $this->getClassesForIndex($index);
 
         foreach ($classes as $class) {
