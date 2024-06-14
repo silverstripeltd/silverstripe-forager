@@ -287,6 +287,8 @@ class IndexConfiguration
             $fields = array_merge($fields, $this->getFieldsForClass($class));
         }
 
+        $this->extend('extendGetFieldsForIndex', $fields);
+
         return $fields;
     }
 
