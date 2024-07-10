@@ -12,7 +12,7 @@ This module **does not provide** specific service integrations, see [Available s
 composer require "silverstripe/silverstripe-forager"
 ```
 
-*Note* this module is not functional without an [integration module](available-service-integration-modules.md)
+*Note* this module is not functional without an [integration module](docs/en/available-service-integration-modules.md)
 
 ## Requirements
 
@@ -25,6 +25,7 @@ composer require "silverstripe/silverstripe-forager"
 See the [developer documentation](docs/en/index.md).
 
 ## Credits
+
 This module is based on the original [silverstripe-search-service](https://github.com/silverstripe/silverstripe-search-service) module with particular credit to the following contributors:
 
 - [Will Rossiter](https://github.com/wilr)
