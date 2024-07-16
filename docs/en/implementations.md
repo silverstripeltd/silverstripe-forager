@@ -11,7 +11,8 @@ to have enabled when running tests and/or doing CI builds.
 
 ## Available service integration modules
 
-[Available service integration modules](available-service-integration-modules.md)
+* [Silverstripe Forager > Elastic Enterprise Search Provider](https://github.com/silverstripeltd/silverstripe-forager-elastic-enterprise)
+* [Silverstripe Forager > Silverstripe Search Provider](https://github.com/silverstripeltd/silverstripe-forager-bifrost/)
 
 ## More information
 
