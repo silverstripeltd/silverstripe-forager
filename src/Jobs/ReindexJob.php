@@ -130,6 +130,12 @@ class ReindexJob extends AbstractQueuedJob implements QueuedJob
 
         $documents = $fetcher->fetch($this->getBatchSize(), $this->getFetchOffset());
 
+        if (!$documents) {
+            $this->isComplete = true;
+
+            return;
+        }
+
         $indexer = Indexer::create($documents, Indexer::METHOD_ADD, $this->getBatchSize());
         $indexer->setProcessDependencies(false);
 
