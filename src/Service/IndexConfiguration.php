@@ -21,7 +21,7 @@ class IndexConfiguration
 
     private static int $batch_size = 100;
 
-    private static bool $crawl_page_content = true;
+    private static bool $crawl_page_content = false;
 
     private static bool $include_page_html = false;
 
