@@ -37,3 +37,11 @@ SilverStripe\AssetAdmin\Forms\FileFormFactory:
 SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
   exclude_classes:
     - SilverStripe\Assets\Image
+---
+Name: forager-extensions-file
+Only:
+  envvarset: SEARCH_INDEX_FILES
+---
+SilverStripe\Assets\File:
+  extensions:
+    ForagerFileExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
