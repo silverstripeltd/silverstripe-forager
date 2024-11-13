@@ -10,7 +10,6 @@ use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
-use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
 
 /**
@@ -36,7 +35,8 @@ class ClearIndexJob extends BatchJob
             return;
         }
 
-        $batchSize = $batchSize ?: IndexConfiguration::singleton()->getBatchSize();
+        // Use the provided batch size, or determine batch size from our IndexConfiguration
+        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize(null, [$indexName]);
 
         $this->setIndexName($indexName);
         $this->setBatchSize($batchSize);

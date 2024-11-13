@@ -21,20 +21,39 @@ class ClearIndexJobTest extends SearchServiceTest
 
     public function testConstruct(): void
     {
-        $config = $this->mockConfig();
+        $this->mockConfig(true);
 
-        // Batch size of 0 is the same as not specifying a batch size, so we should get the batch size from config
-        $job = ClearIndexJob::create('myindex', 0);
-        $this->assertSame($config->getBatchSize(), $job->getBatchSize());
+        // Batch size of 0 is the same as not specifying a batch size, so we should get the lowest batch size defined
+        // in our config for index1
+        $job = ClearIndexJob::create('index1', 0);
+        $this->assertSame(50, $job->getBatchSize());
+
+        // Batch size of 0 is the same as not specifying a batch size, so we should get the lowest batch size defined
+        // in our config for index2
+        $job = ClearIndexJob::create('index2', 0);
+        $this->assertSame(25, $job->getBatchSize());
 
         // Same with not specifying a batch size at all
-        $job = ClearIndexJob::create('myindex');
-        $this->assertSame($config->getBatchSize(), $job->getBatchSize());
+        $job = ClearIndexJob::create('index1');
+        $this->assertSame(50, $job->getBatchSize());
+
+        // Same with not specifying a batch size at all
+        $job = ClearIndexJob::create('index2');
+        $this->assertSame(25, $job->getBatchSize());
+
+        // Check that a batch size is set when explicitly provided
+        $job = ClearIndexJob::create('index1', 33);
+        $this->assertSame(33, $job->getBatchSize());
+    }
+
+    public function testConstructException(): void
+    {
+        $this->mockConfig(true);
 
         // Specifying a batch size under 0 should throw an exception
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Batch size must be greater than 0');
-        $job = ClearIndexJob::create('myindex', -1);
+        $job = ClearIndexJob::create('index1', -1);
 
         // If no index name is provided, then other config options should not be applied
         $job = ClearIndexJob::create();

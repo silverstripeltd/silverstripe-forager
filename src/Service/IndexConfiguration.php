@@ -262,6 +262,83 @@ class IndexConfiguration
         return $fieldObjs;
     }
 
+    public function getLowestBatchSize(): int
+    {
+        $batchSizes = [];
+        // Fetch all index configurations (these might be filtered if onlyIndexes has been set)
+        $indexes = $this->getIndexes();
+
+        // Loop through each potential index configuration
+        foreach ($indexes as $config) {
+            $includedClasses = $config['includeClasses'] ?? [];
+
+            foreach ($includedClasses as $spec) {
+                // Check to see if a batch size was defined for this class
+                $batchSize = $spec['batch_size'] ?? null;
+
+                if (!$batchSize) {
+                    continue;
+                }
+
+                // In the case where there are multiple candidate configurations, we'll keep them all and then pick the
+                // lowest at the end
+                $batchSizes[] = $batchSize;
+            }
+        }
+
+        if ($batchSizes) {
+            return min($batchSizes);
+        }
+
+        return $this->getBatchSize();
+    }
+
+    public function getLowestBatchSizeForClass(string $class, ?string $index = null): int
+    {
+        $candidate = $class;
+        $batchSizes = [];
+        // Fetch all index configurations (these might be filtered if onlyIndexes has been set)
+        $indexes = $this->getIndexes();
+
+        if ($index) {
+            // If we're requesting the batch size for a specific index, then make sure we only have that specific index
+            // configuration available
+            $indexes = array_intersect_key($indexes, array_flip([$index]));
+        }
+
+        while ($candidate) {
+            // Loop through each potential index configuration
+            foreach ($indexes as $config) {
+                $includedClasses = $config['includeClasses'] ?? [];
+                $spec = $includedClasses[$candidate] ?? null;
+
+                if (!$spec || !is_array($spec)) {
+                    continue;
+                }
+
+                // Check to see if a batch size was defined for this class
+                $batchSize = $spec['batch_size'] ?? null;
+
+                if (!$batchSize) {
+                    continue;
+                }
+
+                // In the case where there are multiple candidate configurations, we'll keep them all and then pick the
+                // lowest at the end
+                $batchSizes[] = $batchSize;
+            }
+
+            $candidate = get_parent_class($candidate);
+        }
+
+        if ($batchSizes) {
+            // Return the lowest defined batch size
+            return min($batchSizes);
+        }
+
+        return $this->getBatchSize();
+    }
+
     public function getFieldsForIndex(string $index): array
     {
         $fields = [];
