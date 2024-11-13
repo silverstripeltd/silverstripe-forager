@@ -6,7 +6,6 @@ use Exception;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
-use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
@@ -35,7 +34,8 @@ class IndexJob extends BatchJob
         ?int $batchSize = null,
         bool $processDependencies = true
     ) {
-        $batchSize = $batchSize ?: IndexConfiguration::singleton()->getBatchSize();
+        // Use the provided batch size, or determine batch size from our IndexConfiguration
+        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize();
 
         $this->setDocuments($documents);
         $this->setMethod($method);

@@ -9,6 +9,7 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
 use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Security\Member;
 
 class ReindexJobTest extends SearchServiceTest
 {
@@ -73,6 +74,65 @@ class ReindexJobTest extends SearchServiceTest
         }
 
         $this->assertEqualsCanonicalizing($expectedFetchers, $resultFetchers);
+    }
+
+    public function testConstruct(): void
+    {
+        $this->mockConfig(true);
+
+        $job = ReindexJob::create();
+
+        $this->assertEquals([], $job->getOnlyClasses());
+        $this->assertEquals([], $job->getOnlyIndexes());
+        // Should pick the lowest batch_size across all indexes and classes
+        $this->assertEquals(25, $job->getBatchSize());
+    }
+
+    public function testConstructOnlyClasses(): void
+    {
+        $this->mockConfig(true);
+
+        $job = ReindexJob::create([DataObjectFake::class]);
+
+        $this->assertEquals([DataObjectFake::class], $job->getOnlyClasses());
+        $this->assertEquals([], $job->getOnlyIndexes());
+        // Should pick the lowest batch_size for DataObjectFake across all indexes
+        $this->assertEquals(25, $job->getBatchSize());
+
+        $job = ReindexJob::create([Member::class]);
+
+        $this->assertEquals([Member::class], $job->getOnlyClasses());
+        $this->assertEquals([], $job->getOnlyIndexes());
+        // Should pick the lowest batch_size for Member across all indexes
+        $this->assertEquals(50, $job->getBatchSize());
+    }
+
+    public function testConstructOnlyIndexes(): void
+    {
+        $this->mockConfig(true);
+
+        $job = ReindexJob::create([], ['index1']);
+
+        $this->assertEquals([], $job->getOnlyClasses());
+        $this->assertEquals(['index1'], $job->getOnlyIndexes());
+        $this->assertEquals(50, $job->getBatchSize());
+
+        $job = ReindexJob::create([], ['index2']);
+
+        $this->assertEquals([], $job->getOnlyClasses());
+        $this->assertEquals(['index2'], $job->getOnlyIndexes());
+        $this->assertEquals(25, $job->getBatchSize());
+    }
+
+    public function testConstructBatchSize(): void
+    {
+        $this->mockConfig(true);
+
+        $job = ReindexJob::create([], [], 33);
+
+        $this->assertEquals([], $job->getOnlyClasses());
+        $this->assertEquals([], $job->getOnlyIndexes());
+        $this->assertEquals(33, $job->getBatchSize());
     }
 
 }
