@@ -10,6 +10,7 @@ Let's index our pages!
 
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
+  batch_size: 75
   indexes:
     myindex:
       includeClasses:
@@ -22,33 +23,35 @@ SilverStripe\Forager\Service\IndexConfiguration:
 
 Let's look at each relevant node:
 
+* `batch_size`: The default batch size for the module is `100`. Here, we have set a new default batch size of `75`
+
 * `myindex`: The name of the index. The rules on what this can be named will vary depending
 on your service provider. EG: For EnterpriseSearch, it should only contain lowercase letters, numbers, 
-and hyphens.
+and hyphens
 
 * `includedClasses`: A list of content classes to index. These are just the _source_ of the
 content, so they have no contractual bind to the module. If they are dataobjects, they
-should have the `SearchServiceExtension` applied, however. This is discussed further below.
+should have the `SearchServiceExtension` applied, however. This is discussed further below
 
 * `SilverStripe\CMS\Model\SiteTree`: This class already has the necessary extension applied
-to it as a default configuration from the module.
+to it as a default configuration from the module
 
 * `fields`: The fields you want to index. This is a map of the _search field name_ as the key
-(how you want it to be listed in your search index) to either a boolean, or another map.
+(how you want it to be listed in your search index) to either a boolean, or another map
 
 * `property: Title`: This tells the field resolver on the document how to map the instance
 of the source class (`SiteTree`) to the value in the document (`title`). In this case,
-we want the `Title` property (DB field) to be accessed to get the value for `title`.
+we want the `Title` property (DB field) to be accessed to get the value for `title`
 
 * `content: true`: This is a shorthand for the above that only works on DataObjects. The
 resolver within `DataObjectDocument` is smart enough to resolve inconsistencies in casing,
 so when it finds that the property `$content` doesn't exist on the `SiteTree` instance, it
-will use a case matching strategy as a fallback.
+will use a case matching strategy as a fallback
 
 It is important to note that the keys of `fields` can be named anything you like, so long
 as it is valid in your search service provider (for EnterpriseSearch, that's all lowercase and 
 underscores). There is no reason why `title` cannot be `document_title` for instance,
-in the above configuration, as we've explicitly mapped the field to `Title`.
+in the above configuration, as we've explicitly mapped the field to `Title`
 
 ## Indexing DataObjects
 
@@ -71,14 +74,15 @@ SilverStripe\Forager\Service\IndexConfiguration:
     myindex:
       includeClasses:
         MyProject\MyApp\BlogEntry:
-          title: true
-          content: true
-          tags:
-            property: 'Tags.Title'
-          imagename:
-            property: 'FeaturedImage.Name'
-          commentauthors:
-            property: 'Comments.Author.Name'
+          fields:
+            title: true
+            content: true
+            tags:
+              property: 'Tags.Title'
+            imagename:
+              property: 'FeaturedImage.Name'
+            commentauthors:
+              property: 'Comments.Author.Name'
 ```
 
 For DataObject content, the dot syntax allows traversal of relationships. If the final
@@ -98,6 +102,25 @@ This will roughly get indexed as a structure like this:
 
 For more information on EnterpriseSearch specific configuration, see the [Search- Service - Elastic](https://github.com/silverstripe/silverstripe-search-service-elastic)
 module.
+
+## Batch cooldown
+
+If you would like to specify a "cooldown period" after each batch of a Job is processed, then you can do so with the
+following configuration.
+
+```yaml
+SilverStripe\Forager\Jobs\BatchJob:
+  # Set a cooldown of 2 seconds
+  batch_cooldown_ms: 2000
+```
+
+Use cases:
+
+* Some services include rate limits. You could use this feature to effectively "slow down" your processing of records
+
+* Some classes can be quite process intensive (EG: Files that require you to load them into memory in order to send
+them to your service provider). This "cooldown", plus `batch_sizes` should provide you with some dials to turn to try 
+and reduce the impact that reindexing has on your application
 
 ## Advanced configuration
 
@@ -122,8 +145,8 @@ Let's look at all the settings on the `IndexConfiguration` class:
         <tr>
             <td>batch_size</td>
             <td>int</td>
-            <td>The default size of a batch of documents (e.g. when bulk indexing) EnterpriseSearch
-            limit is `100`</td>
+            <td>The default batch sized used when bulk indexing (EG EnterpriseSearch has a limit of `100` documents per 
+                batch.</td>
             <td>100</td>
         </tr>
         <tr>
@@ -157,7 +180,7 @@ Let's look at all the settings on the `IndexConfiguration` class:
             <td>source_class_field</td>
             <td>string</td>
             <td>The name of the field that stores the source class of the document (e.g.
-            "SilverStripe\CMS\Model\SiteTree"</td>
+            "SilverStripe\CMS\Model\SiteTree")</td>
             <td>"source_class"</td>
         </tr>
         <tr>

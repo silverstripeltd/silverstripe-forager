@@ -247,7 +247,7 @@ class IndexConfiguration
                         continue;
                     }
 
-                    $config = (array)$data;
+                    $config = (array) $data;
                     $fieldObjs[$searchName] = new Field(
                         $searchName,
                         $config['property'] ?? null,

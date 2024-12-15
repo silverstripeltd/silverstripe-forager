@@ -8,7 +8,6 @@ use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
-use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
@@ -21,7 +20,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  * @property int|null $batchSize
  * @property bool $processDependencies
  */
-class IndexJob extends AbstractQueuedJob implements QueuedJob
+class IndexJob extends BatchJob
 {
 
     use Injectable;
@@ -113,7 +112,11 @@ class IndexJob extends AbstractQueuedJob implements QueuedJob
 
         if ($this->currentStep >= $this->totalSteps) {
             $this->isComplete = true;
+
+            return;
         }
+
+        $this->cooldown();
     }
 
     public function getDocuments(): array
