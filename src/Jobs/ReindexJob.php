@@ -11,7 +11,6 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Versioned\Versioned;
-use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
@@ -22,7 +21,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  * @property array|null $onlyClasses
  * @property array|null $onlyIndexes
  */
-class ReindexJob extends AbstractQueuedJob implements QueuedJob
+class ReindexJob extends BatchJob
 {
 
     use Injectable;
@@ -155,6 +154,8 @@ class ReindexJob extends AbstractQueuedJob implements QueuedJob
         $this->currentStep++;
 
         $this->extend('onAfterProcess');
+
+        $this->cooldown();
     }
 
     public function getBatchSize(): ?int

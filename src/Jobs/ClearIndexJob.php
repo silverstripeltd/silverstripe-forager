@@ -12,15 +12,13 @@ use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
-use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
-use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
  * @property int|null $batchOffset
  * @property int|null $batchSize
  * @property string|null $indexName
  */
-class ClearIndexJob extends AbstractQueuedJob implements QueuedJob
+class ClearIndexJob extends BatchJob
 {
 
     use Injectable;
@@ -103,11 +101,13 @@ class ClearIndexJob extends AbstractQueuedJob implements QueuedJob
         if ($this->currentStep > $this->totalSteps) {
             throw new RuntimeException(sprintf(
                 'ClearIndexJob was unable to delete all documents after %d attempts. Finished all steps and the'
-                    . ' document total is still %d',
+                . ' document total is still %d',
                 $this->totalSteps,
                 $totalAfter
             ));
         }
+
+        $this->cooldown();
     }
 
     public function getBatchOffset(): ?int
