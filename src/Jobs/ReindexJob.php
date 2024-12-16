@@ -44,7 +44,8 @@ class ReindexJob extends BatchJob
     {
         parent::__construct();
 
-        $batchSize = $batchSize ?: IndexConfiguration::singleton()->getBatchSize();
+        // Use the provided batch size, or determine batch size from our IndexConfiguration
+        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize($onlyClasses, $onlyIndexes);
 
         $this->setOnlyClasses($onlyClasses);
         $this->setOnlyIndexes($onlyIndexes);

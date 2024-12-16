@@ -44,4 +44,25 @@ class IndexJobTest extends SearchServiceTest
         $this->assertTrue($job->jobFinished());
     }
 
+    public function testConstruct(): void
+    {
+        $this->mockConfig(true);
+
+        $job = IndexJob::create();
+
+        $this->assertEquals([], $job->getDocuments());
+        $this->assertEquals(Indexer::METHOD_ADD, $job->getMethod());
+        // Should be the lowest define batch_size across our index configuration
+        $this->assertEquals(25, $job->getBatchSize());
+
+        $service = $this->loadIndex(20);
+        $docs = $service->listDocuments('test', 33);
+        $job = IndexJob::create($docs, Indexer::METHOD_DELETE, 33);
+
+        $this->assertEquals($docs, $job->getDocuments());
+        $this->assertEquals(Indexer::METHOD_DELETE, $job->getMethod());
+        // Should be the batch_size that was explicitly set
+        $this->assertEquals(33, $job->getBatchSize());
+    }
+
 }

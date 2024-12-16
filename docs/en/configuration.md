@@ -15,6 +15,7 @@ SilverStripe\Forager\Service\IndexConfiguration:
     myindex:
       includeClasses:
         SilverStripe\CMS\Model\SiteTree:
+          batch_size: 50
           fields:
             title:
               property: Title
@@ -35,6 +36,9 @@ should have the `SearchServiceExtension` applied, however. This is discussed fur
 
 * `SilverStripe\CMS\Model\SiteTree`: This class already has the necessary extension applied
 to it as a default configuration from the module
+
+* `batch_size`: This batch size definition specifically applies when we are queueing jobs for this class and index. If 
+no class specific batch size is defined, then the default batch size will be used
 
 * `fields`: The fields you want to index. This is a map of the _search field name_ as the key
 (how you want it to be listed in your search index) to either a boolean, or another map
@@ -119,8 +123,8 @@ Use cases:
 * Some services include rate limits. You could use this feature to effectively "slow down" your processing of records
 
 * Some classes can be quite process intensive (EG: Files that require you to load them into memory in order to send
-them to your service provider). This "cooldown", plus `batch_sizes` should provide you with some dials to turn to try 
-and reduce the impact that reindexing has on your application
+them to your service provider). This "cooldown", plus `batch_sizes` at a class level, should provide you with some dials
+to turn to try and reduce the impact that reindexing has on your application
 
 ## Advanced configuration
 

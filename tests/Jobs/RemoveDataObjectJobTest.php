@@ -111,11 +111,30 @@ class RemoveDataObjectJobTest extends SearchServiceTest
         $this->objFromFixture(DataObjectFake::class, 'one')->delete();
         $this->objFromFixture(DataObjectFake::class, 'three')->delete();
 
-        // This determines whether the document should be added or removed from from the index
+        // This determines whether the document should be added or removed from the index
         foreach ($documents as $document) {
             // The document should be removed from index
             $this->assertFalse($document->shouldIndex());
         }
+    }
+
+    public function testConstruct(): void
+    {
+        $this->mockConfig(true);
+
+        $job = RemoveDataObjectJob::create();
+
+        $this->assertNull($job->getDocument());
+        $this->assertNotNull($job->getTimestamp());
+        // Should be the lowest define batch_size across our index configuration
+        $this->assertEquals(25, $job->getBatchSize());
+
+        $job = RemoveDataObjectJob::create(null, null, 33);
+
+        $this->assertNull($job->getDocument());
+        $this->assertNotNull($job->getTimestamp());
+        // Should be the batch_size that was explicitly set
+        $this->assertEquals(33, $job->getBatchSize());
     }
 
 }
