@@ -182,4 +182,12 @@ class JobRetryExtensionTest extends SapphireTest
         $this->assertEquals(QueuedJob::STATUS_BROKEN, $jobDescriptor->JobStatus);
     }
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The shutdown handler doesn't play nicely with SapphireTest's database handling
+        QueuedJobService::config()->set('use_shutdown_function', false);
+    }
+
 }
