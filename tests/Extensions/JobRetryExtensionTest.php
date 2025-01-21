@@ -29,8 +29,15 @@ class JobRetryExtensionTest extends SapphireTest
         // THE 1ST TRY
         // This should break (but be allowed to retry)
 
+        // After the 1st try we except a 2-minutes (120-second) delay for the StartAfter
+        $expectedMinStartAfter = DBDatetime::now()->getTimestamp() + 120;
+
         // Run the job through our service, so that the extension point is invoked
         QueuedJobService::singleton()->runJob($jobId);
+
+        // We can't know exactly how long the above process took to complete, so we have a min and max time that we'll
+        // compare to, in order to reduce flakiness
+        $expectedMaxStartAfter = DBDatetime::now()->getTimestamp() + 120;
 
         // Fetch the Descriptor (after job processing) so that we can test that it was set with the correct data
         $jobDescriptor = QueuedJobDescriptor::get()->byID($jobId);
@@ -50,13 +57,8 @@ class JobRetryExtensionTest extends SapphireTest
 
         $startAfter = strtotime($jobDescriptor->StartAfter);
 
-        // After the 1st try we except a 2-minutes (120-second) delay for the StartAfter. Putting in a window of 10
-        // seconds for the comparison to reduce flakiness
-        $expectedLow = DBDatetime::now()->getTimestamp() + 115;
-        $expectedHigh = DBDatetime::now()->getTimestamp() + 125;
-
-        $this->assertGreaterThan($expectedLow, $startAfter);
-        $this->assertLessThan($expectedHigh, $startAfter);
+        $this->assertGreaterThanOrEqual($expectedMinStartAfter, $startAfter);
+        $this->assertLessThanOrEqual($expectedMaxStartAfter, $startAfter);
 
         // THE 2ND TRY
         // This should break (but be allowed to retry)
@@ -65,8 +67,15 @@ class JobRetryExtensionTest extends SapphireTest
         $jobDescriptor->StartAfter = null;
         $jobDescriptor->write();
 
+        // After the 2nd try we except a 10-minute (600-second) delay for the StartAfter
+        $expectedMinStartAfter = DBDatetime::now()->getTimestamp() + 600;
+
         // Run the job again
         QueuedJobService::singleton()->runJob($jobId);
+
+        // We can't know exactly how long the above process took to complete, so we have a min and max time that we'll
+        // compare to, in order to reduce flakiness
+        $expectedMaxStartAfter = DBDatetime::now()->getTimestamp() + 600;
 
         // Fetch the Descriptor (after job processing) so that we can test that it was set with the correct data
         $jobDescriptor = QueuedJobDescriptor::get()->byID($jobId);
@@ -86,13 +95,8 @@ class JobRetryExtensionTest extends SapphireTest
 
         $startAfter = strtotime($jobDescriptor->StartAfter);
 
-        // After the 2nd try we except a 10-minute (600-second) delay for the StartAfter. Putting in a window of 10
-        // seconds for the comparison to reduce flakiness
-        $expectedLow = DBDatetime::now()->getTimestamp() + 595;
-        $expectedHigh = DBDatetime::now()->getTimestamp() + 605;
-
-        $this->assertGreaterThan($expectedLow, $startAfter);
-        $this->assertLessThan($expectedHigh, $startAfter);
+        $this->assertGreaterThanOrEqual($expectedMinStartAfter, $startAfter);
+        $this->assertLessThanOrEqual($expectedMaxStartAfter, $startAfter);
 
         // In order to try the job again immediately, we need to remove the StartAfter
         $jobDescriptor->StartAfter = null;
@@ -101,8 +105,15 @@ class JobRetryExtensionTest extends SapphireTest
         // THE 3RD TRY
         // This should break (but be allowed to retry)
 
+        // After the 3rd try we except a 50-minute (3000-second) delay for the StartAfter
+        $expectedMinStartAfter = DBDatetime::now()->getTimestamp() + 3000;
+
         // Run the job again
         QueuedJobService::singleton()->runJob($jobId);
+
+        // We can't know exactly how long the above process took to complete, so we have a min and max time that we'll
+        // compare to, in order to reduce flakiness
+        $expectedMaxStartAfter = DBDatetime::now()->getTimestamp() + 3000;
 
         // Fetch the Descriptor (after job processing) so that we can test that it was set with the correct data
         $jobDescriptor = QueuedJobDescriptor::get()->byID($jobId);
@@ -122,13 +133,8 @@ class JobRetryExtensionTest extends SapphireTest
 
         $startAfter = strtotime($jobDescriptor->StartAfter);
 
-        // After the 3rd try we except a 50-minute (3000-second) delay for the StartAfter. Putting in a window of 10
-        // seconds for the comparison to reduce flakiness
-        $expectedLow = DBDatetime::now()->getTimestamp() + 2995;
-        $expectedHigh = DBDatetime::now()->getTimestamp() + 3005;
-
-        $this->assertGreaterThan($expectedLow, $startAfter);
-        $this->assertLessThan($expectedHigh, $startAfter);
+        $this->assertGreaterThanOrEqual($expectedMinStartAfter, $startAfter);
+        $this->assertLessThanOrEqual($expectedMaxStartAfter, $startAfter);
         // In order to try the job again immediately, we need to remove the StartAfter
         $jobDescriptor->StartAfter = null;
         $jobDescriptor->write();
