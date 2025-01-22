@@ -21,8 +21,10 @@ abstract class SearchServiceTest extends SapphireTest
     {
         $config = new IndexConfigurationFake();
 
+        Injector::inst()->registerService($config, IndexConfiguration::class);
+
         if ($setConfig) {
-            $config->set(
+            IndexConfiguration::config()->set(
                 'indexes',
                 [
                     'index1' => [
@@ -62,8 +64,7 @@ abstract class SearchServiceTest extends SapphireTest
             );
         }
 
-        Injector::inst()->registerService($config, IndexConfiguration::class);
-        SearchServiceExtension::singleton()->setConfiguration($config);
+        SearchServiceExtension::singleton()->setConfiguration(IndexConfiguration::singleton());
 
         return $config;
     }

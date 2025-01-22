@@ -194,8 +194,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertCount(1, $classes);
         $this->assertContains(ViewableData::class, $classes);
 
-        Config::modify()->merge(
-            IndexConfiguration::class,
+        IndexConfiguration::config()->merge(
             'indexes',
             [
                 'index4' => [
@@ -252,8 +251,7 @@ class IndexConfigurationTest extends SapphireTest
         $fields = $config->getFieldsForClass($className);
         $this->assertEmpty($fields);
 
-        Config::modify()->merge(
-            IndexConfiguration::class,
+        IndexConfiguration::config()->merge(
             'indexes',
             [
                 'index5' => [
@@ -411,8 +409,7 @@ class IndexConfigurationTest extends SapphireTest
 
     protected function bootstrapIndexes(): void
     {
-        Config::modify()->set(
-            IndexConfiguration::class,
+        IndexConfiguration::config()->set(
             'indexes',
             [
                 'index1' => [

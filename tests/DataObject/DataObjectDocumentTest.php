@@ -8,6 +8,7 @@ use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
 use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
@@ -185,14 +186,13 @@ class DataObjectDocumentTest extends SearchServiceTest
     public function testSubsiteDataObjectShouldIndex(): void
     {
         $subsite2 = $this->objFromFixture(Subsite::class, 'subsite2');
-
-        $config = $this->mockConfig();
+        $this->mockConfig();
 
         // Mocked indexes:
         //  - index0: allows all data without subsite filter
         //  - index1: for subsite2 and Page class and Data object that does not implement subsite
         //  - index2: for subsite2 and Data object that does not implement subsite
-        $config->set(
+        IndexConfiguration::config()->set(
             'indexes',
             [
                 'index0' => [

@@ -40,35 +40,7 @@ class IndexConfigurationFake extends IndexConfiguration
 
     public function getIndexes(): array
     {
-        $indexes = $this->override['indexes'] ?? null;
-
-        if (!$indexes) {
-            return parent::getIndexes();
-        }
-
-        // Convert environment variable defined in YML config to its value
-        array_walk($indexes, function (array &$configuration): void {
-            $configuration = $this->environmentVariableToValue($configuration);
-        });
-
-        // Using reflection because we don't want this property to be part of the public API, but we need access to it
-        // for testing purposes
-        $reflectionProperty = new ReflectionProperty(IndexConfiguration::class, 'onlyIndexes');
-        $reflectionProperty->setAccessible(true);
-
-        $onlyIndexes = $reflectionProperty->getValue($this);
-
-        if (!$onlyIndexes) {
-            return $indexes;
-        }
-
-        foreach (array_keys($indexes) as $index) {
-            if (!in_array($index, $onlyIndexes)) {
-                unset($indexes[$index]);
-            }
-        }
-
-        return $indexes;
+        return $this->override['indexes'] ?? parent::getIndexes();
     }
 
     public function shouldUseSyncJobs(): bool
