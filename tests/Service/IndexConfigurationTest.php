@@ -3,7 +3,6 @@
 namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Schema\Field;
@@ -194,8 +193,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertCount(1, $classes);
         $this->assertContains(ViewableData::class, $classes);
 
-        Config::modify()->merge(
-            IndexConfiguration::class,
+        IndexConfiguration::config()->merge(
             'indexes',
             [
                 'index4' => [
@@ -252,8 +250,7 @@ class IndexConfigurationTest extends SapphireTest
         $fields = $config->getFieldsForClass($className);
         $this->assertEmpty($fields);
 
-        Config::modify()->merge(
-            IndexConfiguration::class,
+        IndexConfiguration::config()->merge(
             'indexes',
             [
                 'index5' => [
@@ -354,21 +351,77 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
     }
 
+    public function testGetBatchSizeForClass(): void
+    {
+        $this->bootstrapIndexes();
+        $config = new IndexConfiguration();
+
+        $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
+        // Should be the batch_size set specifically within index1
+        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class, 'index1'));
+        // Should pick the lowest defined batch_size across all of our indexes
+        $this->assertEquals(50, $config->getLowestBatchSizeForClass(DataObjectFake::class));
+        // Should not get mixed up with the definitions for DataObjectFake
+        $this->assertEquals(25, $config->getLowestBatchSizeForClass(DataObjectSubclassFake::class));
+        // Should use the default batch_size of 100
+        $this->assertEquals(100, $config->getLowestBatchSizeForClass(Controller::class));
+    }
+
+    public function testGetBatchSizeForClassOnlyIndexes(): void
+    {
+        $this->bootstrapIndexes();
+        $config = new IndexConfiguration();
+        $config->setOnlyIndexes(['index1']);
+
+        $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
+        // Should be the batch_size set specifically within index1
+        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class, 'index1'));
+        // Should be exactly the same as above, because we have filtered OnlyIndexes() to 'index1'
+        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class));
+        // Should use batch_size for DataObjectFake, since DataObjectSubclassFake doesn't have an explicit definition
+        // in index1
+        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectSubclassFake::class));
+        // Should use the default batch_size of 100, since there is no definition of this class in index
+        $this->assertEquals(100, $config->getLowestBatchSizeForClass(Controller::class));
+    }
+
+    public function testGetLowestBatchSize(): void
+    {
+        $this->bootstrapIndexes();
+        $config = new IndexConfiguration();
+
+        $this->assertEquals(25, $config->getLowestBatchSize());
+    }
+
+    public function testGetLowestBatchSizeOnlyIndexes(): void
+    {
+        $this->bootstrapIndexes();
+        $config = new IndexConfiguration();
+        $config->setOnlyIndexes(['index1']);
+
+        $this->assertEquals(50, $config->getLowestBatchSize());
+
+        $config->setOnlyIndexes(['index4']);
+
+        $this->assertEquals(100, $config->getLowestBatchSize());
+    }
+
     protected function bootstrapIndexes(): void
     {
-        Config::modify()->set(
-            IndexConfiguration::class,
+        IndexConfiguration::config()->set(
             'indexes',
             [
                 'index1' => [
                     'includeClasses' => [
                         DataObjectFake::class => [
+                            'batch_size' => 75,
                             'fields' => [
                                 'field1' => true,
                                 'field2' => true,
                             ],
                         ],
                         Member::class => [
+                            'batch_size' => 50,
                             'fields' => [
                                 'field3' => true,
                                 'field4' => false,
@@ -379,6 +432,7 @@ class IndexConfigurationTest extends SapphireTest
                 'index2' => [
                     'includeClasses' => [
                         DataObjectFake::class => [
+                            'batch_size' => 50,
                             'fields' => [
                                 'field5' => true,
                             ],
@@ -393,6 +447,7 @@ class IndexConfigurationTest extends SapphireTest
                 'index3' => [
                     'includeClasses' => [
                         DataObjectSubclassFake::class => [
+                            'batch_size' => 25,
                             'fields' => [
                                 'field7' => true,
                                 'field8' => false,

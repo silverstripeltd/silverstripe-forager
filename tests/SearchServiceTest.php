@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Tests;
 
+use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
@@ -11,14 +12,59 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\Security\Member;
 
 abstract class SearchServiceTest extends SapphireTest
 {
 
-    protected function mockConfig(): IndexConfigurationFake
+    protected function mockConfig(bool $setConfig = false): IndexConfigurationFake
     {
-        Injector::inst()->registerService($config = new IndexConfigurationFake(), IndexConfiguration::class);
-        SearchServiceExtension::singleton()->setConfiguration($config);
+        $config = new IndexConfigurationFake();
+
+        Injector::inst()->registerService($config, IndexConfiguration::class);
+
+        if ($setConfig) {
+            IndexConfiguration::config()->set(
+                'indexes',
+                [
+                    'index1' => [
+                        'includeClasses' => [
+                            DataObjectFake::class => [
+                                'batch_size' => 75,
+                                'fields' => [
+                                    'field1' => true,
+                                    'field2' => true,
+                                ],
+                            ],
+                            Member::class => [
+                                'batch_size' => 50,
+                                'fields' => [
+                                    'field3' => true,
+                                    'field4' => false,
+                                ],
+                            ],
+                        ],
+                    ],
+                    'index2' => [
+                        'includeClasses' => [
+                            DataObjectFake::class => [
+                                'batch_size' => 25,
+                                'fields' => [
+                                    'field5' => true,
+                                ],
+                            ],
+                            Controller::class => [
+                                'fields' => [
+                                    'field6' => true,
+                                ],
+                            ],
+                        ],
+                    ],
+                ]
+            );
+        }
+
+        SearchServiceExtension::singleton()->setConfiguration(IndexConfiguration::singleton());
 
         return $config;
     }
