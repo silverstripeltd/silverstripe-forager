@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Tests\Fake;
 
-use ReflectionProperty;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 
