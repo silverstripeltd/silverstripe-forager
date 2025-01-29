@@ -380,7 +380,7 @@ class IndexConfigurationTest extends SapphireTest
 
         $config = IndexConfiguration::singleton();
         $this->expectException(IndexConfigurationException::class);
-        $result = $config->getFieldsForIndex('index5');
+        $config->getFieldsForIndex('index5');
     }
 
     protected function bootstrapIndexes(): void
