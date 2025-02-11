@@ -4,7 +4,7 @@ namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Schema\Field;
@@ -18,7 +18,7 @@ use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Security\Member;
 use SilverStripe\View\ViewableData;
 
-class IndexConfigurationTest extends SapphireTest
+class IndexConfigurationTest extends SearchServiceTest
 {
 
     public function testIndexesForClassName(): void
@@ -413,8 +413,8 @@ class IndexConfigurationTest extends SapphireTest
         $this->bootstrapIndexes();
         $className = ServiceFake::class;
 
-        Config::modify()->merge(
-            IndexConfiguration::class,
+
+        IndexConfiguration::config()->set(
             'indexes',
             [
                 'index5' => [
@@ -432,12 +432,29 @@ class IndexConfigurationTest extends SapphireTest
         );
 
         $config = IndexConfiguration::singleton();
+        $config->config()->set(
+            'indexes',
+            [
+                'index5' => [
+                    'includeClasses' => [
+                        $className => [
+                            'fields' => [
+                                'field10' => [
+                                    'type' => 'invalid',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        );
         $this->expectException(IndexConfigurationException::class);
         $config->getFieldsForIndex('index5');
     }
 
     protected function bootstrapIndexes(): void
     {
+        $this->mockConfig();
         IndexConfiguration::config()->set(
             'indexes',
             [
