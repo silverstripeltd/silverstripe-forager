@@ -3,8 +3,6 @@
 namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
-use SilverStripe\Core\Config\Config;
-use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Schema\Field;
@@ -15,6 +13,7 @@ use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
 use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Security\Member;
 use SilverStripe\View\ViewableData;
 
@@ -432,22 +431,6 @@ class IndexConfigurationTest extends SearchServiceTest
         );
 
         $config = IndexConfiguration::singleton();
-        $config->config()->set(
-            'indexes',
-            [
-                'index5' => [
-                    'includeClasses' => [
-                        $className => [
-                            'fields' => [
-                                'field10' => [
-                                    'type' => 'invalid',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        );
         $this->expectException(IndexConfigurationException::class);
         $config->getFieldsForIndex('index5');
     }
