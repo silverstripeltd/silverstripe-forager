@@ -7,6 +7,7 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Schema\Field;
 
@@ -224,7 +225,8 @@ class IndexConfiguration
     }
 
     /**
-     * @return Field[]
+     * @return Field[]|null
+     * @throws IndexConfigurationException
      */
     public function getFieldsForClass(string $class): ?array
     {
@@ -247,11 +249,22 @@ class IndexConfiguration
                         continue;
                     }
 
-                    $config = (array) $data;
+                    $fieldConfig = (array) $data;
+                    // This is a callout to a common misconfiguration that will result in developers receiving an
+                    // unexpected field type. The correct yaml format is for this to be part of the "options" object
+                    $invalidTypeField = $fieldConfig['type'] ?? null;
+
+                    if ($invalidTypeField) {
+                        throw new IndexConfigurationException(
+                            'Field configuration for "type" should be defined under the "options" object.'
+                            . ' Please see configuration.md#basic-configuration for an example.'
+                        );
+                    }
+
                     $fieldObjs[$searchName] = new Field(
                         $searchName,
-                        $config['property'] ?? null,
-                        $config['options'] ?? []
+                        $fieldConfig['property'] ?? null,
+                        $fieldConfig['options'] ?? []
                     );
                 }
             }

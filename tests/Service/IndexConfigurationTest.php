@@ -3,8 +3,8 @@
 namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
-use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
@@ -13,10 +13,11 @@ use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
 use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Security\Member;
 use SilverStripe\View\ViewableData;
 
-class IndexConfigurationTest extends SapphireTest
+class IndexConfigurationTest extends SearchServiceTest
 {
 
     public function testIndexesForClassName(): void
@@ -406,8 +407,37 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertEquals(100, $config->getLowestBatchSize());
     }
 
+    public function testIndexConfigurationValidation(): void
+    {
+        $this->bootstrapIndexes();
+        $className = ServiceFake::class;
+
+
+        IndexConfiguration::config()->set(
+            'indexes',
+            [
+                'index5' => [
+                    'includeClasses' => [
+                        $className => [
+                            'fields' => [
+                                'field10' => [
+                                    'type' => 'invalid',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        );
+
+        $config = IndexConfiguration::singleton();
+        $this->expectException(IndexConfigurationException::class);
+        $config->getFieldsForIndex('index5');
+    }
+
     protected function bootstrapIndexes(): void
     {
+        $this->mockConfig();
         IndexConfiguration::config()->set(
             'indexes',
             [

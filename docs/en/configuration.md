@@ -20,6 +20,11 @@ SilverStripe\Forager\Service\IndexConfiguration:
             title:
               property: Title
             content: true
+            term_ids:
+              property: Terms.ID
+              options:
+                type: number
+            
 ```
 
 Let's look at each relevant node:
@@ -51,6 +56,14 @@ we want the `Title` property (DB field) to be accessed to get the value for `tit
 resolver within `DataObjectDocument` is smart enough to resolve inconsistencies in casing,
 so when it finds that the property `$content` doesn't exist on the `SiteTree` instance, it
 will use a case matching strategy as a fallback
+
+* `term_ids`:
+
+  * `property: Terms.ID`: This shorthand only works for DataObjects. Where `Terms` is a `has_many` (or `many_many`)
+  relationship, using `Terms.ID` will result in your receiving an array of IDs from each related DataObject (in this
+  example, that would be the ID of each related `TaxonomyTerm`)
+  * `options.type: number`: This is how you can define the field type for your field. Note: What field types are valid
+  will depend on what service you are integrating with
 
 It is important to note that the keys of `fields` can be named anything you like, so long
 as it is valid in your search service provider (for EnterpriseSearch, that's all lowercase and 
