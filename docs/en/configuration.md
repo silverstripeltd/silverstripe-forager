@@ -9,13 +9,12 @@ but it is also used to store platform agnostic settings.
 Let's index our pages!
 
 ```yaml
+# example configuration
 SilverStripe\Forager\Service\IndexConfiguration:
-  batch_size: 75
   indexes:
-    myindex:
+    main:
       includeClasses:
         SilverStripe\CMS\Model\SiteTree:
-          batch_size: 50
           fields:
             title:
               property: Title
@@ -27,53 +26,27 @@ SilverStripe\Forager\Service\IndexConfiguration:
             
 ```
 
-Let's look at each relevant node:
+Let's start with a few relevant nodes:
 
-* `batch_size`: The default batch size for the module is `100`. Here, we have set a new default batch size of `75`
-
-* `myindex`: The name of the index. The rules on what this can be named will vary depending
+* `main`: The name of the index. The rules on what this can be named will vary depending
 on your service provider. EG: For EnterpriseSearch, it should only contain lowercase letters, numbers, 
 and hyphens
 
-* `includedClasses`: A list of content classes to index. These are just the _source_ of the
-content, so they have no contractual bind to the module. If they are dataobjects, they
-should have the `SearchServiceExtension` applied, however. This is discussed further below
+* `includedClasses`: A list of content classes to index. Versioned DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./customising_add_document_type.md)
 
-* `SilverStripe\CMS\Model\SiteTree`: This class already has the necessary extension applied
-to it as a default configuration from the module
-
-* `batch_size`: This batch size definition specifically applies when we are queueing jobs for this class and index. If 
-no class specific batch size is defined, then the default batch size will be used
-
-* `fields`: The fields you want to index. This is a map of the _search field name_ as the key
-(how you want it to be listed in your search index) to either a boolean, or another map
-
-* `property: Title`: This tells the field resolver on the document how to map the instance
-of the source class (`SiteTree`) to the value in the document (`title`). In this case,
-we want the `Title` property (DB field) to be accessed to get the value for `title`
-
-* `content: true`: This is a shorthand for the above that only works on DataObjects. The
-resolver within `DataObjectDocument` is smart enough to resolve inconsistencies in casing,
-so when it finds that the property `$content` doesn't exist on the `SiteTree` instance, it
-will use a case matching strategy as a fallback
-
-* `term_ids`:
-
-  * `property: Terms.ID`: This shorthand only works for DataObjects. Where `Terms` is a `has_many` (or `many_many`)
-  relationship, using `Terms.ID` will result in your receiving an array of IDs from each related DataObject (in this
-  example, that would be the ID of each related `TaxonomyTerm`)
-  * `options.type: number`: This is how you can define the field type for your field. Note: What field types are valid
-  will depend on what service you are integrating with
-
-It is important to note that the keys of `fields` can be named anything you like, so long
-as it is valid in your search service provider (for EnterpriseSearch, that's all lowercase and 
-underscores). There is no reason why `title` cannot be `document_title` for instance,
-in the above configuration, as we've explicitly mapped the field to `Title`
 
 ## Indexing DataObjects
 
-To put a DataObject in the index, make sure it has the `SearchServiceExtension` added, along
-with the `SilverStripe\Versioned\Versioned` extension. Non-versioned content is not allowed.
+To put a DataObject in the index it needs to be added to the index configuration and it needs to have the the `SearchServiceExtension` added:
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    main:
+      includeClasses:
+        MyProject\MyApp\Product:
+         # see below for per-class options
+```
 
 ```yaml
 MyProject\MyApp\Product:
@@ -81,9 +54,42 @@ MyProject\MyApp\Product:
     - SilverStripe\Forager\Extensions\SearchServiceExtension
 ```
 
-## Indexing relational data
+DataObjects also require the `SilverStripe\Versioned\Versioned` extension. Non-versioned content is not yet supported. By default a versioned object will be added to the index when it is published and removed when it is unpublished.
 
-Content on related objects can be listed in the search document, but it must be flattened.
+### DataObject Fields
+
+To define what content should be indexed you need to add keys to the `fields` object. This tells the module which fields to send to the index and allows you do do some customisation. For example with the following configuration:
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    main:
+      includeClasses:
+        SilverStripe\CMS\Model\SiteTree:
+          fields:
+            title:
+              property: getSearchTitle
+            count:
+              property: Count
+              options:
+                type: number
+            content: true
+            
+```
+
+* `fields` Is a map of the _search field name_ as the key. This matches the field name in your search index. The value can be `boolean` or a configuration map with the following options.
+
+    * `property: getSearchTitle`: This tells the field resolver on the document how to map the instance of the source class (`SiteTree`) to the value in the document (`title`). In this case, we want the `getSearchTitle` method to be called to  get the value for `title`.
+    * `options.type: number` this tells the search provider what type to store the field as. Types may differ between providers so refer to the provider module for more detail.
+
+* `content: true`: This is a shorthand that only works on DataObjects. The
+resolver within `DataObjectDocument` will first look for the php property `$content` but if that is not found `SiteTree` it will look for a DataObject property with an uppercase first letter e.g. `Content`. 
+
+It is important to note that the keys of `fields` can be named anything you like, so long as it is valid in your search service provider (for EnterpriseSearch, that's all lowercase and underscores). There is no reason why `title` cannot be `document_title` for instance.
+
+### Indexing relational data
+
+Content on related objects can be added to a search document as an array:
 
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
@@ -100,6 +106,10 @@ SilverStripe\Forager\Service\IndexConfiguration:
               property: 'FeaturedImage.Name'
             commentauthors:
               property: 'Comments.Author.Name'
+            term_ids:
+              property: Terms.ID
+              options:
+                type: number
 ```
 
 For DataObject content, the dot syntax allows traversal of relationships. If the final
@@ -113,12 +123,36 @@ This will roughly get indexed as a structure like this:
   "title": "My Blog",
   "tags": ["tag1", "tag2"],
   "imagename": "Some image",
-  "commentauthors": ["Author one", "Author two", "Author three"]
+  "commentauthors": ["Author one", "Author two", "Author three"],
+  "term_ids": [1, 2, 3]
 }
 ```
 
 For more information on EnterpriseSearch specific configuration, see the [Search- Service - Elastic](https://github.com/silverstripe/silverstripe-search-service-elastic)
 module.
+
+## Batch size
+Documents are sent to the search provider to be indexed. These requests are batched together to allow provider modules to reduce API calls. You can control the batch size gobally and at a per class level.
+
+The global batch size is set on the Index configuration class. The default is `100`; below is an example of reducing it to `75`.
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  batch_size: 75 # global batch size          
+```
+
+The global size will apply to all classes that are indexed but you can change it per class. For example the below configuration will set the batch size for the `SilverStripe\CMS\Model\SiteTree` class to `50`. All other that do not define a `batch_size` classes will use the global batch size of `75`.
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  batch_size: 75
+  indexes:
+    myindex:
+      includeClasses:
+        SilverStripe\CMS\Model\SiteTree:
+          batch_size: 50
+            
+```
 
 ## Batch cooldown
 
