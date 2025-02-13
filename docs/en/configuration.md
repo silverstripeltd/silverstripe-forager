@@ -58,7 +58,7 @@ DataObjects also require the `SilverStripe\Versioned\Versioned` extension. Non-v
 
 ### DataObject Fields
 
-To define what content should be index you need to add keys to the `fields` object. This tells the module which fields to send to the index and allows you do do some customisation. For example with the following configuration:
+To define what content should be indexed you need to add keys to the `fields` object. This tells the module which fields to send to the index and allows you do do some customisation. For example with the following configuration:
 
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
@@ -134,7 +134,7 @@ module.
 ## Batch size
 Documents are sent to the search provider to be indexed. These requests are batched together to allow provider modules to reduce API calls. You can control the batch size gobally and at a per class level.
 
-The global batch size is set on the Index configuration class. The default is `100` below is an example of reducing it to `75`.
+The global batch size is set on the Index configuration class. The default is `100`; below is an example of reducing it to `75`.
 
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
