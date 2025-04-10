@@ -4,6 +4,23 @@ Most of the configuration surface of this module lies in the appropriately title
 class. This namespace is used primarily for specifying the indexing behaviour of content types,
 but it is also used to store platform agnostic settings.
 
+<!-- TOC -->
+* [Configuration](#configuration)
+  * [Basic configuration](#basic-configuration)
+  * [Indexing DataObjects](#indexing-dataobjects)
+    * [DataObject Fields](#dataobject-fields)
+    * [Indexing relational data](#indexing-relational-data)
+    * [Elemental](#elemental)
+  * [Batch size](#batch-size)
+  * [Batch cooldown](#batch-cooldown)
+  * [Advanced configuration](#advanced-configuration)
+  * [Per environment indexing](#per-environment-indexing)
+  * [Full page indexing](#full-page-indexing)
+  * [Subsites](#subsites)
+  * [Configuring search exclusion for files](#configuring-search-exclusion-for-files)
+  * [More information](#more-information)
+<!-- TOC -->
+
 ## Basic configuration
 
 Let's index our pages!
@@ -130,6 +147,33 @@ This will roughly get indexed as a structure like this:
 
 For more information on EnterpriseSearch specific configuration, see the [Search- Service - Elastic](https://github.com/silverstripe/silverstripe-search-service-elastic)
 module.
+
+### Elemental
+
+If you're using [Elemental](https://github.com/silverstripe/silverstripe-elemental) to serve page content, then you're likely going to want to include this content in your search index.
+
+Elemental provides some [configuration](https://github.com/silverstripe/silverstripe-elemental/blob/5/docs/en/03_searching-blocks.md) for controlling what content is available in your search. Below are some examples, but please be aware that these docs might not stay up to date with Elemental (if they make their own upstream changes).
+
+In this example, `ElementalPageExtension` has already been applied to `Page`, and we are adding the `ElementalArea` as a field that can be searched. `getElementsForSearch()` is a method that is provided by the `ElementalPageExtension`, so no custom code is required in our project.
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    myindex:
+      includeClasses:
+        Page:
+          fields:
+            title: true
+            elemental_area:
+              property: getElementsForSearch
+```
+
+We might also have some specific block types (in this case, the Elemental User Form) that we don't want included in our search index. We can exclude all blocks of a particular class with this configuration:
+
+```yaml
+DNADesign\ElementalUserForms\Model\ElementForm:
+  search_indexable: false
+```
 
 ## Batch size
 Documents are sent to the search provider to be indexed. These requests are batched together to allow provider modules to reduce API calls. You can control the batch size gobally and at a per class level.
