@@ -30,5 +30,6 @@
     * [Event handling](customising_more.md#event-handling)
     * [Document metadata](customising_more.md#document-meta)
     * [Extension points](customising_more.md#extension-points)
-* [Migrating from Silverstripe Search Service](migrating-from-silverstripe-search-service.md)
+* [Migrating from Silverstripe Search Service](migrating_from_silverstripe_search_service)
+* [Common errors](common_errors.md)
   
