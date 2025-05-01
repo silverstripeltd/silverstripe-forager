@@ -123,6 +123,14 @@ class DataObjectDocument implements
     {
         $dataObject = $this->getDataObject();
 
+        // Allow DataObjects to completely override the indexing decision if necessary
+        if ($dataObject->hasMethod('shouldIndex')) {
+            $result = $dataObject->shouldIndex();
+            if (is_bool($result)) {
+                return $result;
+            }
+        }
+
         // If an anonymous user can't view it
         $isPublic = Member::actAs(null, static function () use ($dataObject) {
             // Need to make sure that the version of the DataObject that we access is always the LIVE version
