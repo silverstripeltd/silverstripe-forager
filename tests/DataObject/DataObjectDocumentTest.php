@@ -74,13 +74,15 @@ class DataObjectDocumentTest extends SearchServiceTest
         $dataObjectOne = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
         $dataObjectTwo = $this->objFromFixture(DataObjectFakeVersioned::class, 'two');
         $dataObjectThree = $this->objFromFixture(DataObjectFakePrivate::class, 'one');
+        $dataObjectFour = $this->objFromFixture(DataObjectFakePrivateShouldIndex::class, 'one');
 
         // DocOne and Two represent DOs that have not yet been published
         $docOne = DataObjectDocument::create($dataObjectOne);
         $docTwo = DataObjectDocument::create($dataObjectTwo);
         $docThree = DataObjectDocument::create($dataObjectThree);
+        $docFour = DataObjectDocument::create($dataObjectFour);
 
-        // Add all three documents to our indexes, as this isn't the functionality we're testing here
+        // Add all four documents to our indexes, as this isn't the functionality we're testing here
         $config->set(
             'getIndexesForDocument',
             [
@@ -93,13 +95,19 @@ class DataObjectDocumentTest extends SearchServiceTest
                 $docThree->getIdentifier() => [
                     'index' => 'data',
                 ],
+                $docFour->getIdentifier() => [
+                    'index' => 'data',
+                ],
             ]
         );
 
-        // All should be unavailable to index initially
+        // Most should be unavailable to index initially
         $this->assertFalse($docOne->shouldIndex());
         $this->assertFalse($docTwo->shouldIndex());
         $this->assertFalse($docThree->shouldIndex());
+
+        // Doc four has a custom shouldIndex() method that always allows indexing
+        $this->assertTrue($docFour->shouldIndex());
 
         // Make sure both Versioned DOs are now published
         $dataObjectOne->publishRecursive();
