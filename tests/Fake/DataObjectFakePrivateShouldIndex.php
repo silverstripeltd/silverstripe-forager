@@ -13,7 +13,7 @@ use SilverStripe\ORM\DataObject;
 class DataObjectFakePrivateShouldIndex extends DataObject implements TestOnly
 {
 
-    private static string $table_name = 'DataObjectFakePrivate';
+    private static string $table_name = 'DataObjectFakePrivateShouldIndex';
 
     private static array $db = [
         'Title' => 'Varchar',
@@ -27,8 +27,8 @@ class DataObjectFakePrivateShouldIndex extends DataObject implements TestOnly
     {
         return false;
     }
-    
-    public function shouldIndex(): bool
+
+    public function overrideShouldIndex(): bool
     {
         return true;
     }

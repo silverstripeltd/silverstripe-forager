@@ -124,10 +124,16 @@ class DataObjectDocument implements
         $dataObject = $this->getDataObject();
 
         // Allow DataObjects to completely override the indexing decision if necessary
-        if ($dataObject->hasMethod('shouldIndex')) {
-            $result = $dataObject->shouldIndex();
+        if ($dataObject->hasMethod('overrideShouldIndex')) {
+            $result = $dataObject->overrideShouldIndex();
+
             if (is_bool($result)) {
                 return $result;
+            } else {
+                throw new IndexingServiceException(sprintf(
+                    'Method overrideShouldIndex() on %s must return a boolean',
+                    $dataObject->ClassName
+                ));
             }
         }
 

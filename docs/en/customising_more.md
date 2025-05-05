@@ -60,15 +60,16 @@ just that record.
 
 ### canIndexInSearch(): bool
 
-A DataObject extension implementing this method can supply custom logic for determining
-if the record should be indexed.
+An extension point that allows you to add supplementary logic to the `shouldIndex()`
+method for determining whether a record should be indexed.
 
-### shouldIndex(): bool
+### overrideShouldIndex(): bool
 
-A DataObject extension implementing this method _completely_ overrides the default logic
-for determining if the record should be indexed. This should be used with caution, as it
-foregoes standard checks regarding the record's visibility, publication status, etc. In
-most cases, you should use `canIndexInSearch()` instead.
+A DataObject implementing this method _completely_ overrides the default `shouldIndex()`
+logic for determining whether a record should be indexed.
+
+**Use with caution**, as this foregoes standard checks regarding the record's permissions,
+publication status, etc. In most cases, you should use `canIndexInSearch()` instead.
 
 ### onBeforeAttributesFromObject(): void
 
