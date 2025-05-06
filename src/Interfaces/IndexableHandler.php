@@ -12,7 +12,7 @@ namespace SilverStripe\Forager\Interfaces;
  * For cases where only supplementary checks are required, prefer using the
  * `canIndexInSearch` extension point.
  */
-interface DataObjectSelfDeterminesIndexability
+interface IndexableHandler
 {
     /**
      * Determines whether the current record should be allowed to enter the

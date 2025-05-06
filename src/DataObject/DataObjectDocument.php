@@ -39,7 +39,7 @@ use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\ViewableData;
-use SilverStripe\Forager\Interfaces\DataObjectSelfDeterminesIndexability;
+use SilverStripe\Forager\Interfaces\IndexableHandler;
 
 class DataObjectDocument implements
     DocumentInterface,
@@ -125,7 +125,7 @@ class DataObjectDocument implements
         $dataObject = $this->getDataObject();
 
         // Allow DataObjects to completely override the indexing decision if necessary
-        if ($dataObject instanceof DataObjectSelfDeterminesIndexability) {
+        if ($dataObject instanceof IndexableHandler) {
             return $dataObject->shouldIndex();
         }
 
