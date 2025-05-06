@@ -5,12 +5,13 @@ namespace SilverStripe\Forager\Tests\Fake;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Forager\Interfaces\DataObjectSelfDeterminesIndexability;
 
 /**
  * @property string $Title
  * @mixin SearchServiceExtension
  */
-class DataObjectFakePrivateShouldIndex extends DataObject implements TestOnly
+class DataObjectFakePrivateShouldIndex extends DataObject implements TestOnly, DataObjectSelfDeterminesIndexability
 {
 
     private static string $table_name = 'DataObjectFakePrivateShouldIndex';
@@ -28,7 +29,7 @@ class DataObjectFakePrivateShouldIndex extends DataObject implements TestOnly
         return false;
     }
 
-    public function overrideShouldIndex(): bool
+    public function shouldIndex(): bool
     {
         return true;
     }

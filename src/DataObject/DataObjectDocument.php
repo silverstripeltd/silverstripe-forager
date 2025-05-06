@@ -39,6 +39,7 @@ use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\ViewableData;
+use SilverStripe\Forager\Interfaces\DataObjectSelfDeterminesIndexability;
 
 class DataObjectDocument implements
     DocumentInterface,
@@ -124,17 +125,8 @@ class DataObjectDocument implements
         $dataObject = $this->getDataObject();
 
         // Allow DataObjects to completely override the indexing decision if necessary
-        if ($dataObject->hasMethod('overrideShouldIndex')) {
-            $result = $dataObject->overrideShouldIndex();
-
-            if (is_bool($result)) {
-                return $result;
-            } else {
-                throw new IndexingServiceException(sprintf(
-                    'Method overrideShouldIndex() on %s must return a boolean',
-                    $dataObject->ClassName
-                ));
-            }
+        if ($dataObject instanceof DataObjectSelfDeterminesIndexability) {
+            return $dataObject->shouldIndex();
         }
 
         // If an anonymous user can't view it
