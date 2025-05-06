@@ -26,6 +26,7 @@ use SilverStripe\Security\Member;
 use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\ReadingMode;
 use SilverStripe\Versioned\Versioned;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 
 class DataObjectDocumentTest extends SearchServiceTest
 {
@@ -50,6 +51,7 @@ class DataObjectDocumentTest extends SearchServiceTest
         DataObjectSubclassFake::class,
         DataObjectFakeVersioned::class,
         DataObjectFakePrivate::class,
+        DataObjectFakePrivateShouldIndex::class,
         PageFake::class,
     ];
 
