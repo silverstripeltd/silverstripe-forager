@@ -12,6 +12,7 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
@@ -26,7 +27,6 @@ use SilverStripe\Security\Member;
 use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\ReadingMode;
 use SilverStripe\Versioned\Versioned;
-use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 
 class DataObjectDocumentTest extends SearchServiceTest
 {

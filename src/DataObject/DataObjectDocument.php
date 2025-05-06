@@ -19,6 +19,7 @@ use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Interfaces\DocumentMetaProvider;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
+use SilverStripe\Forager\Interfaces\IndexableHandler;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\DocumentChunkFetcher;
@@ -39,7 +40,6 @@ use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\ViewableData;
-use SilverStripe\Forager\Interfaces\IndexableHandler;
 
 class DataObjectDocument implements
     DocumentInterface,

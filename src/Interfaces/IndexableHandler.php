@@ -14,9 +14,11 @@ namespace SilverStripe\Forager\Interfaces;
  */
 interface IndexableHandler
 {
+
     /**
      * Determines whether the current record should be allowed to enter the
      * search index.
      */
     public function shouldIndex(): bool;
+
 }

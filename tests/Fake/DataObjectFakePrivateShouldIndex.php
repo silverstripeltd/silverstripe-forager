@@ -4,8 +4,8 @@ namespace SilverStripe\Forager\Tests\Fake;
 
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Forager\Interfaces\IndexableHandler;
+use SilverStripe\ORM\DataObject;
 
 /**
  * @property string $Title
