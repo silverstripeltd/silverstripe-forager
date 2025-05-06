@@ -19,6 +19,7 @@ use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Interfaces\DocumentMetaProvider;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
+use SilverStripe\Forager\Interfaces\IndexableHandler;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\DocumentChunkFetcher;
@@ -122,6 +123,11 @@ class DataObjectDocument implements
     public function shouldIndex(): bool
     {
         $dataObject = $this->getDataObject();
+
+        // Allow DataObjects to completely override the indexing decision if necessary
+        if ($dataObject instanceof IndexableHandler) {
+            return $dataObject->shouldIndex();
+        }
 
         // If an anonymous user can't view it
         $isPublic = Member::actAs(null, static function () use ($dataObject) {

@@ -51,6 +51,10 @@ SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate:
   one:
     Title: Dataobject one
 
+SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex:
+  one:
+    Title: Dataobject one
+
 SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned:
   one:
     Title: Dataobject one Versioned
