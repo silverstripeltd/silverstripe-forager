@@ -63,13 +63,14 @@ just that record.
 An extension point that allows you to add supplementary logic to the `shouldIndex()`
 method for determining whether a record should be indexed.
 
-### overrideShouldIndex(): bool
+### IndexableHandler interface
 
-A DataObject implementing this method _completely_ overrides the default `shouldIndex()`
+A DataObject implementing this interface _completely_ overrides the default `shouldIndex()`
 logic for determining whether a record should be indexed.
 
 **Use with caution**, as this foregoes standard checks regarding the record's permissions,
-publication status, etc. In most cases, you should use `canIndexInSearch()` instead.
+publication status, etc. In most cases, you should use the `canIndexInSearch()` extension
+point instead.
 
 ### onBeforeAttributesFromObject(): void
 
