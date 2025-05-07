@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Tasks;
 
-use InvalidArgumentException;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\BuildTask;
@@ -54,7 +53,10 @@ class SearchClearIndex extends BuildTask
         $targetIndex = $request->getVar('index');
 
         if (!$targetIndex) {
-            throw new InvalidArgumentException("Must specify an index in the 'index' parameter.");
+            echo '<h2>Must specify an index in the "index" parameter (e.g. "?index=main" if calling this dev task'
+                . ' through your browser)</h2>';
+
+            return;
         }
 
         $job = ClearIndexJob::create($targetIndex);
