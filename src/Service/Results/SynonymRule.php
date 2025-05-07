@@ -2,10 +2,11 @@
 
 namespace SilverStripe\Forager\Service\Results;
 
+use JsonSerializable;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\View\ViewableData;
 
-class SynonymRule extends ViewableData
+class SynonymRule extends ViewableData implements JsonSerializable
 {
 
     use Injectable;
@@ -132,6 +133,16 @@ class SynonymRule extends ViewableData
         }
 
         return $this;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return [
+            'id' => $this->getID(),
+            'type' => $this->getType(),
+            'root' => $this->getRoot(),
+            'synonyms' => $this->getSynonyms(),
+        ];
     }
 
 }

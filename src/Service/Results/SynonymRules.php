@@ -3,9 +3,10 @@
 namespace SilverStripe\Forager\Service\Results;
 
 use InvalidArgumentException;
+use JsonSerializable;
 use SilverStripe\ORM\ArrayList;
 
-class SynonymRules extends ArrayList
+class SynonymRules extends ArrayList implements JsonSerializable
 {
 
     /**
@@ -27,6 +28,11 @@ class SynonymRules extends ArrayList
         }
 
         parent::push($item);
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->toArray();
     }
 
 }
