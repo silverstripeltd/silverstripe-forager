@@ -179,7 +179,15 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
             ->setReadonly(true)
             ->setRightTitle('i.e. status is one of: ' . implode(', ', $stoppedStatuses));
 
-        return $form->setFields(FieldList::create($fields));
+        $fieldList = FieldList::create($fields);
+
+        $this->extend('updateEditFormFieldList', $fieldList);
+
+        $form->setFields($fieldList);
+
+        $this->extend('updateEditForm', $form);
+
+        return $form;
     }
 
     /**

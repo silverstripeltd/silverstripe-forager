@@ -1,0 +1,16 @@
+---
+Name: silverstripe-forager-synonyms
+---
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Forager\Interfaces\Requests\GetSynonymCollectionsAdaptor:
+    class: SilverStripe\Forager\Adaptors\Requests\GetSynonymCollectionsAdaptor
+  SilverStripe\Forager\Interfaces\Requests\GetSynonymRulesAdaptor:
+    class: SilverStripe\Forager\Adaptors\Requests\GetSynonymRulesAdaptor
+  SilverStripe\Forager\Interfaces\Requests\GetSynonymRuleAdaptor:
+    class: SilverStripe\Forager\Adaptors\Requests\GetSynonymRuleAdaptor
+  SilverStripe\Forager\Interfaces\Requests\PostSynonymRuleAdaptor:
+    class: SilverStripe\Forager\Adaptors\Requests\PostSynonymRuleAdaptor
+  SilverStripe\Forager\Interfaces\Requests\PatchSynonymRuleAdaptor:
+    class: SilverStripe\Forager\Adaptors\Requests\PatchSynonymRuleAdaptor
+  SilverStripe\Forager\Interfaces\Requests\DeleteSynonymRuleAdaptor:
+    class: SilverStripe\Forager\Adaptors\Requests\DeleteSynonymRuleAdaptor
