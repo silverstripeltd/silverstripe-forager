@@ -3,7 +3,6 @@
 namespace SilverStripe\Forager\Service;
 
 use DOMDocument;
-use DOMXPath;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Configurable;

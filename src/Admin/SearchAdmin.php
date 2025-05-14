@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Admin;
 
+use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Director;
@@ -23,7 +24,7 @@ use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataQuery;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
@@ -33,8 +34,8 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
 class SearchAdmin extends LeftAndMain implements PermissionProvider
 {
 
-    private const PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
-    private const PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
+    private const string PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
+    private const string PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
 
     private static string $url_segment = 'search-service';
 
@@ -45,9 +46,8 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
     private static string $required_permission_codes = self::PERMISSION_ACCESS;
 
     /**
-     * @param null $id
-     * @param null $fields
      * @throws IndexingServiceException
+     * @throws NotFoundExceptionInterface
      */
     public function getEditForm($id = null, $fields = null): Form
     {
@@ -184,6 +184,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
     /**
      * @throws IndexingServiceException
+     * @throws NotFoundExceptionInterface
      */
     private function buildIndexedDocumentsList(): ArrayList
     {
