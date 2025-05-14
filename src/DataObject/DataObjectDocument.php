@@ -5,6 +5,7 @@ namespace SilverStripe\Forager\DataObject;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use SilverStripe\Core\ArrayLib;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
@@ -28,7 +29,7 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\PageCrawler;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
-use SilverStripe\ORM\ArrayLib;
+use SilverStripe\Model\ModelData;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
@@ -39,7 +40,6 @@ use SilverStripe\ORM\RelationList;
 use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
-use SilverStripe\View\ViewableData;
 
 class DataObjectDocument implements
     DocumentInterface,
@@ -290,7 +290,8 @@ class DataObjectDocument implements
                 continue;
             }
 
-            if (!$dbField instanceof ViewableData) {
+
+            if (!$dbField instanceof ModelData) {
                 throw new IndexConfigurationException(sprintf(
                     'Field "%s" returns value that cannot be resolved',
                     $field->getSearchFieldName()
@@ -350,7 +351,7 @@ class DataObjectDocument implements
         return $fields;
     }
 
-    public function getFieldDependency(Field $field): ?ViewableData
+    public function getFieldDependency(Field $field): ?ModelData
     {
         $tuple = $this->getFieldTuple($field);
 
@@ -560,12 +561,12 @@ class DataObjectDocument implements
         ));
     }
 
-    private function resolveField(string $field): ?ViewableData
+    private function resolveField(string $field): ?ModelData
     {
         $subject = $this->getDataObject();
         $result = $subject->obj($field);
 
-        if ($result && $result instanceof DBField) {
+        if ($result instanceof DBField) {
             return $result;
         }
 
