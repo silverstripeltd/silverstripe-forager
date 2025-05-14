@@ -5,9 +5,9 @@ namespace SilverStripe\Forager\Interfaces;
 interface DocumentAddHandler
 {
 
-    public const BEFORE_ADD = 'before';
+    public const string BEFORE_ADD = 'before';
 
-    public const AFTER_ADD = 'after';
+    public const string AFTER_ADD = 'after';
 
     public function onAddToSearchIndexes(string $event): void;
 

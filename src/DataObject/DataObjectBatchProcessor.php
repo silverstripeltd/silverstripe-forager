@@ -9,7 +9,6 @@ use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Service\BatchProcessor;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\ORM\FieldType\DBDatetime;
-use SilverStripe\ORM\ValidationException;
 
 class DataObjectBatchProcessor extends BatchProcessor
 {
@@ -20,7 +19,6 @@ class DataObjectBatchProcessor extends BatchProcessor
 
     /**
      * @param DocumentInterface[] $documents
-     * @throws ValidationException
      */
     public function removeDocuments(array $documents): array
     {

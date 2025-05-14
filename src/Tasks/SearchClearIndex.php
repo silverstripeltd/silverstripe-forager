@@ -13,7 +13,9 @@ use SilverStripe\Forager\Service\SyncJobRunner;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
+use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symfony\Component\Console\Input\InputInterface;
 
 class SearchClearIndex extends BuildTask
 {
@@ -22,9 +24,9 @@ class SearchClearIndex extends BuildTask
     use ConfigurationAware;
     use BatchProcessorAware;
 
-    protected $title = 'Search Service Clear Index'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected string $title = 'Search Service Clear Index';
 
-    protected $description = 'Search Service Clear Index'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected static string $description = 'Search Service Clear Index';
 
     private static $segment = 'SearchClearIndex'; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
@@ -42,15 +44,12 @@ class SearchClearIndex extends BuildTask
         $this->setBatchProcessor($batchProcessor);
     }
 
-    /**
-     * @param HTTPRequest $request
-     */
-    public function run($request): void // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
 
-        $targetIndex = $request->getVar('index');
+        $targetIndex = $input->getArgument('index');
 
         if (!$targetIndex) {
             echo '<h2>Must specify an index in the "index" parameter (e.g. "?index=main" if calling this dev task'
@@ -66,6 +65,8 @@ class SearchClearIndex extends BuildTask
         } else {
             QueuedJobService::singleton()->queueJob($job);
         }
+
+        return 0;
     }
 
 }
