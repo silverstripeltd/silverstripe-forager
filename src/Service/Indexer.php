@@ -21,9 +21,9 @@ class Indexer
     use ConfigurationAware;
     use ServiceAware;
 
-    public const METHOD_DELETE = 0;
+    public const int METHOD_DELETE = 0;
 
-    public const METHOD_ADD = 1;
+    public const int METHOD_ADD = 1;
 
     private static array $dependencies = [
         'IndexService' => '%$' . IndexingInterface::class,

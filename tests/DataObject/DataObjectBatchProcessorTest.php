@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Tests\DataObject;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
@@ -15,8 +16,10 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\ORM\FieldType\DBDatetime;
 
-class DataObjectBatchProcessorTest extends SearchServiceTest
+class DataObjectBatchProcessorTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     public function testRemoveDocuments(): void
     {
@@ -34,30 +37,21 @@ class DataObjectBatchProcessorTest extends SearchServiceTest
             ->onlyMethods(['runJob'])
             ->getMock();
 
-        $removeJobCallback = function (RemoveDataObjectJob $arg) {
-            $this->assertInstanceOf(RemoveDataObjectJob::class, $arg);
-            $this->assertInstanceOf(DataObjectDocumentFake::class, $arg->getDocument());
-            $this->assertEquals(Indexer::METHOD_ADD, $arg->getMethod());
-            $this->assertEquals(900, $arg->getTimestamp());
-
-            return true;
-        };
-
-        $syncRunnerMock->expects($this->exactly(3))
+        $invokedCount = $this->exactly(3);
+        $syncRunnerMock->expects($invokedCount)
             ->method('runJob')
-            ->withConsecutive(
-                [
-                    $this->callback(function (IndexJob $arg) {
-                        $this->assertInstanceOf(IndexJob::class, $arg);
-                        $this->assertCount(2, $arg->getDocuments());
-                        $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
-
-                        return true;
-                    }),
-                ],
-                [$this->callback($removeJobCallback)],
-                [$this->callback($removeJobCallback)]
-            );
+            ->willReturnCallback(function ($arg) use ($invokedCount) {
+                if ($invokedCount->numberOfInvocations() === 1) {
+                    $this->assertInstanceOf(IndexJob::class, $arg);
+                    $this->assertCount(2, $arg->getDocuments());
+                    $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
+                } else {
+                    $this->assertInstanceOf(RemoveDataObjectJob::class, $arg);
+                    $this->assertInstanceOf(DataObjectDocumentFake::class, $arg->getDocument());
+                    $this->assertEquals(Indexer::METHOD_ADD, $arg->getMethod());
+                    $this->assertEquals(900, $arg->getTimestamp());
+                }
+            });
 
         Injector::inst()->registerService($syncRunnerMock, SyncJobRunner::class);
 

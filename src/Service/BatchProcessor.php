@@ -4,11 +4,11 @@ namespace SilverStripe\Forager\Service;
 
 use Exception;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
-use SilverStripe\ORM\ValidationException;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
