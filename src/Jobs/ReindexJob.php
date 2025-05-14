@@ -71,7 +71,7 @@ class ReindexJob extends BatchJob
         return $title;
     }
 
-    public function getJobType(): int
+    public function getJobType(): string
     {
         return QueuedJob::QUEUED;
     }

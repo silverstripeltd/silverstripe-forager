@@ -3,12 +3,12 @@
 namespace SilverStripe\Forager\Tests\DataObject;
 
 use Page;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
 use SilverStripe\Forager\Schema\Field;
-use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
@@ -24,12 +24,13 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\RelationList;
 use SilverStripe\Security\Member;
-use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\ReadingMode;
 use SilverStripe\Versioned\Versioned;
 
-class DataObjectDocumentTest extends SearchServiceTest
+class DataObjectDocumentTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
@@ -193,104 +194,6 @@ class DataObjectDocumentTest extends SearchServiceTest
         $this->assertTrue($docOne->shouldIndex());
     }
 
-    public function testSubsiteDataObjectShouldIndex(): void
-    {
-        $subsite2 = $this->objFromFixture(Subsite::class, 'subsite2');
-        $this->mockConfig();
-
-        // Mocked indexes:
-        //  - index0: allows all data without subsite filter
-        //  - index1: for subsite2 and Page class and Data object that does not implement subsite
-        //  - index2: for subsite2 and Data object that does not implement subsite
-        IndexConfiguration::config()->set(
-            'indexes',
-            [
-                'index0' => [
-                    'subsite_id' => 0,
-                    'includeClasses' => [
-                        Page::class => true,
-                    ],
-                ],
-                'index1' => [
-                    'subsite_id' => $subsite2->ID,
-                    'includeClasses' => [
-                        Page::class => true,
-                        DataObjectFake::class => true,
-                        DataObjectFakeVersioned::class => true,
-                    ],
-                ],
-                'index2' => [
-                    'subsite_id' => $subsite2->ID,
-                    'includeClasses' => [
-                        DataObjectFake::class => true,
-                    ],
-                ],
-            ]
-        );
-
-        // Ensure page that belongs to a subsite is published
-        $page = $this->objFromFixture(Page::class, 'page6');
-        $page->publishRecursive();
-        $page = $this->objFromFixture(Page::class, 'page6');
-
-        // Prepare page for index
-        $docOne = DataObjectDocument::create($page);
-
-        // Assert that the page can't be indexed because we don't have an index with matching subsite ID
-        $this->assertFalse($docOne->shouldIndex());
-
-        // Remove the subsite ID
-        $page->update(['SubsiteID' => null])->publishRecursive();
-        $page = $this->objFromFixture(Page::class, 'page6');
-
-        // Prepare page for reindex
-        $doc2 = DataObjectDocument::create($page);
-
-        // Assert that the subsite ID removed from the page can be indexed because we explicitly defined the ClassName
-        // in index0 configuration
-        $this->assertNull($page->SubsiteID);
-        $this->assertTrue($doc2->shouldIndex());
-
-        // Update page subsite ID with correct ID
-        $page->update(['SubsiteID' => $subsite2->ID])->publishRecursive();
-        $page = $this->objFromFixture(Page::class, 'page6');
-
-        // Prepare page for reindex
-        $doc3 = DataObjectDocument::create($page);
-
-        // Assert that the page can be indexed in index1
-        $this->assertEquals($subsite2->ID, $page->SubsiteID);
-        $this->assertTrue($doc3->shouldIndex());
-
-        // Get an object without subsite filter
-        $object1 = $this->objFromFixture(DataObjectFake::class, 'one');
-
-        // Prepare object for index
-        $doc4 = DataObjectDocument::create($object1);
-
-        // Assert that the object without subsite ID and that it can be indexed, because configuration allows it
-        $this->assertNull($object1->SubsiteID);
-        $this->assertTrue($doc4->shouldIndex());
-        $this->assertArrayHasKey('index1', $doc4->getIndexes());
-        $this->assertArrayHasKey('index2', $doc4->getIndexes());
-        $this->assertArrayNotHasKey('index0', $doc4->getIndexes());
-
-        // Get an object without subsite filter
-        $object2 = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
-        $object2->publishRecursive();
-        $object2 = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
-
-        // Prepare object for index
-        $doc5 = DataObjectDocument::create($object2);
-
-        // Assert that the object without subsite ID and that it can be indexed, because configuration allows it
-        $this->assertNull($object2->SubsiteID);
-        $this->assertTrue($doc5->shouldIndex());
-        $this->assertArrayHasKey('index1', $doc5->getIndexes());
-        $this->assertArrayNotHasKey('index2', $doc5->getIndexes());
-        $this->assertArrayNotHasKey('index0', $doc5->getIndexes());
-    }
-
     public function testMarkIndexed(): void
     {
         $dataobject = new DataObjectFake(['ShowInSearch' => true]);
@@ -362,33 +265,9 @@ class DataObjectDocumentTest extends SearchServiceTest
 
         $arr = $doc->toArray();
 
-        $this->assertArrayHasKey('noexist', $arr);
-        $this->assertEmpty($arr['noexist']);
-        $this->assertArrayHasKey('title', $arr);
-        $this->assertEmpty($arr['title']);
-
-        // Currently toArray() uses obj() only, so it's not possible to return an array.
-        // Should support a config for the field that allows getting the uncasted value
-        // of a method, e.g. getMyArray(): array, so it isn't coerced into a DBField.
-
-//        // exceptions
-//        $config->set('getFieldsForClass', [
-//            DataObjectFake::class => [
-//                new Field('customgettermap', 'CustomGetterMap'),
-//            ]
-//        ]);
-//        $this->expectException(IndexConfigurationException::class);
-//        $this->expectExceptionMessageMatches('/associative/');
-//        $doc->toArray();
-//
-//        $this->expectException(IndexConfigurationException::class);
-//        $this->expectExceptionMessageMatches('/non scalar/');
-//        $config->set('getFieldsForClass', [
-//            DataObjectFake::class => [
-//                new Field('customgettermixed', 'CustomGetterMixedArray'),
-//            ]
-//        ]);
-//        $doc->toArray();
+        // If the properties don't exist on the model, then no field will be created in the Document
+        $this->assertArrayNotHasKey('noexist', $arr);
+        $this->assertArrayNotHasKey('title', $arr);
 
         $this->expectException(IndexConfigurationException::class);
         $this->expectExceptionMessageMatches('/DataObject or RelationList/');
@@ -606,8 +485,8 @@ class DataObjectDocumentTest extends SearchServiceTest
         // Grab all the expected pages
         $pageTwo = $this->objFromFixture(Page::class, 'page2');
         $pageThree = $this->objFromFixture(Page::class, 'page3');
-        $pageSeven = $this->objFromFixture(Page::class, 'page7');
-        $pageEight = $this->objFromFixture(Page::class, 'page8');
+        $pageSeven = $this->objFromFixture(Page::class, 'page6');
+        $pageEight = $this->objFromFixture(Page::class, 'page7');
 
         $expectedPages = [
             sprintf('%s-%s', Page::class, $pageTwo->ID),
@@ -651,7 +530,7 @@ class DataObjectDocumentTest extends SearchServiceTest
             ->willReturn($dataObject);
 
         $mock->onAddToSearchIndexes(DocumentAddHandler::AFTER_ADD);
-        // currenlty BEFORE_REMOVE is a noop
+        // Currently, BEFORE_REMOVE is a noop
         $mock->onRemoveFromSearchIndexes(DocumentRemoveHandler::BEFORE_REMOVE);
         $mock->onRemoveFromSearchIndexes(DocumentRemoveHandler::AFTER_REMOVE);
     }
