@@ -13,7 +13,9 @@ use SilverStripe\Forager\Service\SyncJobRunner;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
+use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symfony\Component\Console\Input\InputInterface;
 
 class SearchReindex extends BuildTask
 {
@@ -22,9 +24,9 @@ class SearchReindex extends BuildTask
     use ConfigurationAware;
     use BatchProcessorAware;
 
-    protected $title = 'Search Service Reindex'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected string $title = 'Search Service Reindex';
 
-    protected $description = 'Search Service Reindex'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected static string $description = 'Search Service Reindex';
 
     private static $segment = 'SearchReindex'; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
@@ -40,18 +42,15 @@ class SearchReindex extends BuildTask
         $this->setBatchProcessor($batchProcessor);
     }
 
-    /**
-     * @param HTTPRequest $request
-     */
-    public function run($request): void // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
 
         $indexConfiguration = IndexConfiguration::singleton();
 
-        $onlyClass = $request->getVar('onlyClass');
-        $onlyIndex = $request->getVar('onlyIndex');
+        $onlyClass = $input->getArgument('onlyClass');
+        $onlyIndex = $input->getArgument('onlyIndex');
 
         if ($onlyIndex) {
             // If we've requested to only reindex a specific index, then set this limitation on our IndexConfiguration
@@ -83,6 +82,8 @@ class SearchReindex extends BuildTask
                 }
             }
         }
+
+        return 0;
     }
 
 }
