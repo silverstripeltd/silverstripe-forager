@@ -16,7 +16,7 @@ class SynonymCollection extends ViewableData implements JsonSerializable
         parent::__construct();
     }
 
-    public function getID(): int|string
+    public function getId(): int|string
     {
         return $this->id;
     }

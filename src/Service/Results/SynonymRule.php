@@ -56,7 +56,7 @@ class SynonymRule extends ViewableData implements JsonSerializable
         parent::__construct();
     }
 
-    public function getID(): int|string|null
+    public function getId(): int|string|null
     {
         return $this->id;
     }
@@ -95,6 +95,9 @@ class SynonymRule extends ViewableData implements JsonSerializable
 
     public function setRoot(array $values): static
     {
+        // Reset any existing values
+        $this->root = [];
+
         # Performing a loop on the array instead of direct assignment effectively checks that all values are of the
         # type/s expected by addRoot()
         foreach ($values as $value) {
@@ -126,6 +129,9 @@ class SynonymRule extends ViewableData implements JsonSerializable
 
     public function setSynonyms(array $values): static
     {
+        // Reset any existing values
+        $this->synonyms = [];
+
         # Performing a loop on the array instead of direct assignment effectively checks that all values are of the
         # type/s expected by addSynonym()
         foreach ($values as $value) {
@@ -138,7 +144,7 @@ class SynonymRule extends ViewableData implements JsonSerializable
     public function jsonSerialize(): mixed
     {
         return [
-            'id' => $this->getID(),
+            'id' => $this->getId(),
             'type' => $this->getType(),
             'root' => $this->getRoot(),
             'synonyms' => $this->getSynonyms(),
