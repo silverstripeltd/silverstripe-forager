@@ -85,22 +85,16 @@ class SynonymService
         return $this->getSynonymRuleAdaptor->process($synonymCollectionId, $synonymRuleId);
     }
 
-    /**
-     * @return string|int the ID of the synonym rule that was created
-     */
-    public function createSynonymRule(string|int $synonymCollectionId, SynonymRuleQuery $synonymRule): string|int
+    public function createSynonymRule(string|int $synonymCollectionId, SynonymRuleQuery $synonymRule): SynonymRuleResult
     {
         return $this->createSynonymRuleAdaptor->process($synonymCollectionId, $synonymRule);
     }
 
-    /**
-     * @return string|int the ID of the synonym rule that was updated
-     */
     public function updateSynonymRule(
         string|int $synonymCollectionId,
         string|int $synonymRuleId,
         SynonymRuleQuery $synonymRule
-    ): string|int {
+    ): SynonymRuleResult {
         return $this->updateSynonymRuleAdaptor->process($synonymCollectionId, $synonymRuleId, $synonymRule);
     }
 
