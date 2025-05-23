@@ -16,5 +16,5 @@ Commonly seen when Elemental User Forms is included in the project. Explanation:
 **Reccommendations:**
 
 * Wrap calls to `Controller::curr()` in a try/catch
-* When defining your search [Configuration](configuration.md), do not include methods or content that attempt to access `Controller:curr()`
+* When defining your search [Configuration](02_configuration.md), do not include methods or content that attempt to access `Controller:curr()`
 * In the case of Elemental, [Usage](https://github.com/silverstripe/silverstripe-elemental/blob/5/docs/en/03_searching-blocks.md#usage) examples are provided. One option would be to specify certain classes of element to be excluded from search by using the configuration `search_indexable: false`

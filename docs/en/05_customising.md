@@ -6,8 +6,8 @@ customisation and extension of those abstraction layers.
 
 ## Contents
 
-* [Adding a new search service](customising_add_search_service.md)
-* [Adding a new document type](customising_add_document_type.md)
-* [More customisations](customising_more.md)
+* [Adding a new search service](06_customising_add_search_service.md)
+* [Adding a new document type](07_customising_add_document_type.md)
+* [More customisations](08_customising_more.md)
 
 

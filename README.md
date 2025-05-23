@@ -6,7 +6,7 @@ It contains features to help indicate what content should be searchable and a sy
 search providers such as Elastic, Algolia, or Silverstripe Search.
 
 This module **does not provide** specific service integrations (see 
-[Available service integration modules](docs/en/implementations.md#available-service-integration-modules)), or any 
+[Available service integration modules](docs/en/04_implementations.md#available-service-integration-modules)), or any 
 frontend functionality such as UI or querying APIs. It only handles features such as indexing and index configuration.
 
 ## Installation
@@ -16,7 +16,7 @@ composer require "silverstripe/silverstripe-forager"
 ```
 
 *Note* this module is not functional without an 
-[integration module](docs/en/implementations.md#available-service-integration-modules)
+[integration module](docs/en/04_implementations.md#available-service-integration-modules)
 
 ## Documentation
 

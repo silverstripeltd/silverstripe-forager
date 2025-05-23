@@ -109,7 +109,7 @@ Let's say I'm having a sale and I take 50% of the price of a featured product. I
  price in search. This is not good for business!
 
 To negotiate this problem, documents may implement the `DependencyTracker` interface
-(more information in [Customising and extending](customising.md)). Documents that
+(more information in [Customising and extending](05_customising.md)). Documents that
 use this interface must declare a `getDependentDocuments()` method that tells the
 indexer explicitly what other content must be updated when it changes.
 
@@ -134,7 +134,7 @@ so the number of nodes it must process is non-deterministic.
 
 ## More information
 
-* [Configuration](configuration.md)
-* [Implementations](implementations.md)
-* [Customising and extending](customising.md) 
-* [Overview and Rationale](overview.md)
+* [Configuration](02_configuration.md)
+* [Implementations](04_implementations.md)
+* [Customising and extending](05_customising.md) 
+* [Overview and Rationale](01_overview.md)
