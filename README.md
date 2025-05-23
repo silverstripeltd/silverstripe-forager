@@ -20,7 +20,7 @@ composer require "silverstripe/silverstripe-forager"
 
 ## Documentation
 
-See the [developer documentation](docs/en/index.md).
+See the [developer documentation](docs/en/README.md).
 
 ## Credits
 
