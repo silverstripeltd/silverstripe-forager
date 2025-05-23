@@ -87,6 +87,6 @@ instances, not DataObjects.
  
 ## More information
 
-* [Adding a new search service](customising_add_search_service.md)
-* [Adding a new document type](customising_add_document_type.md)
+* [Adding a new search service](06_customising_add_search_service.md)
+* [Adding a new document type](07_customising_add_document_type.md)
   

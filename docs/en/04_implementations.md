@@ -16,7 +16,7 @@ to have enabled when running tests and/or doing CI builds.
 
 ## More information
 
-* [Usage](usage.md)
-* [Configuration](configuration.md)
-* [Customising and extending](customising.md)
-* [Overview and Rationale](overview.md)
+* [Usage](03_usage.md)
+* [Configuration](02_configuration.md)
+* [Customising and extending](05_customising.md)
+* [Overview and Rationale](01_overview.md)

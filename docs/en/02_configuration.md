@@ -49,7 +49,7 @@ Let's start with a few relevant nodes:
 on your service provider. EG: For EnterpriseSearch, it should only contain lowercase letters, numbers, 
 and hyphens
 
-* `includedClasses`: A list of content classes to index. Versioned DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./customising_add_document_type.md)
+* `includedClasses`: A list of content classes to index. Versioned DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./07_customising_add_document_type.md)
 
 
 ## Indexing DataObjects
@@ -283,7 +283,7 @@ Let's look at all the settings on the `IndexConfiguration` class:
             <td>bool</td>
             <td>If true, allow DataObject documents to compute their own dependencies. This is
             particularly relevant for content types that declare relational data as indexable.
-            More information in the <a href="usage.md">usage</a> section</td>
+            More information in the <a href="03_usage.md">usage</a> section</td>
             <td>"source_class"</td>
         </tr>
         <tr>
@@ -397,7 +397,7 @@ SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
 
 ## More information
 
-* [Usage](usage.md)
-* [Implementations](implementations.md)
-* [Customising and extending](customising.md)
-* [Overview and Rationale](overview.md)
+* [Usage](03_usage.md)
+* [Implementations](04_implementations.md)
+* [Customising and extending](05_customising.md)
+* [Overview and Rationale](01_overview.md)

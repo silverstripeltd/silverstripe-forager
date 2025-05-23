@@ -259,7 +259,7 @@ document for the search service, or interprets one that has been retrieved from 
 
 ## More information
 
-* [Adding a new document type](customising_add_document_type.md)
-* [More customisations](customising_more.md)
+* [Adding a new document type](07_customising_add_document_type.md)
+* [More customisations](08_customising_more.md)
  
 

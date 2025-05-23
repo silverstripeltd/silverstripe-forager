@@ -381,7 +381,7 @@ class DataObjectDocument implements
      * current object is an instance of SiteTree, it will respect `enforce_strict_hierarchy`
      * and add any child objects.
      *
-     * @see [the dependency tracking docs](docs/en/usage.md#dependency-tracking)
+     * @see [the dependency tracking docs](docs/en/03_usage.md#dependency-tracking)
      * @return DocumentInterface[]
      */
     public function getDependentDocuments(): array

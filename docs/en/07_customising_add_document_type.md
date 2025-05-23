@@ -258,5 +258,5 @@ The fetch creator can now be registered.
 
 ## More information
 
-* [Adding a new search service](customising_add_search_service.md)
-* [More customisations](customising_more.md)
+* [Adding a new search service](06_customising_add_search_service.md)
+* [More customisations](08_customising_more.md)
