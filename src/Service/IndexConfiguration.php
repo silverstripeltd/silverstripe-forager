@@ -257,7 +257,7 @@ class IndexConfiguration
                     if ($invalidTypeField) {
                         throw new IndexConfigurationException(
                             'Field configuration for "type" should be defined under the "options" object.'
-                            . ' Please see configuration.md#basic-configuration for an example.'
+                            . ' Please see 02_configuration.md#basic-configuration for an example.'
                         );
                     }
 
