@@ -4,12 +4,14 @@ namespace SilverStripe\Forager\Tests\Jobs;
 
 use Page;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
@@ -18,8 +20,10 @@ use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
 
-class RemoveRelatedDataObjectJobTest extends SearchServiceTest
+class RemoveRelatedDataObjectJobTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     protected static $fixture_file = [ // @phpcs:ignore
         '../fixtures.yml',
@@ -34,6 +38,7 @@ class RemoveRelatedDataObjectJobTest extends SearchServiceTest
         DataObjectFake::class,
         DataObjectFakePrivate::class,
         DataObjectFakeVersioned::class,
+        DataObjectFakePrivateShouldIndex::class,
         TagFake::class,
         ImageFake::class,
         Member::class,
@@ -45,13 +50,16 @@ class RemoveRelatedDataObjectJobTest extends SearchServiceTest
         parent::setUp();
 
         // Publish all pages in fixtures since the internal dependency checks looks for live version
-        for ($i = 1; $i <= 8; $i++) {
-            $this->objFromFixture(Page::class, 'page' . $i)->publishRecursive();
-        }
-
+        $this->objFromFixture(Page::class, 'page1')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page2')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page3')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page4')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page5')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page6')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page7')->publishRecursive();
+        $this->objFromFixture(PageFake::class, 'page8')->publishRecursive();
         $this->objFromFixture(PageFake::class, 'page9')->publishRecursive();
         $this->objFromFixture(PageFake::class, 'page10')->publishRecursive();
-        $this->objFromFixture(PageFake::class, 'page11')->publishRecursive();
         $this->objFromFixture(TagFake::class, 'four')->publishRecursive();
         $this->objFromFixture(TagFake::class, 'five')->publishRecursive();
         $this->objFromFixture(TagFake::class, 'six')->publishRecursive();
@@ -117,8 +125,8 @@ class RemoveRelatedDataObjectJobTest extends SearchServiceTest
     {
         $childA = $this->objFromFixture(Page::class, 'page2');
         $childB = $this->objFromFixture(Page::class, 'page3');
-        $grandChildA1 = $this->objFromFixture(Page::class, 'page7');
-        $grandChildA2 = $this->objFromFixture(Page::class, 'page8');
+        $grandChildA1 = $this->objFromFixture(Page::class, 'page6');
+        $grandChildA2 = $this->objFromFixture(Page::class, 'page7');
 
         $this->assertTrue($childA->isPublished());
         $this->assertTrue($childB->isPublished());
@@ -159,7 +167,7 @@ class RemoveRelatedDataObjectJobTest extends SearchServiceTest
 
         $resultTitles = [];
 
-        // This determines whether the document should be added or removed from from the index
+        // This determines whether the document should be added or removed from the index
         foreach ($documents as $document) {
             $resultTitles[] = $document->getDataObject()?->Title;
 
@@ -198,9 +206,9 @@ class RemoveRelatedDataObjectJobTest extends SearchServiceTest
             'Image Fake Three',
         ];
 
-        $pageChild = $this->objFromFixture(PageFake::class, 'page9');
-        $grandChild = $this->objFromFixture(PageFake::class, 'page10');
-        $greatGrandChild = $this->objFromFixture(PageFake::class, 'page11');
+        $pageChild = $this->objFromFixture(PageFake::class, 'page8');
+        $grandChild = $this->objFromFixture(PageFake::class, 'page9');
+        $greatGrandChild = $this->objFromFixture(PageFake::class, 'page10');
         $imageThree = $this->objFromFixture(ImageFake::class, 'three');
         $imageFour = $this->objFromFixture(ImageFake::class, 'four');
 
@@ -342,7 +350,7 @@ class RemoveRelatedDataObjectJobTest extends SearchServiceTest
 
     public function testUnpublishImageRelatedtoPages(): void
     {
-        $greatGrandChild = $this->objFromFixture(PageFake::class, 'page11');
+        $greatGrandChild = $this->objFromFixture(PageFake::class, 'page10');
 
         $this->assertTrue($greatGrandChild->isPublished());
 

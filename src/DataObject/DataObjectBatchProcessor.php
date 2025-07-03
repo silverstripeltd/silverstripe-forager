@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\DataObject;
 
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
@@ -19,12 +20,13 @@ class DataObjectBatchProcessor extends BatchProcessor
 
     /**
      * @param DocumentInterface[] $documents
+     * @throws ValidationException
      */
     public function removeDocuments(array $documents): array
     {
         $timestamp = DBDatetime::now()->getTimestamp() - $this->config()->get('buffer_seconds');
 
-        // Remove the dataobjects, ignore dependencies
+        // Remove the DataObjects, ignore dependencies
         $job = IndexJob::create($documents, Indexer::METHOD_DELETE, null, false);
         $this->run($job);
 

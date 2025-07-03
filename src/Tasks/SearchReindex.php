@@ -15,7 +15,9 @@ use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
 use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class SearchReindex extends BuildTask
 {
@@ -49,8 +51,8 @@ class SearchReindex extends BuildTask
 
         $indexConfiguration = IndexConfiguration::singleton();
 
-        $onlyClass = $input->getArgument('onlyClass');
-        $onlyIndex = $input->getArgument('onlyIndex');
+        $onlyClass = $input->getOption('onlyClass');
+        $onlyIndex = $input->getOption('onlyIndex');
 
         if ($onlyIndex) {
             // If we've requested to only reindex a specific index, then set this limitation on our IndexConfiguration
@@ -83,7 +85,25 @@ class SearchReindex extends BuildTask
             }
         }
 
-        return 0;
+        return Command::SUCCESS;
+    }
+
+    public function getOptions(): array
+    {
+        return [
+            new InputOption(
+                'onlyClass',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Only index the provided classes'
+            ),
+            new InputOption(
+                'onlyIndex',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Only index the provided indexes'
+            ),
+        ];
     }
 
 }

@@ -57,13 +57,13 @@ SilverStripe\Forager\Tests\Fake\PageFake:
     ShowInSearch: 1
   page9:
     Title: Grandchild of Parent Page 2 - B1
-    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page9
+    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page8
     Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.five,=>SilverStripe\Forager\Tests\Fake\TagFake.six
     Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.four
     ShowInSearch: 1
   page10:
     Title: Great Grandchild of Parent Page 2 - B1 - One
-    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page10
+    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page9
     Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.five
     Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.four,=>SilverStripe\Forager\Tests\Fake\TagFake.six
     ShowInSearch: 1

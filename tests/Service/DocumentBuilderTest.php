@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\DocumentBuilder;
 use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
@@ -12,8 +13,10 @@ use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 
-class DocumentBuilderTest extends SearchServiceTest
+class DocumentBuilderTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     public function testToArray(): void
     {
