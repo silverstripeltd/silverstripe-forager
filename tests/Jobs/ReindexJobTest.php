@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Tests\Jobs;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Jobs\ReindexJob;
 use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
@@ -11,8 +12,10 @@ use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Security\Member;
 
-class ReindexJobTest extends SearchServiceTest
+class ReindexJobTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint

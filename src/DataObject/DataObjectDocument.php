@@ -523,6 +523,10 @@ class DataObjectDocument implements
         if ($subject instanceof DataObject) {
             $result = $subject->obj($nextField);
 
+            if (!$result) {
+                return null;
+            }
+
             if ($result instanceof DBField) {
                 $dependency = $subject === $this->getDataObject()
                     ? null
@@ -590,7 +594,7 @@ class DataObjectDocument implements
         return $fieldName ? $subject->obj($fieldName) : null;
     }
 
-    private function getFieldTuple(Field $field): array
+    private function getFieldTuple(Field $field): ?array
     {
         if ($field->getProperty()) {
             $path = explode('.', $field->getProperty());

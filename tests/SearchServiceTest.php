@@ -4,7 +4,6 @@ namespace SilverStripe\Forager\Tests;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
@@ -14,7 +13,7 @@ use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Security\Member;
 
-abstract class SearchServiceTest extends SapphireTest
+trait SearchServiceTest
 {
 
     protected function mockConfig(bool $setConfig = false): IndexConfigurationFake
@@ -22,6 +21,10 @@ abstract class SearchServiceTest extends SapphireTest
         $config = new IndexConfigurationFake();
 
         Injector::inst()->registerService($config, IndexConfiguration::class);
+
+        // Make sure we have our usual default batch_size set (mostly only relevant for devs working on this module who
+        // might have their own local config set up with a different default batch_size)
+        IndexConfiguration::config()->set('batch_size', 100);
 
         if ($setConfig) {
             IndexConfiguration::config()->set(

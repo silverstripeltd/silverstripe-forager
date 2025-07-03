@@ -2,13 +2,16 @@
 
 namespace SilverStripe\Forager\Tests\Jobs;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 
-class IndexJobTest extends SearchServiceTest
+class IndexJobTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint

@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\Tests\DataObject;
 
 use Page;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentAddHandler;
@@ -26,8 +27,10 @@ use SilverStripe\Security\Member;
 use SilverStripe\Versioned\ReadingMode;
 use SilverStripe\Versioned\Versioned;
 
-class DataObjectDocumentTest extends SearchServiceTest
+class DataObjectDocumentTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
@@ -262,33 +265,9 @@ class DataObjectDocumentTest extends SearchServiceTest
 
         $arr = $doc->toArray();
 
-        $this->assertArrayHasKey('noexist', $arr);
-        $this->assertEmpty($arr['noexist']);
-        $this->assertArrayHasKey('title', $arr);
-        $this->assertEmpty($arr['title']);
-
-        // Currently toArray() uses obj() only, so it's not possible to return an array.
-        // Should support a config for the field that allows getting the uncasted value
-        // of a method, e.g. getMyArray(): array, so it isn't coerced into a DBField.
-
-//        // exceptions
-//        $config->set('getFieldsForClass', [
-//            DataObjectFake::class => [
-//                new Field('customgettermap', 'CustomGetterMap'),
-//            ]
-//        ]);
-//        $this->expectException(IndexConfigurationException::class);
-//        $this->expectExceptionMessageMatches('/associative/');
-//        $doc->toArray();
-//
-//        $this->expectException(IndexConfigurationException::class);
-//        $this->expectExceptionMessageMatches('/non scalar/');
-//        $config->set('getFieldsForClass', [
-//            DataObjectFake::class => [
-//                new Field('customgettermixed', 'CustomGetterMixedArray'),
-//            ]
-//        ]);
-//        $doc->toArray();
+        // If the properties don't exist on the model, then no field will be created in the Document
+        $this->assertArrayNotHasKey('noexist', $arr);
+        $this->assertArrayNotHasKey('title', $arr);
 
         $this->expectException(IndexConfigurationException::class);
         $this->expectExceptionMessageMatches('/DataObject or RelationList/');
@@ -506,8 +485,8 @@ class DataObjectDocumentTest extends SearchServiceTest
         // Grab all the expected pages
         $pageTwo = $this->objFromFixture(Page::class, 'page2');
         $pageThree = $this->objFromFixture(Page::class, 'page3');
-        $pageSeven = $this->objFromFixture(Page::class, 'page7');
-        $pageEight = $this->objFromFixture(Page::class, 'page8');
+        $pageSeven = $this->objFromFixture(Page::class, 'page6');
+        $pageEight = $this->objFromFixture(Page::class, 'page7');
 
         $expectedPages = [
             sprintf('%s-%s', Page::class, $pageTwo->ID),
@@ -551,7 +530,7 @@ class DataObjectDocumentTest extends SearchServiceTest
             ->willReturn($dataObject);
 
         $mock->onAddToSearchIndexes(DocumentAddHandler::AFTER_ADD);
-        // currenlty BEFORE_REMOVE is a noop
+        // Currently, BEFORE_REMOVE is a noop
         $mock->onRemoveFromSearchIndexes(DocumentRemoveHandler::BEFORE_REMOVE);
         $mock->onRemoveFromSearchIndexes(DocumentRemoveHandler::AFTER_REMOVE);
     }

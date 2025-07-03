@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Tasks;
 
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
@@ -15,7 +14,9 @@ use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
 use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class SearchClearIndex extends BuildTask
 {
@@ -49,13 +50,13 @@ class SearchClearIndex extends BuildTask
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
 
-        $targetIndex = $input->getArgument('index');
+        $targetIndex = $input->getOption('index');
 
         if (!$targetIndex) {
             echo '<h2>Must specify an index in the "index" parameter (e.g. "?index=main" if calling this dev task'
                 . ' through your browser)</h2>';
 
-            return;
+            return Command::FAILURE;
         }
 
         $job = ClearIndexJob::create($targetIndex);
@@ -66,7 +67,19 @@ class SearchClearIndex extends BuildTask
             QueuedJobService::singleton()->queueJob($job);
         }
 
-        return 0;
+        return Command::SUCCESS;
+    }
+
+    public function getOptions(): array
+    {
+        return [
+            new InputOption(
+                'index',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Confirm the index you want to clear'
+            ),
+        ];
     }
 
 }
