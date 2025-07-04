@@ -4,9 +4,9 @@ namespace SilverStripe\Forager\Service\Results;
 
 use JsonSerializable;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\View\ViewableData;
+use SilverStripe\Model\ModelData;
 
-class SynonymRule extends ViewableData implements JsonSerializable
+class SynonymRule extends ModelData implements JsonSerializable
 {
 
     use Injectable;
