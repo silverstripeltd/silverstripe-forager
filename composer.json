@@ -16,6 +16,7 @@
     "require": {
         "php": "^8.3",
         "ext-dom": "*",
+        "ext-libxml": "*",
         "silverstripe/cms": "^6",
         "symbiote/silverstripe-queuedjobs": "^6"
     },
