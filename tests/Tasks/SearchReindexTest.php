@@ -9,11 +9,11 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\PolyExecution\HttpRequestInput;
 use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\Security\Member;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
-use Symfony\Component\Console\Input\ArrayInput;
 
 class SearchReindexTest extends SapphireTest
 {
@@ -26,7 +26,9 @@ class SearchReindexTest extends SapphireTest
     {
         $this->mockConfig(true);
 
-        $input = new ArrayInput([]);
+        $commandOptions = SearchReindex::singleton()->getOptions();
+        $request = new HTTPRequest('GET', '/', ['index' => 'foo']);
+        $input = new HttpRequestInput($request, $commandOptions);
         $output = new PolyOutput(PolyOutput::FORMAT_ANSI);
         $task = SearchReindex::create();
 
