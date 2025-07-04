@@ -5,15 +5,20 @@ namespace SilverStripe\Forager\Tests\Tasks;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\PolyExecution\HttpRequestInput;
+use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\Security\Member;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
-class SearchReindexTest extends SearchServiceTest
+class SearchReindexTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     protected $usesDatabase = true; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
@@ -21,10 +26,13 @@ class SearchReindexTest extends SearchServiceTest
     {
         $this->mockConfig(true);
 
+        $commandOptions = SearchReindex::singleton()->getOptions();
+        $request = new HTTPRequest('GET', '/', ['index' => 'foo']);
+        $input = new HttpRequestInput($request, $commandOptions);
+        $output = new PolyOutput(PolyOutput::FORMAT_ANSI);
         $task = SearchReindex::create();
-        $request = new HTTPRequest('GET', '/', []);
 
-        $task->run($request);
+        $task->run($input, $output);
 
         /** @var QueuedJobDescriptor[] $jobDescriptors */
         $jobDescriptors = QueuedJobDescriptor::get()->column('SavedJobData');

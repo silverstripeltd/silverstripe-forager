@@ -2,13 +2,16 @@
 
 namespace SilverStripe\Forager\Tests\DataObject;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 
-class DataObjectFetcherTest extends SearchServiceTest
+class DataObjectFetcherTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     protected static $fixture_file = '../fixtures.yml'; // phpcs:ignore
 

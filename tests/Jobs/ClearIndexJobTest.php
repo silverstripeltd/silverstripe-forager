@@ -4,12 +4,15 @@ namespace SilverStripe\Forager\Tests\Jobs;
 
 use InvalidArgumentException;
 use RuntimeException;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 
-class ClearIndexJobTest extends SearchServiceTest
+class ClearIndexJobTest extends SapphireTest
 {
+
+    use SearchServiceTest;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint

@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Tests\Extensions;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Tests\Fake\BatchJobFake;
 use SilverStripe\ORM\FieldType\DBDatetime;
@@ -17,9 +18,8 @@ class JobRetryExtensionTest extends SapphireTest
     /**
      * We'll run the job a total of 4 times. We expect 3 attempts to break, but be retried, and we expect the 4th try
      * to break and remain broken
-     *
-     * @dataProvider provideCodes
      */
+    #[DataProvider('provideCodes')]
     public function testRetryCodes(int $code): void
     {
         $job = new BatchJobFake($code);
@@ -156,7 +156,7 @@ class JobRetryExtensionTest extends SapphireTest
         $this->assertStringContainsString('Attempt 4 failed. 0 attempts remaining', $jobDescriptor->SavedJobMessages);
     }
 
-    public function provideCodes(): array
+    public static function provideCodes(): array
     {
         return [
             [429],
