@@ -87,9 +87,9 @@ class DataObjectDocument implements
     private bool $shouldFallbackToLatestVersion = false;
 
     private static array $dependencies = [
-        'IndexService' => '%$' . IndexingInterface::class,
-        'PageCrawler' => '%$' . PageCrawler::class,
-        'Configuration' => '%$' . IndexConfiguration::class,
+        'indexService' => '%$' . IndexingInterface::class,
+        'pageCrawler' => '%$' . PageCrawler::class,
+        'configuration' => '%$' . IndexConfiguration::class,
     ];
 
     public function __construct(DataObject $dataObject)
