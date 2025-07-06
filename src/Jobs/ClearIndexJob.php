@@ -24,7 +24,7 @@ class ClearIndexJob extends BatchJob
     use ServiceAware;
 
     private static array $dependencies = [
-        'IndexService' => '%$' . IndexingInterface::class,
+        'indexService' => '%$' . IndexingInterface::class,
     ];
 
     public function __construct(?string $indexName = null, ?int $batchSize = null)

@@ -2,12 +2,11 @@
 
 namespace SilverStripe\Forager\Tasks;
 
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Dev\BuildTask;
-use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
 use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**
@@ -40,7 +39,7 @@ class SearchConfigure extends BuildTask
 
         echo 'Done.';
 
-        return 0;
+        return Command::SUCCESS;
     }
 
 }
