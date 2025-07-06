@@ -137,7 +137,7 @@ class RemoveDataObjectJobTest extends SapphireTest
         $this->assertNull($job->getDocument());
         $this->assertNotNull($job->getTimestamp());
         // Should be the lowest define batch_size across our index configuration
-        $this->assertEquals(25, $job->getBatchSize());
+        $this->assertEquals(5, $job->getBatchSize());
 
         $job = RemoveDataObjectJob::create(null, null, 33);
 

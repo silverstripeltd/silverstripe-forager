@@ -5,11 +5,12 @@ namespace SilverStripe\Forager\Tests\Service;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\DocumentBuilder;
 use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
+use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
-use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 
@@ -17,6 +18,16 @@ class DocumentBuilderTest extends SapphireTest
 {
 
     use SearchServiceTest;
+
+    protected static $fixture_file = 'DocumentBuilderTest.yml'; // phpcs:ignore
+
+    /**
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
+     * @var array
+     */
+    protected static $extra_dataobjects = [
+        DataObjectFake::class,
+    ];
 
     public function testToArray(): void
     {
@@ -43,18 +54,26 @@ class DocumentBuilderTest extends SapphireTest
     {
         $config = $this->mockConfig();
         $registry = DocumentFetchCreatorRegistry::singleton();
-        $registry->addFetchCreator(new FakeFetchCreator());
         $builder = new DocumentBuilder($config, $registry);
+        $dataObjectFake = $this->objFromFixture(DataObjectFake::class, 'one');
 
         $document = $builder->fromArray([
-            'source_class' => 'Fake',
-            'field1' => 'tester',
+            'source_class' => DataObjectFake::class,
+            'record_id' => $dataObjectFake->ID,
         ]);
 
+        $identifier = strtolower(
+            sprintf(
+                '%s_%s',
+                str_replace('\\', '_', DataObjectFake::class),
+                $dataObjectFake->ID
+            )
+        );
+
         $this->assertNotNull($document);
-        $this->assertInstanceOf(DocumentFake::class, $document);
-        $this->assertArrayHasKey('field1', $document->fields);
-        $this->assertEquals('tester', $document->fields['field1']);
+        $this->assertInstanceOf(DataObjectDocument::class, $document);
+        $this->assertEquals($identifier, $document->getIdentifier());
+        $this->assertEquals(DataObjectFake::class, $document->getSourceClass());
 
         $document = $builder->fromArray([
             'source_class' => Controller::class,

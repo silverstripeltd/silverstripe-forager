@@ -290,7 +290,6 @@ class DataObjectDocument implements
                 continue;
             }
 
-
             if (!$dbField instanceof ModelData) {
                 throw new IndexConfigurationException(sprintf(
                     'Field "%s" returns value that cannot be resolved',
@@ -398,7 +397,7 @@ class DataObjectDocument implements
             // Start with a singleton to look at the model first, then get real records if needed
             $owningDataObject = Injector::inst()->get($class);
 
-            $document = DataObjectDocument::create($owningDataObject);
+            $document = static::create($owningDataObject);
             $fields = $this->getConfiguration()->getFieldsForClass($class);
 
             $registry = DocumentFetchCreatorRegistry::singleton();

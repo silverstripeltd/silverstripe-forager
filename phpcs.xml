@@ -152,6 +152,8 @@
         <exclude name="SlevomatCodingStandard.ControlStructures.EarlyExit.EarlyExitNotUsed"/>
         <!-- Leave the order up to us to decide -->
         <exclude name="SlevomatCodingStandard.Classes.ClassStructure.IncorrectGroupOrder"/>
+        <!-- Don't care about sorted array keys -->
+        <exclude name="SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys.IncorrectKeyOrder"/>
     </rule>
 
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">

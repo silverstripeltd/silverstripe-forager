@@ -1,0 +1,5 @@
+SilverStripe\Forager\Tests\Fake\DataObjectFake:
+  one:
+    Title: Dataobject one
+    Sort: 1
+    ShowInSearch: 1
