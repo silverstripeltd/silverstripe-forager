@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Tasks;
 
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
@@ -68,12 +67,8 @@ class SearchReindex extends BuildTask
                 : $indexConfiguration->getClassesForIndex($index);
 
             foreach ($classes as $class) {
-                // Find our desired batch size for that class. This will either be the batch_size that you have defined
-                // in the class configuration, or the default batch size
-                $batchSize = $indexConfiguration->getLowestBatchSizeForClass($class, $index);
-
                 // Create a job for this class and index
-                $job = ReindexJob::create([$class], [$index], $batchSize);
+                $job = ReindexJob::create([$class], [$index]);
 
                 if ($this->getConfiguration()->shouldUseSyncJobs()) {
                     // Run the job immediately

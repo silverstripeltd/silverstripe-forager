@@ -26,7 +26,7 @@ class Indexer
     public const int METHOD_ADD = 1;
 
     private static array $dependencies = [
-        'IndexService' => '%$' . IndexingInterface::class,
+        'indexService' => '%$' . IndexingInterface::class,
     ];
 
     private bool $finished = false;
