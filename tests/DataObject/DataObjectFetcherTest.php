@@ -52,8 +52,9 @@ class DataObjectFetcherTest extends SapphireTest
 
         $this->assertEqualsCanonicalizing($expectedDocuments, $resultDocuments);
 
+        $fetcher->setBatchSize(2);
         // And then just a quick extra sanity check that fetching 2 Documents only returns 2 Documents
-        $documents = $fetcher->fetch(2);
+        $documents = $fetcher->fetch();
 
         $this->assertCount(2, $documents);
     }

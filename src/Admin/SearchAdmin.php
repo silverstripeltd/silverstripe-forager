@@ -54,6 +54,8 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
     /**
      * @throws IndexingServiceException
      * @throws NotFoundExceptionInterface
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
      */
     public function getEditForm($id = null, $fields = null): Form
     {

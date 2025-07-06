@@ -14,10 +14,8 @@ use SilverStripe\Versioned\Versioned;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
- * @property int|null $batchSize
  * @property DocumentFetcherInterface[]|null $fetchers
  * @property int|null $fetcherIndex
- * @property int|null $fetchOffset
  * @property array|null $onlyClasses
  * @property array|null $onlyIndexes
  */
@@ -75,9 +73,9 @@ class ReindexJob extends BatchJob
             $this->getConfiguration()->setOnlyIndexes($this->getOnlyIndexes());
         }
 
-        $classes = $this->getOnlyClasses() && count($this->getOnlyClasses()) ?
-            $this->getOnlyClasses() :
-            $this->getConfiguration()->getSearchableBaseClasses();
+        $classes = $this->getOnlyClasses() && count($this->getOnlyClasses())
+            ? $this->getOnlyClasses()
+            : $this->getConfiguration()->getSearchableBaseClasses();
 
         /** @var DocumentFetcherInterface[] $fetchers */
         $fetchers = [];
@@ -93,9 +91,10 @@ class ReindexJob extends BatchJob
             $fetchers[$class] = $fetcher;
         }
 
-        $steps = array_reduce($fetchers, function ($total, $fetcher) {
-            /** @var DocumentFetcherInterface $fetcher */
-            return $total + ceil($fetcher->getTotalDocuments() / $fetcher->getBatchSize());
+        $steps = array_reduce($fetchers, function (int $total, DocumentFetcherInterface $fetcher) {
+            // Minimum of 1 step, even if there are no Documents for the Fetcher - we still want to give the Fetcher
+            // it's "step", and not just ignore it
+            return $total + (int) max(1, ceil($fetcher->getTotalDocuments() / $fetcher->getBatchSize()));
         }, 0);
 
         $this->totalSteps = $steps;
@@ -121,16 +120,9 @@ class ReindexJob extends BatchJob
             return;
         }
 
-        // The Fetcher itself knows what batch size and offset to use
+        // The Fetcher itself knows what batch size and offset to use. It's ok if this is an empty array. The Indexer
+        // will simply not process anything
         $documents = $fetcher->fetch();
-
-        // We have finished processing all the Fetchers records
-        if (!$documents) {
-            // Let's move to the next Fetcher (if there is one)
-            $this->incrementFetcherIndex();
-
-            return;
-        }
 
         // Use the same batch size on the Fetcher for the Indexer
         $indexer = Indexer::create($documents, Indexer::METHOD_ADD, $fetcher->getBatchSize());
@@ -140,11 +132,11 @@ class ReindexJob extends BatchJob
             $indexer->processNode();
         }
 
-        // Let's check if the Fetcher still has more records
+        // Let's check if the Fetcher still has more records for us to process
         $nextOffset = $fetcher->getOffset() + $fetcher->getBatchSize();
 
         if ($nextOffset >= $fetcher->getTotalDocuments()) {
-            // We have finished processing all the Fetcher's records, so let's move to the next one
+            // We have finished processing all the records for this Fetcher, so let's move to the next one
             $this->incrementFetcherIndex();
         } else {
             // Keep going with this Fetcher, but move to the next batch

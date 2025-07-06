@@ -126,7 +126,7 @@ class Indexer
                 if ($dependentDocs) {
                     // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
                     // and decide whether we should delete or update them automatically.
-                    $child = Indexer::create($dependentDocs, self::METHOD_ADD, $this->getBatchSize());
+                    $child = static::create($dependentDocs, self::METHOD_ADD, $this->getBatchSize());
 
                     while (!$child->finished()) {
                         $child->processNode();
@@ -140,7 +140,7 @@ class Indexer
         }
     }
 
-    public function setMethod(mixed $method): Indexer
+    public function setMethod(mixed $method): static
     {
         if (!in_array($method, [self::METHOD_ADD, self::METHOD_DELETE])) {
             throw new InvalidArgumentException(sprintf(
@@ -159,14 +159,14 @@ class Indexer
         return $this->method;
     }
 
-    public function setProcessDependencies(bool $processDependencies): Indexer
+    public function setProcessDependencies(bool $processDependencies): static
     {
         $this->processDependencies = $processDependencies;
 
         return $this;
     }
 
-    public function setBatchSize(int $batchSize): Indexer
+    public function setBatchSize(int $batchSize): static
     {
         if ($batchSize < 1) {
             throw new InvalidArgumentException('Batch size must be greater than 0');
@@ -204,7 +204,7 @@ class Indexer
     /**
      * @param DocumentInterface[] $documents
      */
-    public function setDocuments(array $documents): Indexer
+    public function setDocuments(array $documents): static
     {
         $this->documents = $documents;
         $this->chunks = array_chunk($this->documents, $this->getBatchSize());

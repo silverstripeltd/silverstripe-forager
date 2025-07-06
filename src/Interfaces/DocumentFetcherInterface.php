@@ -5,7 +5,7 @@ namespace SilverStripe\Forager\Interfaces;
 interface DocumentFetcherInterface
 {
 
-    public function getBatchSize(): int;
+    public function getBatchSize(): ?int;
 
     public function setBatchSize(int $batchSize): void;
 

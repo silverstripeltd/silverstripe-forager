@@ -87,7 +87,7 @@ class IndexConfiguration
         return $this->config()->get('include_page_html');
     }
 
-    public function setOnlyIndexes(array $indexes): IndexConfiguration
+    public function setOnlyIndexes(array $indexes): static
     {
         $this->onlyIndexes = $indexes;
 
