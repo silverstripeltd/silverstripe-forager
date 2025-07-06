@@ -226,9 +226,9 @@ Let's follow on with our example.
 ```php
 class FileDocumentFetchCreator implements DocumentFetchCreatorInterface
 {
-    public function appliesTo(string $className): bool
+    public function appliesTo(string $class): bool
     {
-        return $className === FileContent::class || is_subclass_of($className, FileContent::class);
+        return $class === FileContent::class || is_subclass_of($class, FileContent::class);
     }
    
     public function createFetcher(string $class, ?int $until = null): DocumentFetcherInterface

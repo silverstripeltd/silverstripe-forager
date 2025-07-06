@@ -35,7 +35,7 @@ class DataObjectFetcher implements DocumentFetcherInterface
         $this->dataObjectClass = $class;
     }
 
-    public function getBatchSize(): int
+    public function getBatchSize(): ?int
     {
         return $this->batchSize;
     }

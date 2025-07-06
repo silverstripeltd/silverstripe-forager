@@ -29,7 +29,7 @@ class ClearIndexJobTest extends SapphireTest
         // Batch size of 0 is the same as not specifying a batch size, so we should get the lowest batch size defined
         // in our config for index1
         $job = ClearIndexJob::create('index1', 0);
-        $this->assertSame(50, $job->getBatchSize());
+        $this->assertSame(5, $job->getBatchSize());
 
         // Batch size of 0 is the same as not specifying a batch size, so we should get the lowest batch size defined
         // in our config for index2
@@ -38,7 +38,7 @@ class ClearIndexJobTest extends SapphireTest
 
         // Same with not specifying a batch size at all
         $job = ClearIndexJob::create('index1');
-        $this->assertSame(50, $job->getBatchSize());
+        $this->assertSame(5, $job->getBatchSize());
 
         // Same with not specifying a batch size at all
         $job = ClearIndexJob::create('index2');
@@ -91,7 +91,7 @@ class ClearIndexJobTest extends SapphireTest
     {
         $config = $this->mockConfig();
         $config->set('crawl_page_content', false);
-        $service = $this->loadIndex(20);
+        $service = $this->loadDataObject(20);
         $job = ClearIndexJob::create('myindex', 5);
         $job->setup();
 
@@ -100,7 +100,7 @@ class ClearIndexJobTest extends SapphireTest
         $this->assertEquals(0, $service->getDocumentTotal('myindex'));
 
         // Now create a fake test where we don't remove any documents
-        $service = $this->loadIndex(10);
+        $service = $this->loadDataObject(10);
         $service->shouldError = true;
         $job = ClearIndexJob::create('myindex', 5);
         $job->setup();

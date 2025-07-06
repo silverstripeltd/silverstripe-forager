@@ -12,7 +12,6 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
-use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
 use SilverStripe\Model\ModelData;
@@ -134,7 +133,6 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertTrue($config->isClassIndexed(Member::class));
         $this->assertTrue($config->isClassIndexed(Controller::class));
         $this->assertTrue($config->isClassIndexed(DataObjectFakeAlternate::class));
-        $this->assertFalse($config->isClassIndexed(FakeFetcher::class));
         $this->assertFalse($config->isClassIndexed(ServiceFake::class));
     }
 

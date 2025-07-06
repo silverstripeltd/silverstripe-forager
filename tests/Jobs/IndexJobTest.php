@@ -28,13 +28,14 @@ class IndexJobTest extends SapphireTest
             DataObjectFake::class => true,
         ]);
         $config->set('batch_size', 6);
-        $service = $this->loadIndex(20);
+        $service = $this->loadDataObject(20);
         $docs = $service->listDocuments('test', 100);
         $this->assertCount(20, $docs);
 
         $job = IndexJob::create($docs, Indexer::METHOD_ADD);
         $job->setup();
-        $this->assertEquals(6, $job->getBatchSize());
+        // Batch size should default back to the lowest configured batch_size
+        $this->assertEquals(5, $job->getBatchSize());
         $this->assertCount(20, $job->getDocuments());
 
         $job->process();
@@ -56,9 +57,9 @@ class IndexJobTest extends SapphireTest
         $this->assertEquals([], $job->getDocuments());
         $this->assertEquals(Indexer::METHOD_ADD, $job->getMethod());
         // Should be the lowest define batch_size across our index configuration
-        $this->assertEquals(25, $job->getBatchSize());
+        $this->assertEquals(5, $job->getBatchSize());
 
-        $service = $this->loadIndex(20);
+        $service = $this->loadDataObject(20);
         $docs = $service->listDocuments('test', 33);
         $job = IndexJob::create($docs, Indexer::METHOD_DELETE, 33);
 

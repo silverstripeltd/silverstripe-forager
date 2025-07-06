@@ -9,6 +9,7 @@ use SilverStripe\Forager\Extensions\SearchServiceExtension;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
 use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Security\Member;
@@ -34,6 +35,13 @@ trait SearchServiceTest
                         'includeClasses' => [
                             DataObjectFake::class => [
                                 'batch_size' => 75,
+                                'fields' => [
+                                    'field1' => true,
+                                    'field2' => true,
+                                ],
+                            ],
+                            DataObjectFakeAlternate::class => [
+                                'batch_size' => 5,
                                 'fields' => [
                                     'field1' => true,
                                     'field2' => true,
@@ -80,17 +88,34 @@ trait SearchServiceTest
         return $service;
     }
 
-    protected function loadIndex(int $count = 10): ServiceFake
+    protected function loadDataObject(int $count): ServiceFake
     {
         $service = $this->mockService();
 
         for ($i = 0; $i < $count; $i++) {
-            $dataobject = DataObjectFake::create([
+            $dataObject = DataObjectFake::create([
                 'Title' => 'Dataobject ' . $i,
             ]);
 
-            $dataobject->write();
-            $doc = DataObjectDocument::create($dataobject);
+            $dataObject->write();
+            $doc = DataObjectDocument::create($dataObject);
+            $service->addDocument($doc);
+        }
+
+        return $service;
+    }
+
+    protected function loadDataObjectAlternate(int $count): ServiceFake
+    {
+        $service = $this->mockService();
+
+        for ($i = 0; $i < $count; $i++) {
+            $dataObject = DataObjectFakeAlternate::create([
+                'Title' => 'Dataobject alternate' . $i,
+            ]);
+
+            $dataObject->write();
+            $doc = DataObjectDocument::create($dataObject);
             $service->addDocument($doc);
         }
 
