@@ -19,7 +19,7 @@ use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\RelationList;
@@ -30,7 +30,7 @@ use SilverStripe\Versioned\Versioned;
 class DataObjectDocumentTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint

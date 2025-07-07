@@ -14,7 +14,7 @@ use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Security\Member;
 
-trait SearchServiceTest
+trait SearchServiceTestTrait
 {
 
     protected function mockConfig(bool $setConfig = false): IndexConfigurationFake

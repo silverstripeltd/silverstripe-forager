@@ -13,13 +13,13 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Security\Member;
 
 class RemoveDataObjectJobTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = '../fixtures.yml'; // phpcs:ignore
 

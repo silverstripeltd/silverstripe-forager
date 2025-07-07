@@ -16,14 +16,14 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
 
 class RemoveRelatedDataObjectJobTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = [ // @phpcs:ignore
         '../fixtures.yml',

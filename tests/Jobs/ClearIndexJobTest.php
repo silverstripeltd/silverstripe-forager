@@ -7,12 +7,12 @@ use RuntimeException;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
 class ClearIndexJobTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint

@@ -13,14 +13,14 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Model\ModelData;
 use SilverStripe\Security\Member;
 
 class IndexConfigurationTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     public function testIndexesForClassName(): void
     {
