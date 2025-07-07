@@ -73,9 +73,9 @@ class ReindexJob extends BatchJob
             $this->getConfiguration()->setOnlyIndexes($this->getOnlyIndexes());
         }
 
-        $classes = $this->getOnlyClasses() && count($this->getOnlyClasses()) ?
-            $this->getOnlyClasses() :
-            $this->getConfiguration()->getSearchableBaseClasses();
+        $classes = $this->getOnlyClasses() && count($this->getOnlyClasses())
+            ? $this->getOnlyClasses()
+            : $this->getConfiguration()->getSearchableBaseClasses();
 
         /** @var DocumentFetcherInterface[] $fetchers */
         $fetchers = [];

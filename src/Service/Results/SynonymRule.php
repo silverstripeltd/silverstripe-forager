@@ -11,8 +11,8 @@ class SynonymRule extends ModelData implements JsonSerializable
 
     use Injectable;
 
-    public const TYPE_EQUIVALENT = 'TYPE_EQUIVALENT';
-    public const TYPE_DIRECTIONAL = 'TYPE_DIRECTIONAL';
+    public const string TYPE_EQUIVALENT = 'TYPE_EQUIVALENT';
+    public const string TYPE_DIRECTIONAL = 'TYPE_DIRECTIONAL';
 
     /**
      * Different services have different names for their synonym types
