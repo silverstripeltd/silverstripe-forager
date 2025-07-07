@@ -12,12 +12,12 @@ use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
 class DocumentBuilderTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = 'DocumentBuilderTest.yml'; // phpcs:ignore
 

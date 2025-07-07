@@ -13,13 +13,13 @@ use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Service\SyncJobRunner;
 use SilverStripe\Forager\Tests\Fake\DataObjectDocumentFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\ORM\FieldType\DBDatetime;
 
 class DataObjectBatchProcessorTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     public function testRemoveDocuments(): void
     {

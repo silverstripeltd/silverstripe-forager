@@ -8,7 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Service\SyncJobRunner;
 use SilverStripe\Forager\Tasks\SearchClearIndex;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\PolyExecution\HttpRequestInput;
 use SilverStripe\PolyExecution\PolyOutput;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 class SearchClearIndexTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     public function testTask(): void
     {
