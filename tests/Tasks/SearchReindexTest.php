@@ -9,7 +9,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\PolyExecution\HttpRequestInput;
 use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\Security\Member;
@@ -19,7 +19,7 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
 class SearchReindexTest extends SapphireTest
 {
 
-    use SearchServiceTest;
+    use SearchServiceTestTrait;
 
     protected $usesDatabase = true; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
