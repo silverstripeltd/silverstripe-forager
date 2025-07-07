@@ -49,15 +49,10 @@ class IndexJob extends BatchJob
     {
         $this->extend('onBeforeSetup');
 
-        if (!$this->getBatchSize()) {
-            // If we don't have a batchSize, then we're just processing everything in one go
-            $this->totalSteps = 1;
-        } else {
-            // There could be 0 documents. If that's the case, then there's zero steps
-            $this->totalSteps = $this->getDocuments()
-                ? ceil(count($this->getDocuments()) / $this->getBatchSize())
-                : 0;
-        }
+        // There could be 0 documents. If that's the case, then there's zero steps
+        $this->totalSteps = $this->getDocuments()
+            ? (int) ceil(count($this->getDocuments()) / $this->getBatchSize())
+            : 0;
 
         $this->currentStep = 0;
         $this->setRemainingDocuments($this->getDocuments());

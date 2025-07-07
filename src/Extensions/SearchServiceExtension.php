@@ -9,7 +9,6 @@ use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
-use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
@@ -23,7 +22,7 @@ use SilverStripe\Versioned\Versioned;
 use Throwable;
 
 /**
- * The extension that provides implicit indexing features to dataobjects
+ * The extension that provides implicit indexing features to DataObjects
  *
  * @property DataObject|SearchServiceExtension $owner
  * @property string $SearchIndexed
@@ -107,10 +106,8 @@ class SearchServiceExtension extends Extension
 
     /**
      * On dev/build ensure that the indexer settings are up to date
-     *
-     * @throws IndexingServiceException
      */
-    public function requireDefaultRecords(): void
+    public function onRequireDefaultRecords(): void
     {
         // Wrap this in a try-catch so that dev/build can continue (with warnings) when no service has been set
         try {

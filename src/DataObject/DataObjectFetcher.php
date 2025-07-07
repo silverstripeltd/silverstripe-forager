@@ -63,7 +63,7 @@ class DataObjectFetcher implements DocumentFetcherInterface
     public function incrementOffsetDown(): void
     {
         // Never go below 0
-        $this->offset = max(0, ($this->offset - $this->batchSize));
+        $this->offset = max(0, $this->offset - $this->batchSize);
     }
 
     /**
