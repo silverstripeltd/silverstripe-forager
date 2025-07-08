@@ -9,11 +9,6 @@ interface IndexingInterface extends BatchDocumentInterface
 {
 
     /**
-     * Combine environment name and index name (if required for your service)
-     */
-    public function environmentizeIndex(string $indexName): string;
-
-    /**
      * @return string|null ID of the Document added
      * @throws IndexingServiceException
      */
@@ -45,13 +40,13 @@ interface IndexingInterface extends BatchDocumentInterface
      * @return DocumentInterface[]
      * @throws IndexingServiceException
      */
-    public function listDocuments(string $indexName, ?int $pageSize = null, int $currentPage = 0): array;
+    public function listDocuments(string $indexSuffix, ?int $pageSize = null, int $currentPage = 0): array;
 
     /**
      * @return int
      * @throws IndexingServiceException
      */
-    public function getDocumentTotal(string $indexName): int;
+    public function getDocumentTotal(string $indexSuffix): int;
 
     /**
      * A hook for configuring the index service

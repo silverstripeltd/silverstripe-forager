@@ -102,9 +102,9 @@ class IndexConfigurationFake extends IndexConfiguration
         return $this->override[__FUNCTION__][$index] ?? parent::getFieldsForIndex($index);
     }
 
-    public function getIndexVariant(): ?string
+    public function getIndexPrefix(): ?string
     {
-        return $this->override[__FUNCTION__] ?? parent::getIndexVariant();
+        return $this->override[__FUNCTION__] ?? parent::getIndexPrefix();
     }
 
 }

@@ -29,51 +29,51 @@ class IndexConfigurationTest extends SapphireTest
 
         $result = $config->getIndexesForClassName(DataObjectFake::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(3, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(3, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForClassName(DataObjectSubclassFake::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(4, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertTrue(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(4, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertTrue(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForClassName(ModelData::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(1, $indexNames);
-        $this->assertFalse(in_array('index1', $indexNames));
-        $this->assertFalse(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(1, $indexSuffixes);
+        $this->assertFalse(in_array('index1', $indexSuffixes));
+        $this->assertFalse(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForClassName(DataObjectFakeAlternate::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(1, $indexNames);
-        $this->assertFalse(in_array('index1', $indexNames));
-        $this->assertFalse(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(1, $indexSuffixes);
+        $this->assertFalse(in_array('index1', $indexSuffixes));
+        $this->assertFalse(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $this->assertEmpty($config->getIndexesForClassName(ServiceFake::class));
     }
@@ -85,39 +85,39 @@ class IndexConfigurationTest extends SapphireTest
 
         $result = $config->getIndexesForDocument(new DocumentFake(DataObjectFake::class));
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(3, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(3, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForDocument(new DocumentFake(DataObjectSubclassFake::class));
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(4, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertTrue(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(4, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertTrue(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForDocument(new DocumentFake(ModelData::class));
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(1, $indexNames);
-        $this->assertFalse(in_array('index1', $indexNames));
-        $this->assertFalse(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(1, $indexSuffixes);
+        $this->assertFalse(in_array('index1', $indexSuffixes));
+        $this->assertFalse(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $this->assertEmpty($config->getIndexesForDocument(new DocumentFake('ClassDoesNotExist')));
     }
