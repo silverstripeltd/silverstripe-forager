@@ -113,7 +113,7 @@ class DataObjectDocument implements
         return $this->getDataObject()->ClassName;
     }
 
-    public function setShouldFallbackToLatestVersion(bool $fallback = true): self
+    public function setShouldFallbackToLatestVersion(bool $fallback = true): static
     {
         $this->shouldFallbackToLatestVersion = $fallback;
 
@@ -484,7 +484,7 @@ class DataObjectDocument implements
      * @param DataObject&SearchServiceExtension $dataObject
      * @throws InvalidArgumentException
      */
-    public function setDataObject(DataObject $dataObject): self
+    public function setDataObject(DataObject $dataObject): static
     {
         if (!$dataObject->hasExtension(SearchServiceExtension::class)) {
             throw new InvalidArgumentException(sprintf(
@@ -499,7 +499,7 @@ class DataObjectDocument implements
         return $this;
     }
 
-    public function setPageCrawler(PageCrawler $crawler): self
+    public function setPageCrawler(PageCrawler $crawler): static
     {
         $this->pageCrawler = $crawler;
 
