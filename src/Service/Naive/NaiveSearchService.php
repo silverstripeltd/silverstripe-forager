@@ -2,11 +2,10 @@
 
 namespace SilverStripe\Forager\Service\Naive;
 
-use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 
-class NaiveSearchService implements IndexingInterface, BatchDocumentRemovalInterface
+class NaiveSearchService implements IndexingInterface
 {
 
     public function addDocument(DocumentInterface $document): ?string
@@ -24,7 +23,7 @@ class NaiveSearchService implements IndexingInterface, BatchDocumentRemovalInter
         return [];
     }
 
-    public function removeAllDocuments(string $indexSuffix): int
+    public function clearIndexDocuments(string $indexSuffix, int $batchSize): int
     {
         return 0;
     }

@@ -70,7 +70,7 @@ class IndexConfiguration
         return $this->indexPrefix;
     }
 
-    public function setIndexPrefix(?string $indexPrefix): self
+    public function setIndexPrefix(?string $indexPrefix): static
     {
         $this->indexPrefix = $indexPrefix;
 

@@ -87,14 +87,11 @@ class ReindexJob extends BatchJob
                 continue;
             }
 
-            $fetcher->setBatchSize($this->getConfiguration()->getLowestBatchSizeForClass($class));
             $fetchers[$class] = $fetcher;
         }
 
         $steps = array_reduce($fetchers, function (int $total, DocumentFetcherInterface $fetcher) {
-            // Minimum of 1 step, even if there are no Documents for the Fetcher - we still want to give the Fetcher
-            // it's "step", and not just ignore it
-            return $total + (int) max(1, ceil($fetcher->getTotalDocuments() / $fetcher->getBatchSize()));
+            return $total + $fetcher->getTotalBatches();
         }, 0);
 
         $this->totalSteps = $steps;
@@ -110,6 +107,7 @@ class ReindexJob extends BatchJob
      */
     public function process(): void
     {
+        $this->currentStep++;
         $this->extend('onBeforeProcess');
         $fetcher = $this->getFetcher($this->getFetcherIndex());
 
@@ -143,9 +141,14 @@ class ReindexJob extends BatchJob
             $fetcher->incrementOffsetUp();
         }
 
-        $this->currentStep++;
-
         $this->extend('onAfterProcess');
+
+        // We've completed all the steps that we expected to have
+        if ($this->currentStep >= $this->totalSteps) {
+            $this->isComplete = true;
+
+            return;
+        }
 
         $this->cooldown();
     }
