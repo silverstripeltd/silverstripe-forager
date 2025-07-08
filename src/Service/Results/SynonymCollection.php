@@ -21,7 +21,7 @@ class SynonymCollection extends ModelData implements JsonSerializable
         return $this->id;
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,

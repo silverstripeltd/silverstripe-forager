@@ -1,12 +1,12 @@
 # Configuration
 
-Most of the configuration surface of this module lies in the appropriately titled `IndexConfiguration`
-class. This namespace is used primarily for specifying the indexing behaviour of content types,
-but it is also used to store platform agnostic settings.
+Most of the configuration surface of this module lies in the appropriately titled `IndexConfiguration` class. This namespace is used primarily for specifying the indexing behaviour of content types, but it is also used to store platform agnostic settings.
 
 <!-- TOC -->
 * [Configuration](#configuration)
   * [Basic configuration](#basic-configuration)
+    * [Understanding your index prefix and index suffix:](#understanding-your-index-prefix-and-index-suffix)
+    * [Configuration examples](#configuration-examples)
   * [Indexing DataObjects](#indexing-dataobjects)
     * [DataObject Fields](#dataobject-fields)
     * [Indexing relational data](#indexing-relational-data)
@@ -22,7 +22,49 @@ but it is also used to store platform agnostic settings.
 
 ## Basic configuration
 
-Let's index our pages!
+### Understanding your index prefix and index suffix:
+
+This module assumes that you would like to have different indexes for different environments (this default behaviour can be overridden).
+
+* Index Prefix: By default, the index prefix is the value from your `SS_ENVIRONMENT_TYPE` environment variable (**note:** adaptor modules may change how your prefix is set, so please do pay attention to their docs as well)
+* Index Suffix: Your index suffix is then everything that comes after the index prefix
+
+For example, below we have 2 different environments that we want to support (`uat` and `prod`), and we have 2 indexes for each environment:
+
+| Index name     | index prefix | index suffix |
+|----------------|--------------|--------------|
+| uat-main       | uat          | main         |
+| uat-secondary  | uat          | secondary    |
+| prod-main      | prod         | main         |
+| prod-secondary | prod         | secondary    |
+
+This module inclues a lot of code that refers to `indexName`, `indexPrefix`, and `indexSuffix`; it's important to understand what is being requested, or provided.
+
+### Configuration examples
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    <indexSuffix>:
+      includeClasses:
+        <fullClassName>:
+          fields:
+            title:
+              property: Title
+            content: true # Shorthand. This is equavalent to the title example above
+            term_ids:
+              property: Terms.ID # An array of IDs
+              options:
+                type: number
+            
+```
+
+Let's start with a few relevant nodes:
+
+* `<indexSuffix>`: See [Understanding your index prefix and index suffix](#understanding-your-index-prefix-and-index-suffix). From the previous example, this value might be `main`, or `secondary`
+* `includedClasses`: A list of content classes to index. Versioned DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./07_customising_add_document_type.md)
+
+Here is an example of us indexing our pages for an index with the suffix of `main`.
 
 ```yaml
 # example configuration
@@ -32,24 +74,8 @@ SilverStripe\Forager\Service\IndexConfiguration:
       includeClasses:
         SilverStripe\CMS\Model\SiteTree:
           fields:
-            title:
-              property: Title
-            content: true
-            term_ids:
-              property: Terms.ID
-              options:
-                type: number
-            
+            title: true
 ```
-
-Let's start with a few relevant nodes:
-
-* `main`: The name of the index. The rules on what this can be named will vary depending
-on your service provider. EG: For EnterpriseSearch, it should only contain lowercase letters, numbers, 
-and hyphens
-
-* `includedClasses`: A list of content classes to index. Versioned DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./07_customising_add_document_type.md)
-
 
 ## Indexing DataObjects
 
@@ -58,7 +84,7 @@ To put a DataObject in the index it needs to be added to the index configuration
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
-    main:
+    <indexSuffix>:
       includeClasses:
         MyProject\MyApp\Product:
          # see below for per-class options
@@ -79,7 +105,7 @@ To define what content should be indexed you need to add keys to the `fields` ob
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
-    main:
+    <indexSuffix>:
       includeClasses:
         SilverStripe\CMS\Model\SiteTree:
           fields:
@@ -110,7 +136,7 @@ Content on related objects can be added to a search document as an array:
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
-    myindex:
+    <indexSuffix>:
       includeClasses:
         MyProject\MyApp\BlogEntry:
           fields:
@@ -158,7 +184,7 @@ In this example, `ElementalPageExtension` has already been applied to `Page`, an
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
   indexes:
-    myindex:
+    <indexSuffix>:
       includeClasses:
         Page:
           fields:
@@ -190,7 +216,7 @@ The global size will apply to all classes that are indexed but you can change it
 SilverStripe\Forager\Service\IndexConfiguration:
   batch_size: 75
   indexes:
-    myindex:
+    <indexSuffix>:
       includeClasses:
         SilverStripe\CMS\Model\SiteTree:
           batch_size: 50
@@ -298,22 +324,17 @@ Let's look at all the settings on the `IndexConfiguration` class:
 
 ## Per environment indexing
 
-By default, index names are decorated with the environment they were created in, for instance
-`dev-myindex`, `live-myindex` This ensures that production indexes don't get polluted with
-sensitive or test content. This decoration is known as the `indexPrefix`, and the environment
-variable it uses can be configured. By default, as described above, the environment variable is
-`SS_ENVIRONMENT_TYPE`.
+As mentioned previously, by default, index names are decorated with the environment they were created in, for instance `dev-myindex`, `prod-myindex` This ensures that production indexes don't get polluted with sensitive or test content. This decoration is known as the `indexPrefix`, and the environment variable it uses can be configured. By default, as described above, the environment variable is `SS_ENVIRONMENT_TYPE`.
+
+This `indexPrefix` can be overridden, or disabled (by setting the value to `null`):
 
 ```yaml
 SilverStripe\Core\Injector\Injector:
   SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
-      indexPrefix: '`MY_CUSTOM_VAR`'
+      indexPrefix: '`MY_CUSTOM_ENV_VAR`'
 
 ```
-
-This is useful if you have multiple staging environments and you don't want to overcrowd
-your search instance with distinct indexes for each one.
 
 ## Full page indexing
 

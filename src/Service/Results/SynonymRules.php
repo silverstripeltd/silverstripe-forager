@@ -30,7 +30,7 @@ class SynonymRules extends ArrayList implements JsonSerializable
         parent::push($item);
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
