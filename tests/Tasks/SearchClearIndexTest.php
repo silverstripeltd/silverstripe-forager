@@ -28,7 +28,7 @@ class SearchClearIndexTest extends SapphireTest
         $mock->expects($this->once())
             ->method('runJob')
             ->with($this->callback(function (ClearIndexJob $job) {
-                return $job->getIndexName() === 'foo';
+                return $job->getIndexSuffix() === 'foo';
             }));
 
         $commandOptions = SearchClearIndex::singleton()->getOptions();

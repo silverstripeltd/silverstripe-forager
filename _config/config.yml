@@ -40,7 +40,7 @@ SilverStripe\Core\Injector\Injector:
 
   SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
-      index_variant: '`SS_ENVIRONMENT_TYPE`'
+      indexPrefix: '`SS_ENVIRONMENT_TYPE`'
 
   SilverStripe\Forager\Service\DocumentBuilder:
     constructor:

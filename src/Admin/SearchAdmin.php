@@ -16,6 +16,7 @@ use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Jobs\ReindexJob;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -195,10 +196,10 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
         $configuration = SearchServiceExtension::singleton()->getConfiguration();
 
-        foreach ($configuration->getIndexes() as $index => $data) {
+        foreach ($configuration->getIndexes() as $indexSuffix => $data) {
             $localCount = 0;
 
-            foreach ($configuration->getClassesForIndex($index) as $class) {
+            foreach ($configuration->getClassesForIndex($indexSuffix) as $class) {
                 $query = new DataQuery($class);
                 $query->where('SearchIndexed IS NOT NULL');
 
@@ -211,9 +212,9 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
             }
 
             $result = new IndexedDocumentsResult();
-            $result->IndexName = $indexer->environmentizeIndex($index);
+            $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
             $result->DBDocs = $localCount;
-            $result->RemoteDocs = $indexer->getDocumentTotal($index);
+            $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
             $list->push($result);
         }
 

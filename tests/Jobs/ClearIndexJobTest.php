@@ -60,7 +60,7 @@ class ClearIndexJobTest extends SapphireTest
 
         // If no index name is provided, then other config options should not be applied
         $job = ClearIndexJob::create();
-        $this->assertNull($job->getIndexName());
+        $this->assertNull($job->getIndexSuffix());
         $this->assertNull($job->getBatchSize());
         $this->assertNull($job->getBatchOffset());
     }
