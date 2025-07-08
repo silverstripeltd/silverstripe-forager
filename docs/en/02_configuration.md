@@ -300,7 +300,7 @@ Let's look at all the settings on the `IndexConfiguration` class:
 
 By default, index names are decorated with the environment they were created in, for instance
 `dev-myindex`, `live-myindex` This ensures that production indexes don't get polluted with
-sensitive or test content. This decoration is known as the `index_variant`, and the environment
+sensitive or test content. This decoration is known as the `indexPrefix`, and the environment
 variable it uses can be configured. By default, as described above, the environment variable is
 `SS_ENVIRONMENT_TYPE`.
 
@@ -308,7 +308,7 @@ variable it uses can be configured. By default, as described above, the environm
 SilverStripe\Core\Injector\Injector:
   SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
-      index_variant: '`MY_CUSTOM_VAR`'
+      indexPrefix: '`MY_CUSTOM_VAR`'
 
 ```
 

@@ -41,18 +41,18 @@ class IndexConfiguration
      */
     private static bool $index_parent_page_of_elements = true;
 
-    private ?string $indexVariant;
+    private ?string $indexPrefix;
 
     private array $onlyIndexes = [];
 
     private array $indexesForClassName = [];
 
     /**
-     * @param string|null $indexVariant
+     * @param string|null $indexPrefix
      */
-    public function __construct(?string $indexVariant = null)
+    public function __construct(?string $indexPrefix = null)
     {
-        $this->setIndexVariant($indexVariant);
+        $this->setIndexPrefix($indexPrefix);
     }
 
     public function isEnabled(): bool
@@ -65,14 +65,14 @@ class IndexConfiguration
         return $this->config()->get('batch_size');
     }
 
-    public function getIndexVariant(): ?string
+    public function getIndexPrefix(): ?string
     {
-        return $this->indexVariant;
+        return $this->indexPrefix;
     }
 
-    public function setIndexVariant(?string $variant): self
+    public function setIndexPrefix(?string $indexPrefix): self
     {
-        $this->indexVariant = $variant;
+        $this->indexPrefix = $indexPrefix;
 
         return $this;
     }
@@ -85,6 +85,17 @@ class IndexConfiguration
     public function shouldIncludePageHTML(): bool
     {
         return $this->config()->get('include_page_html');
+    }
+
+    public function environmentizeIndex(string $indexSuffix): string
+    {
+        $indexPrefix = $this->getIndexPrefix();
+
+        if ($indexPrefix) {
+            return sprintf('%s-%s', $indexPrefix, $indexSuffix);
+        }
+
+        return $indexSuffix;
     }
 
     public function setOnlyIndexes(array $indexes): static
@@ -141,7 +152,7 @@ class IndexConfiguration
         if (!isset($this->indexesForClassName[$class])) {
             $matches = [];
 
-            foreach ($this->getIndexes() as $indexName => $data) {
+            foreach ($this->getIndexes() as $indexSuffix => $data) {
                 $classes = $data['includeClasses'] ?? [];
 
                 foreach ($classes as $candidate => $spec) {
@@ -150,7 +161,7 @@ class IndexConfiguration
                     }
 
                     if ($class === $candidate || is_subclass_of($class, $candidate)) {
-                        $matches[$indexName] = $data;
+                        $matches[$indexSuffix] = $data;
 
                         break;
                     }
@@ -203,8 +214,8 @@ class IndexConfiguration
     {
         $classes = [];
 
-        foreach (array_keys($this->getIndexes()) as $indexName) {
-            $classes = array_merge($classes, $this->getClassesForIndex($indexName));
+        foreach (array_keys($this->getIndexes()) as $indexSuffix) {
+            $classes = array_merge($classes, $this->getClassesForIndex($indexSuffix));
         }
 
         return array_unique($classes);

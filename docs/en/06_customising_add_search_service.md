@@ -18,7 +18,7 @@ This could be done through setting the value of an environment variable to the c
 SilverStripe\Core\Injector\Injector:
   SilverStripe\Forager\Service\IndexConfiguration:
     constructor:
-      index_variant: '`SEARCH_ENGINE_PREFIX`'
+      indexPrefix: '`SEARCH_ENGINE_PREFIX`'
 ```
 
 ## The IndexingInterface specification
@@ -65,10 +65,10 @@ public function addDocument(DocumentInterface $document): ?string
     $fields = DocumentBuilder::singleton()->toArray($document);
     $indexes = IndexConfiguration::singleton()->getIndexesForDocument($document);
     
-    foreach (array_keys($indexes) as $indexName) {
+    foreach (array_keys($indexes) as $indexSuffix) {
         // your custom API call here
         $mySearchClient->addDocuementToIndex(
-            $this->environmentizeIndex($indexName),
+            IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
             $fields
         );   
     }
@@ -107,10 +107,10 @@ public function removeDocument(DocumentInterface $document): ?string
 {
     $indexes = IndexConfiguration::singleton()->getIndexesForDocument($document);
     
-    foreach (array_keys($indexes) as $indexName) {
+    foreach (array_keys($indexes) as $indexSuffix) {
         // your custom API call here
         $myAPI->removeDocumentFromIndex(
-            $this->environmentizeIndex($indexName),
+            IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
             $document->getIdentifier()
         );
     }
@@ -143,10 +143,12 @@ Gets a single document from an index. Should check each index and get the first 
 ```php
 public function getDocument(string $id): ?array
 {
-    foreach (array_keys(IndexConfiguration::singleton()->getIndexes()) as $indexName) {
+    $indexes = IndexConfiguration::singleton()->getIndexes();
+
+    foreach (array_keys($indexes) as $indexSuffix) {
         // Your API call here
         $result = $myAPI->retrieveDocumentFromIndex(        
-            $this->environmentizeIndex($indexName),
+            IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
             $id
         );
         
@@ -172,7 +174,7 @@ that the `getDocument()` method works as a proxy for `rgetDocuments()`, e.g.
 
 return type should be an array of `DocumentInterface`.
 
-### listDocuments(string $indexName, ?int $limit = null, int $offset = 0): array
+### listDocuments(string $indexSuffix, ?int $limit = null, int $offset = 0): array
 
 This method is expected to list all documents in a given index, with some pagination
 parameters.
@@ -180,10 +182,10 @@ parameters.
 return type should be an array of `DocumentInterface`.
 
 ```php
-public function listDocuments(string $indexName, ?int $pageSize = null, int $currentPage = 0): array
+public function listDocuments(string $indexSuffix, ?int $pageSize = null, int $currentPage = 0): array
 {
     // Your API call here    
-    $request = new ListDocuments($this->environmentizeIndex($indexName));
+    $request = new ListDocuments(IndexConfiguration::singleton()->environmentizeIndex($indexSuffix));
     $request->setPageSize($pageSize);
     $request->setCurrentPage($currentPage);
     
@@ -198,16 +200,16 @@ public function listDocuments(string $indexName, ?int $pageSize = null, int $cur
 }
 ```
 
-### getDocumentTotal(string $indexName): int
+### getDocumentTotal(string $indexSuffix): int
 
 This method is expected to return the total number of documents in an index.
 
 ```php
-public function getDocumentTotal(string $indexName): int
+public function getDocumentTotal(string $indexSuffix): int
 {
     // Your API call here
     $response = $myAPI->listDocuments(
-        $this->environmentizeIndex($indexName)
+        IndexConfiguration::singleton()->environmentizeIndex($indexSuffix)
     );
 
     return $response['metadata']['total'];
@@ -231,7 +233,7 @@ Return value should be an array describing the current Schema for each index.
 public function configure(): array
 {
     foreach ($indexesToCreate as $index) {
-         $myAPI->createIndex($this->environmentizeIndex($index));
+         $myAPI->createIndex(IndexConfiguration::singleton()->environmentizeIndex($index));
     }   
 }
 ```

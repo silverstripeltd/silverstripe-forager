@@ -15,7 +15,7 @@ use SilverStripe\Forager\Service\Traits\ServiceAware;
 /**
  * @property int|null $batchOffset
  * @property int|null $batchSize
- * @property string|null $indexName
+ * @property string|null $indexSuffix
  */
 class ClearIndexJob extends BatchJob
 {
@@ -27,18 +27,18 @@ class ClearIndexJob extends BatchJob
         'indexService' => '%$' . IndexingInterface::class,
     ];
 
-    public function __construct(?string $indexName = null, ?int $batchSize = null)
+    public function __construct(?string $indexSuffix = null, ?int $batchSize = null)
     {
         parent::__construct();
 
-        if (!$indexName) {
+        if (!$indexSuffix) {
             return;
         }
 
         // Use the provided batch size, or determine batch size from our IndexConfiguration
-        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize(null, [$indexName]);
+        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize(null, [$indexSuffix]);
 
-        $this->setIndexName($indexName);
+        $this->setIndexSuffix($indexSuffix);
         $this->setBatchSize($batchSize);
         $this->setBatchOffset(0);
 
@@ -55,7 +55,7 @@ class ClearIndexJob extends BatchJob
 
     public function getTitle(): string
     {
-        return sprintf('Search clear index %s', $this->getIndexName());
+        return sprintf('Search clear index %s', $this->getIndexSuffix());
     }
 
     public function process(): void
@@ -76,9 +76,9 @@ class ClearIndexJob extends BatchJob
         }
 
         $this->currentStep++;
-        $total = $this->getIndexService()->getDocumentTotal($this->getIndexName());
-        $numRemoved = $this->getIndexService()->removeAllDocuments($this->getIndexName());
-        $totalAfter = $this->getIndexService()->getDocumentTotal($this->getIndexName());
+        $total = $this->getIndexService()->getDocumentTotal($this->getIndexSuffix());
+        $numRemoved = $this->getIndexService()->removeAllDocuments($this->getIndexSuffix());
+        $totalAfter = $this->getIndexService()->getDocumentTotal($this->getIndexSuffix());
 
         Injector::inst()->get(LoggerInterface::class)->notice(sprintf(
             '[Step %d]: Before there were %d documents. We removed %d documents this iteration, leaving %d remaining.',
@@ -92,7 +92,7 @@ class ClearIndexJob extends BatchJob
             $this->isComplete = true;
             Injector::inst()->get(LoggerInterface::class)->notice(sprintf(
                 'Successfully removed all documents from index %s',
-                $this->getIndexName()
+                $this->getIndexSuffix()
             ));
 
             return;
@@ -119,6 +119,11 @@ class ClearIndexJob extends BatchJob
         return $this->batchOffset;
     }
 
+    private function setBatchOffset(?int $batchOffset): void
+    {
+        $this->batchOffset = $batchOffset;
+    }
+
     public function getBatchSize(): ?int
     {
         if (is_bool($this->batchSize)) {
@@ -128,28 +133,23 @@ class ClearIndexJob extends BatchJob
         return $this->batchSize;
     }
 
-    public function getIndexName(): ?string
-    {
-        if (is_bool($this->indexName)) {
-            return null;
-        }
-
-        return $this->indexName;
-    }
-
-    private function setBatchOffset(?int $batchOffset): void
-    {
-        $this->batchOffset = $batchOffset;
-    }
-
     private function setBatchSize(?int $batchSize): void
     {
         $this->batchSize = $batchSize;
     }
 
-    private function setIndexName(?string $indexName): void
+    public function getIndexSuffix(): ?string
     {
-        $this->indexName = $indexName;
+        if (is_bool($this->indexSuffix)) {
+            return null;
+        }
+
+        return $this->indexSuffix;
+    }
+
+    private function setIndexSuffix(?string $indexSuffix): void
+    {
+        $this->indexSuffix = $indexSuffix;
     }
 
 }
