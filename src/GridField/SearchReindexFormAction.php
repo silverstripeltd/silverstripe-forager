@@ -3,7 +3,7 @@
 namespace SilverStripe\Forager\GridField;
 
 use SilverStripe\Control\Controller;
-use SilverStripe\Control\Director;
+use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridField_ActionMenuItem;
@@ -108,13 +108,19 @@ class SearchReindexFormAction implements GridField_ColumnProvider, GridField_Act
             return;
         }
 
-        $fullReindexBaseURL = Director::absoluteURL('/dev/tasks/' . SearchReindex::config()->get('segment'));
-        $fullIndexThisIndexURL = sprintf('%s?onlyIndex=%s', $fullReindexBaseURL, $arguments['IndexName']);
-        Director::test($fullIndexThisIndexURL);
+        $getParams = [];
 
-        Controller::curr()->getResponse()->setStatusCode(
-            200,
-            'Reindex triggered for '. $arguments['IndexName']
+        if (array_key_exists('IndexName', $arguments)) {
+            $getParams['IndexName'] = $arguments['IndexName'];
+        }
+
+        $taskUrl = Controller::join_links('/dev/tasks/', SearchReindex::config()->get('segment'));
+        $request = new HTTPRequest('GET', $taskUrl, $getParams);
+        SearchReindex::singleton()->run($request);
+
+        Controller::curr()->getResponse()->addHeader(
+            'X-Status',
+            rawurlencode(_t(__CLASS__ . '.REINDEXED', 'Reindex triggered for '. $arguments['IndexName']))
         );
     }
 
