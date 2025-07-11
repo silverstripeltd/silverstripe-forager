@@ -4,7 +4,8 @@ namespace SilverStripe\Forager\Admin;
 
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\CMSMain;
-use SilverStripe\Control\Director;
+use SilverStripe\Control\Controller;
+use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
@@ -17,6 +18,7 @@ use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
+use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
@@ -43,6 +45,11 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
     private static string $menu_icon_class = 'font-icon-search';
 
     private static string $required_permission_codes = self::PERMISSION_ACCESS;
+
+    private static $allowed_actions = [
+        'reindexAll',
+    ];
+
 
     /**
      * @param null $id
@@ -116,29 +123,12 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
             if ($canReindex) {
                 $indexDocumentsFieldConfig->addComponent(new SearchReindexFormAction());
+                $action = FormAction::create('reindexAll', 'Trigger Full Reindex on All')->addExtraClass('btn btn-danger btn-lg');
+                $form->Actions()->add($action);
             }
 
             $fields[] = $indexDocumentsField;
 
-            // Reindex all URL field
-            if ($canReindex) {
-                $fullReindexBaseURL = Director::absoluteURL('/dev/tasks/' . SearchReindex::config()->get('segment'));
-                $fields[] = LiteralField::create(
-                    'ReindexAllURL',
-                    sprintf(
-                        '<div style="padding-bottom: 30px; margin-top: -30px; position: relative;">
-                            <a href="%s" target="_blank" style="
-                                font-size: small;
-                                background-color: #da273b;
-                                color: white;
-                                padding: 7px;
-                                border-radius: 3px;"
-                            >Trigger Full Reindex on All</a>
-                        </div>',
-                        $fullReindexBaseURL
-                    )
-                );
-            }
         }
 
         $fields[] = HeaderField::create('QueuedJobsHeader', 'Queued Jobs Status')
@@ -255,6 +245,24 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
                 ),
             ],
         ];
+    }
+
+    public function reindexAll(): void
+    {
+        $canReindex = Permission::check(self::PERMISSION_REINDEX);
+
+        if (!$canReindex) {
+            return;
+        }
+
+        $taskUrl = Controller::join_links('/admin/', static::config()->get('url_segment'));
+        $request = new HTTPRequest('GET', $taskUrl);
+        SearchReindex::singleton()->run($request);
+
+        Controller::curr()->getResponse()->addHeader(
+            'X-Status',
+            rawurlencode(_t(static::class . '.REINDEXED', 'Reindex triggered for on all indexes'))
+        );
     }
 
 }
