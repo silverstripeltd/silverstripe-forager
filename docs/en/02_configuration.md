@@ -284,7 +284,7 @@ Let's look at all the settings on the `IndexConfiguration` class:
             <td>If true, allow DataObject documents to compute their own dependencies. This is
             particularly relevant for content types that declare relational data as indexable.
             More information in the <a href="03_usage.md">usage</a> section</td>
-            <td>"source_class"</td>
+            <td>true</td>
         </tr>
         <tr>
             <td>max_document_size</td>
