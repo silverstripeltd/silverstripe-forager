@@ -47,6 +47,8 @@ class IndexJob extends BatchJob
 
     public function setup(): void
     {
+        $this->extend('onBeforeSetup');
+
         if (!$this->getBatchSize()) {
             // If we don't have a batchSize, then we're just processing everything in one go
             $this->totalSteps = 1;
@@ -61,6 +63,8 @@ class IndexJob extends BatchJob
         $this->setRemainingDocuments($this->getDocuments());
 
         parent::setup();
+
+        $this->extend('onAfterSetup');
     }
 
     public function getTitle(): string
