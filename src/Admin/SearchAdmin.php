@@ -50,7 +50,6 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
         'reindexAll',
     ];
 
-
     /**
      * @param null $id
      * @param null $fields
@@ -123,12 +122,13 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
             if ($canReindex) {
                 $indexDocumentsFieldConfig->addComponent(new SearchReindexFormAction());
-                $action = FormAction::create('reindexAll', 'Trigger Full Reindex on All')->addExtraClass('btn btn-danger btn-lg');
+                $action = FormAction::create('reindexAll', 'Trigger Full Reindex on All')->addExtraClass(
+                    'btn btn-danger btn-lg'
+                );
                 $form->Actions()->add($action);
             }
 
             $fields[] = $indexDocumentsField;
-
         }
 
         $fields[] = HeaderField::create('QueuedJobsHeader', 'Queued Jobs Status')
