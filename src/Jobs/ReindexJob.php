@@ -78,6 +78,7 @@ class ReindexJob extends BatchJob
 
     public function setup(): void
     {
+        $this->extend('onBeforeSetup');
         Versioned::set_stage(Versioned::LIVE);
 
         if ($this->getOnlyIndexes() && count($this->getOnlyIndexes())) {
@@ -110,6 +111,7 @@ class ReindexJob extends BatchJob
         $this->setFetchers(array_values($fetchers));
         $this->setFetchIndex(0);
         $this->setFetchOffset(0);
+        $this->extend('onAfterSetup');
     }
 
     /**
