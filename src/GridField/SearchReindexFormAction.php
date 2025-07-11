@@ -120,7 +120,7 @@ class SearchReindexFormAction implements GridField_ColumnProvider, GridField_Act
 
         Controller::curr()->getResponse()->addHeader(
             'X-Status',
-            rawurlencode(_t(__CLASS__ . '.REINDEXED', 'Reindex triggered for '. $arguments['IndexName']))
+            rawurlencode(_t(static::class . '.REINDEXED', 'Reindex triggered for '. $arguments['IndexName']))
         );
     }
 
