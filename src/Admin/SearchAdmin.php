@@ -46,7 +46,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
     private static string $required_permission_codes = self::PERMISSION_ACCESS;
 
-    private static $allowed_actions = [
+    private static array $allowed_actions = [
         'reindexAll',
     ];
 
