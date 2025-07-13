@@ -62,7 +62,6 @@ class ClearIndexJobTest extends SapphireTest
         $job = ClearIndexJob::create();
         $this->assertNull($job->getIndexSuffix());
         $this->assertNull($job->getBatchSize());
-        $this->assertNull($job->getBatchOffset());
     }
 
     public function testSetup(): void

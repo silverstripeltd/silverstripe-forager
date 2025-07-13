@@ -7,6 +7,7 @@ use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 
@@ -18,7 +19,7 @@ class DataObjectFetcher implements DocumentFetcherInterface
 
     private ?string $dataObjectClass = null;
 
-    private ?int $batchSize = null;
+    private int $batchSize;
 
     private int $offset = 0;
 
@@ -33,9 +34,11 @@ class DataObjectFetcher implements DocumentFetcherInterface
         }
 
         $this->dataObjectClass = $class;
+        // Default batch size is whatever has been configured for this class (or the default index batch size)
+        $this->batchSize = IndexConfiguration::singleton()->getLowestBatchSizeForClass($class);
     }
 
-    public function getBatchSize(): ?int
+    public function getBatchSize(): int
     {
         return $this->batchSize;
     }
@@ -84,6 +87,11 @@ class DataObjectFetcher implements DocumentFetcherInterface
     public function getTotalDocuments(): int
     {
         return $this->createDataList()->count();
+    }
+
+    public function getTotalBatches(): int
+    {
+        return max(1, (int) ceil($this->getTotalDocuments() / $this->getBatchSize()));
     }
 
     public function createDocument(array $data): ?DocumentInterface

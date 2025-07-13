@@ -2,13 +2,11 @@
 
 namespace SilverStripe\Forager\Tests\Fake;
 
-use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\DocumentBuilder;
-use SilverStripe\Forager\Service\IndexConfiguration;
 
-class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
+class ServiceFake implements IndexingInterface
 {
 
     public bool $shouldError = false;
@@ -46,7 +44,7 @@ class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
         return $ids;
     }
 
-    public function removeAllDocuments(string $indexSuffix): int
+    public function clearIndexDocuments(string $indexSuffix, int $batchSize): int
     {
         if ($this->shouldError) {
             return 0;

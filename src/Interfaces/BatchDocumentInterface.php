@@ -17,4 +17,9 @@ interface BatchDocumentInterface
      */
     public function removeDocuments(array $documents): array;
 
+    /**
+     * @return int The number of removed Documents from this call
+     */
+    public function clearIndexDocuments(string $indexSuffix, int $batchSize): int;
+
 }
