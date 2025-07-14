@@ -53,7 +53,10 @@ class ClearIndexJob extends BatchJob
     public function setup(): void
     {
         // Minimum of 1 step so that we trigger process() at least once to report on our Documents
-        $this->totalSteps = max(1, (int) ceil($this->getIndexService()->getDocumentTotal($this->getIndexSuffix()) / $this->getBatchSize()));
+        $this->totalSteps = max(
+            1,
+            (int) ceil($this->getIndexService()->getDocumentTotal($this->getIndexSuffix()) / $this->getBatchSize())
+        );
         $this->currentStep = 0;
     }
 
