@@ -24,7 +24,7 @@ class SearchConfigure extends BuildTask
 
     protected static string $description = 'Sync search index configuration';
 
-    private static $segment = 'SearchConfigure'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected static string $commandName = 'SearchConfigure';
 
     public function __construct(IndexingInterface $searchService)
     {

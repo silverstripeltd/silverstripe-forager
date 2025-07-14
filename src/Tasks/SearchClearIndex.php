@@ -4,14 +4,10 @@ namespace SilverStripe\Forager\Tasks;
 
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\BuildTask;
-use SilverStripe\Forager\Interfaces\BatchDocumentInterface;
-use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\SyncJobRunner;
-use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
-use SilverStripe\Forager\Service\Traits\ServiceAware;
 use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symfony\Component\Console\Command\Command;
@@ -21,35 +17,23 @@ use Symfony\Component\Console\Input\InputOption;
 class SearchClearIndex extends BuildTask
 {
 
-    use ServiceAware;
     use ConfigurationAware;
-    use BatchProcessorAware;
 
     protected string $title = 'Search Service Clear Index';
 
     protected static string $description = 'Search Service Clear Index';
 
-    private static $segment = 'SearchClearIndex'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected static string $commandName = 'SearchClearIndex';
 
-    private ?BatchDocumentInterface $batchProcessor = null;
-
-    public function __construct(
-        IndexingInterface $searchService,
-        IndexConfiguration $config,
-        BatchDocumentInterface $batchProcessor
-    ) {
+    public function __construct(IndexConfiguration $config)
+    {
         parent::__construct();
 
-        $this->setIndexService($searchService);
         $this->setConfiguration($config);
-        $this->setBatchProcessor($batchProcessor);
     }
 
     protected function execute(InputInterface $input, PolyOutput $output): int
     {
-        Environment::increaseMemoryLimitTo();
-        Environment::increaseTimeLimitTo();
-
         $targetIndex = $input->getOption('index');
 
         if (!$targetIndex) {
@@ -62,6 +46,10 @@ class SearchClearIndex extends BuildTask
         $job = ClearIndexJob::create($targetIndex);
 
         if ($this->getConfiguration()->shouldUseSyncJobs()) {
+            // This can be a very memory and time intensive process
+            Environment::increaseMemoryLimitTo();
+            Environment::increaseTimeLimitTo();
+
             SyncJobRunner::singleton()->runJob($job, false);
         } else {
             QueuedJobService::singleton()->queueJob($job);
