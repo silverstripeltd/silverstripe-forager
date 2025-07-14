@@ -4,7 +4,9 @@ namespace SilverStripe\Forager\Tests\Jobs;
 
 use InvalidArgumentException;
 use RuntimeException;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
@@ -56,7 +58,7 @@ class ClearIndexJobTest extends SapphireTest
         // Specifying a batch size under 0 should throw an exception
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Batch size must be greater than 0');
-        $job = ClearIndexJob::create('index1', -1);
+        ClearIndexJob::create('index1', -1);
 
         // If no index name is provided, then other config options should not be applied
         $job = ClearIndexJob::create();
@@ -66,13 +68,15 @@ class ClearIndexJobTest extends SapphireTest
 
     public function testSetup(): void
     {
+        $service = $this->loadDataObject(20);
+        Injector::inst()->registerService($service, IndexingInterface::class);
+
         $config = $this->mockConfig();
         $config->set('crawl_page_content', false);
 
-        $job = ClearIndexJob::create('myindex', 1);
+        $job = ClearIndexJob::create('myindex', 4);
         $job->setup();
 
-        // Total number of steps should always be 5 no matter the size of the index or batch size
         $this->assertEquals(5, $job->getJobData()->totalSteps);
         $this->assertFalse($job->jobFinished());
     }
@@ -100,23 +104,24 @@ class ClearIndexJobTest extends SapphireTest
 
         // Now create a fake test where we don't remove any documents
         $service = $this->loadDataObject(10);
+        // shouldError = true means that no documents are removed when requested
         $service->shouldError = true;
+        // Batch size of 5 means 2 steps for the job
         $job = ClearIndexJob::create('myindex', 5);
         $job->setup();
 
-        // We try to run up to 5 times before failing - the first 5 runs should process but not do anything...
-        $job->process();
-        $job->process();
-        $job->process();
-        $job->process();
+        // First process should run fine
         $job->process();
 
-        // The 6th time we process should fail with a RuntimeException
-        $msg = 'ClearIndexJob was unable to delete all documents after 5 attempts. Finished all steps and the document'
-            . ' total is still 10';
+        $msg = 'ClearIndexJob was unable to delete all documents after 2 steps. Finished all steps and the document'
+            . ' total is still 10. Potentially some new documents were created while ClearIndexJob was processing. Try'
+            . ' running the job again.';
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage($msg);
+
+        // The second process will determine that it has run out of steps, but that there are still documents in the
+        // index
         $job->process();
     }
 
