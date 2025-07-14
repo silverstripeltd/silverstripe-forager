@@ -24,15 +24,11 @@ SilverStripe\Core\Injector\Injector:
 
   SilverStripe\Forager\Tasks\SearchReindex:
     constructor:
-      indexService: '%$SilverStripe\Forager\Interfaces\IndexingInterface'
       configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
-      batchProcessor: '%$SilverStripe\Forager\Interfaces\BatchDocumentInterface.default'
 
   SilverStripe\Forager\Tasks\SearchClearIndex:
     constructor:
-      indexService: '%$SilverStripe\Forager\Interfaces\IndexingInterface'
       configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
-      batchProcessor: '%$SilverStripe\Forager\Interfaces\BatchDocumentInterface.default'
 
   SilverStripe\Forager\Service\DocumentFetchCreatorRegistry:
     constructor:

@@ -49,6 +49,11 @@ interface IndexingInterface extends BatchDocumentInterface
     public function getDocumentTotal(string $indexSuffix): int;
 
     /**
+     * @return int The number of removed Documents from this call
+     */
+    public function clearIndexDocuments(string $indexSuffix, int $batchSize): int;
+
+    /**
      * A hook for configuring the index service
      *
      * @return array Current Schemas from Elastic [indexName: [field configuration]]
