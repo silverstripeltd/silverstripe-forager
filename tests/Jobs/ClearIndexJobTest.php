@@ -28,23 +28,21 @@ class ClearIndexJobTest extends SapphireTest
     {
         $this->mockConfig(true);
 
-        // Batch size of 0 is the same as not specifying a batch size, so we should get the lowest batch size defined
-        // in our config for index1
+        // Batch size of 0 is the same as not specifying a batch size, so we should get our default batch size
         $job = ClearIndexJob::create('index1', 0);
-        $this->assertSame(5, $job->getBatchSize());
+        $this->assertSame(100, $job->getBatchSize());
 
-        // Batch size of 0 is the same as not specifying a batch size, so we should get the lowest batch size defined
-        // in our config for index2
-        $job = ClearIndexJob::create('index2', 0);
-        $this->assertSame(25, $job->getBatchSize());
+        // Batch size of 0 is the same as not specifying a batch size, so we should get our default batch size
+        $job = ClearIndexJob::create('index2', 100);
+        $this->assertSame(100, $job->getBatchSize());
 
         // Same with not specifying a batch size at all
         $job = ClearIndexJob::create('index1');
-        $this->assertSame(5, $job->getBatchSize());
+        $this->assertSame(100, $job->getBatchSize());
 
         // Same with not specifying a batch size at all
         $job = ClearIndexJob::create('index2');
-        $this->assertSame(25, $job->getBatchSize());
+        $this->assertSame(100, $job->getBatchSize());
 
         // Check that a batch size is set when explicitly provided
         $job = ClearIndexJob::create('index1', 33);
@@ -95,7 +93,8 @@ class ClearIndexJobTest extends SapphireTest
         $config = $this->mockConfig();
         $config->set('crawl_page_content', false);
         $service = $this->loadDataObject(20);
-        $job = ClearIndexJob::create('myindex', 5);
+        // Job should complete in one step
+        $job = ClearIndexJob::create('myindex', 20);
         $job->setup();
 
         $job->process();
@@ -113,9 +112,9 @@ class ClearIndexJobTest extends SapphireTest
         // First process should run fine
         $job->process();
 
-        $msg = 'ClearIndexJob was unable to delete all documents after 2 steps. Finished all steps and the document'
-            . ' total is still 10. Potentially some new documents were created while ClearIndexJob was processing. Try'
-            . ' running the job again.';
+        $msg = 'Finished all steps, but the document total from your index is still showing as 10. Deleting'
+            . ' documents is often an asynchronous task for services, so it might just still be processing your'
+            . ' delete requests. Try running the job again after a few minutes.';
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage($msg);

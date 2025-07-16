@@ -3,14 +3,12 @@
 namespace SilverStripe\Forager\Jobs;
 
 use InvalidArgumentException;
-use Psr\Container\NotFoundExceptionInterface;
-use Psr\Log\LoggerInterface;
 use RuntimeException;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
 
 /**
@@ -36,8 +34,10 @@ class ClearIndexJob extends BatchJob
             return;
         }
 
-        // Use the provided batch size, or determine batch size from our IndexConfiguration
-        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize(null, [$indexSuffix]);
+        // Use the provided batch size, or get the top level batch size from IndexConfiguration
+        // Bit of an assumption here that using the global batch size is fine since this process usually doesn't involve
+        // us interacting with DataObjects
+        $batchSize = $batchSize ?: IndexConfiguration::singleton()->getBatchSize();
 
         $this->setIndexSuffix($indexSuffix);
         $this->setBatchSize($batchSize);
@@ -52,11 +52,13 @@ class ClearIndexJob extends BatchJob
      */
     public function setup(): void
     {
-        // Minimum of 1 step so that we trigger process() at least once to report on our Documents
-        $this->totalSteps = max(
+        $steps = max(
             1,
             (int) ceil($this->getIndexService()->getDocumentTotal($this->getIndexSuffix()) / $this->getBatchSize())
         );
+        $this->addMessage("Setup steps: $steps");
+        // Minimum of 1 step so that we trigger process() at least once to report on our Documents
+        $this->totalSteps = $steps;
         $this->currentStep = 0;
     }
 
@@ -67,7 +69,6 @@ class ClearIndexJob extends BatchJob
 
     /**
      * @throws IndexingServiceException
-     * @throws NotFoundExceptionInterface
      */
     public function process(): void
     {
@@ -80,46 +81,51 @@ class ClearIndexJob extends BatchJob
 
         if ($totalBefore === 0) {
             $this->isComplete = true;
-
-            Injector::inst()->get(LoggerInterface::class)->notice(sprintf(
-                'There are no documents to be removed from index "%s',
-                $this->getIndexSuffix()
-            ));
+            $this->addMessage(sprintf('There are no documents to be removed from index "%s', $this->getIndexSuffix()));
 
             return;
         }
 
         $numRemoved = $this->getIndexService()->clearIndexDocuments($this->getIndexSuffix(), $this->getBatchSize());
-        $totalAfter = $this->getIndexService()->getDocumentTotal($this->getIndexSuffix());
+        $totalAfter = $totalBefore - $numRemoved;
 
-        Injector::inst()->get(LoggerInterface::class)->notice(sprintf(
-            '[Step %d]: Before there were %d documents. We removed %d documents this iteration, leaving %d remaining.',
-            $this->currentStep,
-            $totalBefore,
-            $numRemoved,
-            $totalAfter
-        ));
+        $this->addMessage(
+            sprintf(
+                '[Step %d]: Before there were %d documents. We removed %d documents this iteration, leaving %d remaining.',
+                $this->currentStep,
+                $totalBefore,
+                $numRemoved,
+                $totalAfter
+            )
+        );
 
-        // There are no documents remaining
-        if ($totalAfter === 0) {
-            $this->isComplete = true;
-
-            Injector::inst()->get(LoggerInterface::class)->notice(sprintf(
-                'Successfully removed all documents from index %s',
-                $this->getIndexSuffix()
-            ));
-
-            return;
-        }
-
-        // There are still documents remaining, but we reached our previously determined max number of steps
-        // Perhaps some documents were created while this process was going on?
+        // In theory, we should now be "done"
         if ($this->currentStep >= $this->totalSteps) {
+            // The problem is, delete actions are (usually) an asynchronous process for services. So, let's spend
+            // (roughly) 5 seconds querying the service to check that the document count is now 0
+            $attemptsRemaining = 5;
+
+            while ($attemptsRemaining > 0 && !$this->isComplete) {
+                $remainingDocuments = $this->getIndexService()->getDocumentTotal($this->getIndexSuffix());
+
+                // Job done!
+                if ($remainingDocuments === 0) {
+                    $this->isComplete = true;
+                    $this->addMessage(sprintf('Successfully removed all documents from index "%s"', $this->getIndexSuffix()));
+
+                    return;
+                }
+
+                // Let's give it a second, and then try again
+                sleep(1);
+                $attemptsRemaining--;
+            }
+
+            // We tried 5 times over (roughly) 5 seconds, and there were still documents remaining
             throw new RuntimeException(sprintf(
-                'ClearIndexJob was unable to delete all documents after %d steps. Finished all steps and the'
-                . ' document total is still %d. Potentially some new documents were created while ClearIndexJob was'
-                . ' processing. Try running the job again.',
-                $this->totalSteps,
+                'Finished all steps, but the document total from your index is still showing as %d. Deleting'
+                . ' documents is often an asynchronous task for services, so it might just still be processing your'
+                . ' delete requests. Try running the job again after a few minutes.',
                 $totalAfter
             ));
         }
