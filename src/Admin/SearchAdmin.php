@@ -6,7 +6,6 @@ use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Controller;
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
@@ -40,11 +39,11 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
     private const string PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
     private const string PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
 
-    private static string $url_segment = 'search-service';
+    private static string $url_segment = 'search-indexing';
 
-    private static string $menu_title = 'Search Service';
+    private static string $menu_title = 'Search Indexing';
 
-    private static string $menu_icon_class = 'font-icon-search';
+    private static string $menu_icon_class = 'font-icon-p-search';
 
     private static string $required_permission_codes = self::PERMISSION_ACCESS;
 
@@ -213,6 +212,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
             $result = new IndexedDocumentsResult();
             $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
+            $result->IndexSuffix = $indexSuffix;
             $result->DBDocs = $localCount;
             $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
             $list->push($result);
@@ -259,9 +259,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
             return;
         }
 
-        $taskUrl = Controller::join_links('/admin/', static::config()->get('url_segment'));
-        $request = new HTTPRequest('GET', $taskUrl);
-        SearchReindex::singleton()->run($request);
+        SearchReindex::singleton()->processTaskExecution();
 
         Controller::curr()->getResponse()->addHeader(
             'X-Status',
