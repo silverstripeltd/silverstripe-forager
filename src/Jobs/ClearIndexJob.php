@@ -52,13 +52,11 @@ class ClearIndexJob extends BatchJob
      */
     public function setup(): void
     {
-        $steps = max(
+        // Minimum of 1 step so that we trigger process() at least once to report on our Documents
+        $this->totalSteps = max(
             1,
             (int) ceil($this->getIndexService()->getDocumentTotal($this->getIndexSuffix()) / $this->getBatchSize())
         );
-        $this->addMessage("Setup steps: $steps");
-        // Minimum of 1 step so that we trigger process() at least once to report on our Documents
-        $this->totalSteps = $steps;
         $this->currentStep = 0;
     }
 
@@ -91,7 +89,7 @@ class ClearIndexJob extends BatchJob
 
         $this->addMessage(
             sprintf(
-                '[Step %d]: Before there were %d documents. We removed %d documents this iteration, leaving %d remaining.',
+                '[Step %d]: There were %d documents. %d documents removed this iteration. %d remaining.',
                 $this->currentStep,
                 $totalBefore,
                 $numRemoved,
@@ -111,7 +109,12 @@ class ClearIndexJob extends BatchJob
                 // Job done!
                 if ($remainingDocuments === 0) {
                     $this->isComplete = true;
-                    $this->addMessage(sprintf('Successfully removed all documents from index "%s"', $this->getIndexSuffix()));
+                    $this->addMessage(
+                        sprintf(
+                            'Successfully removed all documents from index "%s"',
+                            $this->getIndexSuffix()
+                        )
+                    );
 
                     return;
                 }
