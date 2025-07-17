@@ -6,6 +6,7 @@ use Exception;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
@@ -35,7 +36,7 @@ class IndexJob extends BatchJob
         bool $processDependencies = true
     ) {
         // Use the provided batch size, or determine batch size from our IndexConfiguration
-        $batchSize = $batchSize ?: $this->getIndexConfigurationBatchSize();
+        $batchSize = $batchSize ?: IndexConfiguration::singleton()->getLowestBatchSize();
 
         $this->setDocuments($documents);
         $this->setMethod($method);
@@ -49,15 +50,10 @@ class IndexJob extends BatchJob
     {
         $this->extend('onBeforeSetup');
 
-        if (!$this->getBatchSize()) {
-            // If we don't have a batchSize, then we're just processing everything in one go
-            $this->totalSteps = 1;
-        } else {
-            // There could be 0 documents. If that's the case, then there's zero steps
-            $this->totalSteps = $this->getDocuments()
-                ? ceil(count($this->getDocuments()) / $this->getBatchSize())
-                : 0;
-        }
+        // There could be 0 documents. If that's the case, then there's zero steps
+        $this->totalSteps = $this->getDocuments()
+            ? (int) ceil(count($this->getDocuments()) / $this->getBatchSize())
+            : 0;
 
         $this->currentStep = 0;
         $this->setRemainingDocuments($this->getDocuments());
@@ -76,7 +72,7 @@ class IndexJob extends BatchJob
         );
     }
 
-    public function getJobType(): int
+    public function getJobType(): string
     {
         return QueuedJob::IMMEDIATE;
     }

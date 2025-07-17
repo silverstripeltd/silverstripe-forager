@@ -2,13 +2,11 @@
 
 namespace SilverStripe\Forager\Tests\Fake;
 
-use SilverStripe\Forager\Interfaces\BatchDocumentRemovalInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\DocumentBuilder;
-use SilverStripe\Forager\Service\IndexConfiguration;
 
-class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
+class ServiceFake implements IndexingInterface
 {
 
     public bool $shouldError = false;
@@ -16,17 +14,6 @@ class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
     public array $documents = [];
 
     public int $maxDocSize = 1000;
-
-    public function environmentizeIndex(string $indexName): string
-    {
-        $variant = IndexConfiguration::singleton()->getIndexVariant();
-
-        if ($variant) {
-            return sprintf('%s-%s', $variant, $indexName);
-        }
-
-        return $indexName;
-    }
 
     public function addDocument(DocumentInterface $document): ?string
     {
@@ -57,7 +44,7 @@ class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
         return $ids;
     }
 
-    public function removeAllDocuments(string $indexName): int
+    public function clearIndexDocuments(string $indexSuffix, int $batchSize): int
     {
         if ($this->shouldError) {
             return 0;
@@ -104,7 +91,7 @@ class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
         return $results;
     }
 
-    public function listDocuments(string $indexName, ?int $pageSize = null, int $currentPage = 0): array
+    public function listDocuments(string $indexSuffix, ?int $pageSize = null, int $currentPage = 0): array
     {
         $docs = array_slice($this->documents, $currentPage, $pageSize);
 
@@ -116,7 +103,7 @@ class ServiceFake implements IndexingInterface, BatchDocumentRemovalInterface
         );
     }
 
-    public function getDocumentTotal(string $indexName): int
+    public function getDocumentTotal(string $indexSuffix): int
     {
         return count($this->documents);
     }

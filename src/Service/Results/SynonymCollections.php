@@ -4,7 +4,7 @@ namespace SilverStripe\Forager\Service\Results;
 
 use InvalidArgumentException;
 use JsonSerializable;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 
 class SynonymCollections extends ArrayList implements JsonSerializable
 {
@@ -30,7 +30,7 @@ class SynonymCollections extends ArrayList implements JsonSerializable
         parent::push($item);
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }

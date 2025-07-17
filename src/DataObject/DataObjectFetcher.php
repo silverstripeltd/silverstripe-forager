@@ -4,34 +4,24 @@ namespace SilverStripe\Forager\DataObject;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Config\Configurable;
-use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
-use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
 use SilverStripe\Forager\Service\IndexConfiguration;
-use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 
 class DataObjectFetcher implements DocumentFetcherInterface
 {
 
-    use Extensible;
     use Configurable;
     use Injectable;
-    use ConfigurationAware;
 
     private ?string $dataObjectClass = null;
 
-    public ?DocumentFetchCreatorRegistry $Registry = null;
+    private int $batchSize;
 
-    public ?IndexConfiguration $Configuration = null;
-
-    private static array $dependencies = [
-        'Configuration' => '%$' . IndexConfiguration::class,
-        'Registry' => '%$' . DocumentFetchCreatorRegistry::class,
-    ];
+    private int $offset = 0;
 
     public function __construct(string $class)
     {
@@ -44,14 +34,47 @@ class DataObjectFetcher implements DocumentFetcherInterface
         }
 
         $this->dataObjectClass = $class;
+        // Default batch size is whatever has been configured for this class (or the default index batch size)
+        $this->batchSize = IndexConfiguration::singleton()->getLowestBatchSizeForClass($class);
+    }
+
+    public function getBatchSize(): int
+    {
+        return $this->batchSize;
+    }
+
+    public function setBatchSize(int $batchSize): void
+    {
+        $this->batchSize = $batchSize;
+    }
+
+    public function getOffset(): int
+    {
+        return $this->offset;
+    }
+
+    public function setOffset(int $offset): void
+    {
+        $this->offset = $offset;
+    }
+
+    public function incrementOffsetUp(): void
+    {
+        $this->offset += $this->batchSize;
+    }
+
+    public function incrementOffsetDown(): void
+    {
+        // Never go below 0
+        $this->offset = max(0, $this->offset - $this->batchSize);
     }
 
     /**
      * @return DocumentInterface[]
      */
-    public function fetch(?int $limit = 20, ?int $offset = 0): array
+    public function fetch(): array
     {
-        $list = $this->createDataList($limit, $offset);
+        $list = $this->createDataList($this->getBatchSize(), $this->getOffset());
         $docs = [];
 
         foreach ($list as $record) {
@@ -64,6 +87,11 @@ class DataObjectFetcher implements DocumentFetcherInterface
     public function getTotalDocuments(): int
     {
         return $this->createDataList()->count();
+    }
+
+    public function getTotalBatches(): int
+    {
+        return max(1, (int) ceil($this->getTotalDocuments() / $this->getBatchSize()));
     }
 
     public function createDocument(array $data): ?DocumentInterface

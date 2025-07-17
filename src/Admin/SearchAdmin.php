@@ -2,10 +2,10 @@
 
 namespace SilverStripe\Forager\Admin;
 
+use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Controller;
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
@@ -15,6 +15,7 @@ use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Jobs\ReindexJob;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -25,7 +26,7 @@ use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataQuery;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
@@ -35,12 +36,12 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
 class SearchAdmin extends LeftAndMain implements PermissionProvider
 {
 
-    private const PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
-    private const PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
+    private const string PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
+    private const string PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
 
-    private static string $url_segment = 'search-service';
+    private static string $url_segment = 'search-indexing';
 
-    private static string $menu_title = 'Search Service';
+    private static string $menu_title = 'Search Indexing';
 
     private static string $menu_icon_class = 'font-icon-search';
 
@@ -51,9 +52,10 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
     ];
 
     /**
-     * @param null $id
-     * @param null $fields
      * @throws IndexingServiceException
+     * @throws NotFoundExceptionInterface
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
      */
     public function getEditForm($id = null, $fields = null): Form
     {
@@ -182,6 +184,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
     /**
      * @throws IndexingServiceException
+     * @throws NotFoundExceptionInterface
      */
     private function buildIndexedDocumentsList(): ArrayList
     {
@@ -192,10 +195,10 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
         $configuration = SearchServiceExtension::singleton()->getConfiguration();
 
-        foreach ($configuration->getIndexes() as $index => $data) {
+        foreach ($configuration->getIndexes() as $indexSuffix => $data) {
             $localCount = 0;
 
-            foreach ($configuration->getClassesForIndex($index) as $class) {
+            foreach ($configuration->getClassesForIndex($indexSuffix) as $class) {
                 $query = new DataQuery($class);
                 $query->where('SearchIndexed IS NOT NULL');
 
@@ -208,9 +211,10 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
             }
 
             $result = new IndexedDocumentsResult();
-            $result->IndexName = $indexer->environmentizeIndex($index);
+            $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
+            $result->IndexSuffix = $indexSuffix;
             $result->DBDocs = $localCount;
-            $result->RemoteDocs = $indexer->getDocumentTotal($index);
+            $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
             $list->push($result);
         }
 
@@ -255,9 +259,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
             return;
         }
 
-        $taskUrl = Controller::join_links('/admin/', static::config()->get('url_segment'));
-        $request = new HTTPRequest('GET', $taskUrl);
-        SearchReindex::singleton()->run($request);
+        SearchReindex::singleton()->processTaskExecution();
 
         Controller::curr()->getResponse()->addHeader(
             'X-Status',

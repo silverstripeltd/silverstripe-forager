@@ -2,13 +2,16 @@
 
 namespace SilverStripe\Forager\Tests\DataObject;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
-class DataObjectFetcherTest extends SearchServiceTest
+class DataObjectFetcherTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = '../fixtures.yml'; // phpcs:ignore
 
@@ -49,8 +52,9 @@ class DataObjectFetcherTest extends SearchServiceTest
 
         $this->assertEqualsCanonicalizing($expectedDocuments, $resultDocuments);
 
+        $fetcher->setBatchSize(2);
         // And then just a quick extra sanity check that fetching 2 Documents only returns 2 Documents
-        $documents = $fetcher->fetch(2);
+        $documents = $fetcher->fetch();
 
         $this->assertCount(2, $documents);
     }

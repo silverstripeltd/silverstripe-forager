@@ -3,16 +3,19 @@
 namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectDocumentFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
-class IndexerTest extends SearchServiceTest
+class IndexerTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     public function testConstructor(): void
     {

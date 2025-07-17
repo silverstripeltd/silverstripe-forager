@@ -23,7 +23,7 @@ class Field
         return $this->searchFieldName;
     }
 
-    public function setSearchFieldName(string $searchFieldName): Field
+    public function setSearchFieldName(string $searchFieldName): static
     {
         $this->searchFieldName = $searchFieldName;
 
@@ -35,7 +35,7 @@ class Field
         return $this->property;
     }
 
-    public function setProperty(?string $property): Field
+    public function setProperty(?string $property): static
     {
         $this->property = $property;
 
@@ -47,7 +47,7 @@ class Field
         return $this->options[$key] ?? null;
     }
 
-    public function setOption(string $key, mixed $value): Field
+    public function setOption(string $key, mixed $value): static
     {
         $this->options[$key] = $value;
 
