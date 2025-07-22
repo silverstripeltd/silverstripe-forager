@@ -2,12 +2,14 @@
 
 namespace SilverStripe\Forager\Tests\Tasks;
 
-use SilverStripe\Control\HTTPRequest;
+use ReflectionMethod;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Tasks\SearchConfigure;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
+use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Input\ArrayInput;
 
 class SearchConfigureTest extends SapphireTest
 {
@@ -19,12 +21,17 @@ class SearchConfigureTest extends SapphireTest
             ->getMock();
         $mock->expects($this->once())
             ->method('configure');
+
         Injector::inst()->registerService($mock, IndexingInterface::class);
 
         $task = SearchConfigure::create();
-        $request = new HTTPRequest('GET', '/', []);
+        $input = new ArrayInput([]);
+        $output = new PolyOutput(PolyOutput::FORMAT_ANSI);
 
-        $task->run($request);
+        $reflectionMethod = new ReflectionMethod($task, 'execute');
+        $reflectionMethod->setAccessible(true);
+
+        $reflectionMethod->invoke($task, $input, $output);
     }
 
 }

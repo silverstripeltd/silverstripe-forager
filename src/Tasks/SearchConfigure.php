@@ -2,11 +2,12 @@
 
 namespace SilverStripe\Forager\Tasks;
 
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Dev\BuildTask;
-use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
+use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Syncs index settings to a search service.
@@ -19,11 +20,11 @@ class SearchConfigure extends BuildTask
 
     use ServiceAware;
 
-    protected $title = 'Search Service Configure'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected string $title = 'Search Service Configure';
 
-    protected $description = 'Sync search index configuration'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected static string $description = 'Sync search index configuration';
 
-    private static $segment = 'SearchConfigure'; // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected static string $commandName = 'SearchConfigure';
 
     public function __construct(IndexingInterface $searchService)
     {
@@ -32,15 +33,13 @@ class SearchConfigure extends BuildTask
         $this->setIndexService($searchService);
     }
 
-    /**
-     * @param HTTPRequest $request
-     * @throws IndexingServiceException
-     */
-    public function run($request): void // phpcs:ignore SlevomatCodingStandard.TypeHints
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         $this->getIndexService()->configure();
 
         echo 'Done.';
+
+        return Command::SUCCESS;
     }
 
 }

@@ -2,17 +2,19 @@
 
 namespace SilverStripe\Forager\Tests\Jobs;
 
+use ReflectionProperty;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Jobs\ReindexJob;
-use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
-use SilverStripe\Forager\Tests\Fake\FakeFetchCreator;
-use SilverStripe\Forager\Tests\Fake\FakeFetcher;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Security\Member;
 
-class ReindexJobTest extends SearchServiceTest
+class ReindexJobTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
@@ -20,57 +22,43 @@ class ReindexJobTest extends SearchServiceTest
      */
     protected static $extra_dataobjects = [
         DataObjectFake::class,
+        DataObjectFakeAlternate::class,
     ];
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        FakeFetcher::load(10);
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        FakeFetcher::$records = [];
-    }
 
     public function testJob(): void
     {
-        $config = $this->mockConfig();
-        $config->set('use_sync_jobs', [
-            DataObjectFake::class => true,
-            'Fake' => true,
-        ]);
-        $this->loadIndex(20);
-        $registry = DocumentFetchCreatorRegistry::singleton();
-        // Add a second fetcher to complicate things
-        $registry->addFetchCreator(new FakeFetchCreator());
+        $config = $this->mockConfig(true);
+        $config->set('use_sync_jobs', true);
+        $this->loadDataObject(20);
+        $this->loadDataObjectAlternate(10);
 
-        $job = ReindexJob::create([DataObjectFake::class, 'Fake'], [], 6);
+        $job = ReindexJob::create([DataObjectFake::class, DataObjectFakeAlternate::class], []);
+        $job->setConfiguration($config);
 
         $job->setup();
         $totalSteps = $job->getJobData()->totalSteps;
-        // 20 dataobjectfake in batches of six = 4
-        // 10 Fake documents in batches of six = 2
-        $this->assertEquals(6, $totalSteps);
+        // 20 DataObjectFake in batches of 75 = 1
+        // 10 DataObjectFakeAlternate in batches of 5 = 2
+        $this->assertEquals(3, $totalSteps);
 
         $fetchers = $job->getFetchers();
 
         // Quick sanity check to make sure we got both fetchers
         $this->assertCount(2, $fetchers);
 
-        // We're expecting one of each of these Fetcher classes
+        // We're expecting one fetcher for each class
         $expectedFetchers = [
-            DataObjectFetcher::class,
-            FakeFetcher::class,
+            DataObjectFake::class => DataObjectFetcher::class,
+            DataObjectFakeAlternate::class => DataObjectFetcher::class,
         ];
 
         $resultFetchers = [];
 
         foreach ($fetchers as $fetcher) {
-            $resultFetchers[] = $fetcher::class;
+            $reflectionProperty = new ReflectionProperty($fetcher, 'dataObjectClass');
+            $reflectionProperty->setAccessible(true);
+
+            $resultFetchers[$reflectionProperty->getValue($fetcher)] = $fetcher::class;
         }
 
         $this->assertEqualsCanonicalizing($expectedFetchers, $resultFetchers);
@@ -84,8 +72,6 @@ class ReindexJobTest extends SearchServiceTest
 
         $this->assertEquals([], $job->getOnlyClasses());
         $this->assertEquals([], $job->getOnlyIndexes());
-        // Should pick the lowest batch_size across all indexes and classes
-        $this->assertEquals(25, $job->getBatchSize());
     }
 
     public function testConstructOnlyClasses(): void
@@ -96,15 +82,11 @@ class ReindexJobTest extends SearchServiceTest
 
         $this->assertEquals([DataObjectFake::class], $job->getOnlyClasses());
         $this->assertEquals([], $job->getOnlyIndexes());
-        // Should pick the lowest batch_size for DataObjectFake across all indexes
-        $this->assertEquals(25, $job->getBatchSize());
 
         $job = ReindexJob::create([Member::class]);
 
         $this->assertEquals([Member::class], $job->getOnlyClasses());
         $this->assertEquals([], $job->getOnlyIndexes());
-        // Should pick the lowest batch_size for Member across all indexes
-        $this->assertEquals(50, $job->getBatchSize());
     }
 
     public function testConstructOnlyIndexes(): void
@@ -115,24 +97,11 @@ class ReindexJobTest extends SearchServiceTest
 
         $this->assertEquals([], $job->getOnlyClasses());
         $this->assertEquals(['index1'], $job->getOnlyIndexes());
-        $this->assertEquals(50, $job->getBatchSize());
 
         $job = ReindexJob::create([], ['index2']);
 
         $this->assertEquals([], $job->getOnlyClasses());
         $this->assertEquals(['index2'], $job->getOnlyIndexes());
-        $this->assertEquals(25, $job->getBatchSize());
-    }
-
-    public function testConstructBatchSize(): void
-    {
-        $this->mockConfig(true);
-
-        $job = ReindexJob::create([], [], 33);
-
-        $this->assertEquals([], $job->getOnlyClasses());
-        $this->assertEquals([], $job->getOnlyIndexes());
-        $this->assertEquals(33, $job->getBatchSize());
     }
 
 }

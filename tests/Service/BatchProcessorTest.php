@@ -3,16 +3,19 @@
 namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Service\BatchProcessor;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Service\SyncJobRunner;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
-class BatchProcessorTest extends SearchServiceTest
+class BatchProcessorTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     public function testAddDocumentsSync(): void
     {

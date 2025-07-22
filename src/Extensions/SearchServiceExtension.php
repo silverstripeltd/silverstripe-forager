@@ -5,10 +5,10 @@ namespace SilverStripe\Forager\Extensions;
 use Exception;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
-use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
@@ -17,18 +17,17 @@ use SilverStripe\Forager\Service\Traits\ServiceAware;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyField;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 use Throwable;
 
 /**
- * The extension that provides implicit indexing features to dataobjects
+ * The extension that provides implicit indexing features to DataObjects
  *
  * @property DataObject|SearchServiceExtension $owner
  * @property string $SearchIndexed
  */
-class SearchServiceExtension extends DataExtension
+class SearchServiceExtension extends Extension
 {
 
     use Configurable;
@@ -106,24 +105,6 @@ class SearchServiceExtension extends DataExtension
     }
 
     /**
-     * On dev/build ensure that the indexer settings are up to date
-     *
-     * @throws IndexingServiceException
-     */
-    public function requireDefaultRecords(): void
-    {
-        // Wrap this in a try-catch so that dev/build can continue (with warnings) when no service has been set
-        try {
-            if (!$this->hasConfigured) {
-                $this->getIndexService()->configure();
-                $this->hasConfigured = true;
-            }
-        } catch (Throwable $e) {
-            user_error(sprintf('Unable to configure search indexes: %s', $e->getMessage()), E_USER_WARNING);
-        }
-    }
-
-    /**
      * Index this record into search or queue if configured to do so
      */
     public function addToIndexes(): void
@@ -172,6 +153,23 @@ class SearchServiceExtension extends DataExtension
         }
 
         $this->owner->removeFromIndexes();
+    }
+
+    /**
+     * On dev/build ensure that the indexer settings are up to date
+     */
+    protected function onAfterBuild(): void
+    {
+        // Wrap this in a try-catch so that dev/build can continue (with warnings) when no service has been set
+        try {
+            // This extension can be applied to many DataObjects; let's make sure we only run this once
+            if (!$this->hasConfigured) {
+                $this->getIndexService()->configure();
+                $this->hasConfigured = true;
+            }
+        } catch (Throwable $e) {
+            user_error(sprintf('Unable to configure search indexes: %s', $e->getMessage()), E_USER_WARNING);
+        }
     }
 
 }

@@ -5,15 +5,21 @@ namespace SilverStripe\Forager\Tests\Tasks;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
+use SilverStripe\PolyExecution\HttpRequestInput;
+use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\Security\Member;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
-class SearchReindexTest extends SearchServiceTest
+class SearchReindexTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     protected $usesDatabase = true; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
@@ -21,25 +27,29 @@ class SearchReindexTest extends SearchServiceTest
     {
         $this->mockConfig(true);
 
+        $commandOptions = SearchReindex::singleton()->getOptions();
+        $request = new HTTPRequest('GET', '/', ['index' => 'foo']);
+        $input = new HttpRequestInput($request, $commandOptions);
+        $output = new PolyOutput(PolyOutput::FORMAT_ANSI);
         $task = SearchReindex::create();
-        $request = new HTTPRequest('GET', '/', []);
 
-        $task->run($request);
+        $task->run($input, $output);
 
         /** @var QueuedJobDescriptor[] $jobDescriptors */
         $jobDescriptors = QueuedJobDescriptor::get()->column('SavedJobData');
 
-        // 2 indexes each with 2 defined classes should = 4 jobs
-        $this->assertCount(4, $jobDescriptors);
+        // 2 indexes, 1 has 3 defined classes, the other has 2 defined classes = 5 jobs total
+        $this->assertCount(5, $jobDescriptors);
 
         $expected = [
             'index1' => [
-                DataObjectFake::class => 75,
-                Member::class => 50,
+                DataObjectFake::class,
+                DataObjectFakeAlternate::class,
+                Member::class,
             ],
             'index2' => [
-                DataObjectFake::class => 25,
-                Controller::class => 100,
+                DataObjectFake::class,
+                Controller::class,
             ],
         ];
 
@@ -52,8 +62,6 @@ class SearchReindexTest extends SearchServiceTest
             // Each Job should be for a specific index and class
             $this->assertCount(1, $data['onlyClasses'] ?? []);
             $this->assertCount(1, $data['onlyIndexes'] ?? []);
-            // We don't know what the batchSize should be for any particular loop, but it shouldn't be null
-            $this->assertNotNull($data['batchSize'] ?? null);
 
             // Grab the class and index that this job represents
             $class = array_shift($data['onlyClasses']);
@@ -64,7 +72,7 @@ class SearchReindexTest extends SearchServiceTest
                 $result[$index] = [];
             }
 
-            $result[$index][$class] = $data['batchSize'];
+            $result[$index][] = $class;
         }
 
         // Compare our expected data structure with what we were able to build above from our job data

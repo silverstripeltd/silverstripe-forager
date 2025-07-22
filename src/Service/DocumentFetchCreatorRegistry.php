@@ -23,14 +23,14 @@ class DocumentFetchCreatorRegistry
         }
     }
 
-    public function addFetchCreator(DocumentFetchCreatorInterface $creator): self
+    public function addFetchCreator(DocumentFetchCreatorInterface $creator): static
     {
         $this->fetchCreators[] = $creator;
 
         return $this;
     }
 
-    public function removeFetchCreator(DocumentFetchCreatorInterface $creator): self
+    public function removeFetchCreator(DocumentFetchCreatorInterface $creator): static
     {
         $class = $creator::class;
         $this->fetchCreators = array_filter($this->fetchCreators, function ($creator) use ($class) {

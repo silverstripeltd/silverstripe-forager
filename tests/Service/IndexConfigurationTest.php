@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\Tests\Service;
 
 use SilverStripe\Control\Controller;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Schema\Field;
@@ -11,67 +12,68 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
-use SilverStripe\Forager\Tests\Fake\FakeFetcher;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
+use SilverStripe\Model\ModelData;
 use SilverStripe\Security\Member;
-use SilverStripe\View\ViewableData;
 
-class IndexConfigurationTest extends SearchServiceTest
+class IndexConfigurationTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     public function testIndexesForClassName(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $result = $config->getIndexesForClassName(DataObjectFake::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(3, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(3, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForClassName(DataObjectSubclassFake::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(4, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertTrue(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(4, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertTrue(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForClassName(ViewableData::class);
+        $result = $config->getIndexesForClassName(ModelData::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(1, $indexNames);
-        $this->assertFalse(in_array('index1', $indexNames));
-        $this->assertFalse(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(1, $indexSuffixes);
+        $this->assertFalse(in_array('index1', $indexSuffixes));
+        $this->assertFalse(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForClassName(DataObjectFakeAlternate::class);
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(1, $indexNames);
-        $this->assertFalse(in_array('index1', $indexNames));
-        $this->assertFalse(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(1, $indexSuffixes);
+        $this->assertFalse(in_array('index1', $indexSuffixes));
+        $this->assertFalse(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $this->assertEmpty($config->getIndexesForClassName(ServiceFake::class));
     }
@@ -79,43 +81,43 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetIndexesForDocument(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $result = $config->getIndexesForDocument(new DocumentFake(DataObjectFake::class));
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(3, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(3, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $result = $config->getIndexesForDocument(new DocumentFake(DataObjectSubclassFake::class));
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(4, $indexNames);
-        $this->assertTrue(in_array('index1', $indexNames));
-        $this->assertTrue(in_array('index2', $indexNames));
-        $this->assertTrue(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(4, $indexSuffixes);
+        $this->assertTrue(in_array('index1', $indexSuffixes));
+        $this->assertTrue(in_array('index2', $indexSuffixes));
+        $this->assertTrue(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForDocument(new DocumentFake(ViewableData::class));
+        $result = $config->getIndexesForDocument(new DocumentFake(ModelData::class));
         $this->assertTrue(is_array($result));
-        $indexNames = array_keys($result);
+        $indexSuffixes = array_keys($result);
 
-        $this->assertCount(1, $indexNames);
-        $this->assertFalse(in_array('index1', $indexNames));
-        $this->assertFalse(in_array('index2', $indexNames));
-        $this->assertFalse(in_array('index3', $indexNames));
-        $this->assertTrue(in_array('index4', $indexNames));
-        $this->assertFalse(in_array('index5', $indexNames));
-        $this->assertFalse(in_array('index6', $indexNames));
+        $this->assertCount(1, $indexSuffixes);
+        $this->assertFalse(in_array('index1', $indexSuffixes));
+        $this->assertFalse(in_array('index2', $indexSuffixes));
+        $this->assertFalse(in_array('index3', $indexSuffixes));
+        $this->assertTrue(in_array('index4', $indexSuffixes));
+        $this->assertFalse(in_array('index5', $indexSuffixes));
+        $this->assertFalse(in_array('index6', $indexSuffixes));
 
         $this->assertEmpty($config->getIndexesForDocument(new DocumentFake('ClassDoesNotExist')));
     }
@@ -123,22 +125,21 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testIsClassIndexed(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $this->assertTrue($config->isClassIndexed(DataObjectFake::class));
         $this->assertTrue($config->isClassIndexed(DataObjectSubclassFake::class));
-        $this->assertTrue($config->isClassIndexed(ViewableData::class));
+        $this->assertTrue($config->isClassIndexed(ModelData::class));
         $this->assertTrue($config->isClassIndexed(Member::class));
         $this->assertTrue($config->isClassIndexed(Controller::class));
         $this->assertTrue($config->isClassIndexed(DataObjectFakeAlternate::class));
-        $this->assertFalse($config->isClassIndexed(FakeFetcher::class));
         $this->assertFalse($config->isClassIndexed(ServiceFake::class));
     }
 
     public function testGetClassesForIndex(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $result = $config->getClassesForIndex('index1');
         $this->assertTrue(is_array($result));
@@ -160,7 +161,7 @@ class IndexConfigurationTest extends SearchServiceTest
         $result = $config->getClassesForIndex('index4');
         $this->assertTrue(is_array($result));
         $this->assertCount(1, $result);
-        $this->assertContains(ViewableData::class, $result);
+        $this->assertContains(ModelData::class, $result);
 
         $result = $config->getClassesForIndex('index5');
         $this->assertTrue(is_array($result));
@@ -174,7 +175,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testSearchableClasses(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $classes = $config->getSearchableClasses();
         $this->assertCount(5, $classes);
@@ -182,24 +183,24 @@ class IndexConfigurationTest extends SearchServiceTest
         $this->assertContains(DataObjectSubclassFake::class, $classes);
         $this->assertContains(Member::class, $classes);
         $this->assertContains(Controller::class, $classes);
-        $this->assertContains(ViewableData::class, $classes);
+        $this->assertContains(ModelData::class, $classes);
     }
 
     public function testSearchableBaseClasses(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $classes = $config->getSearchableBaseClasses();
         $this->assertCount(1, $classes);
-        $this->assertContains(ViewableData::class, $classes);
+        $this->assertContains(ModelData::class, $classes);
 
         IndexConfiguration::config()->merge(
             'indexes',
             [
                 'index4' => [
                     'includeClasses' => [
-                        ViewableData::class => false,
+                        ModelData::class => false,
                     ],
                 ],
             ],
@@ -215,7 +216,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetFieldsForClass(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $fields = $config->getFieldsForClass(DataObjectFake::class);
         $this->assertCount(4, $fields);
@@ -280,7 +281,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetFieldsForIndex(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $result = $config->getFieldsForIndex('index1');
         $names = array_map(function (Field $field) {
@@ -355,7 +356,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetBatchSizeForClass(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
         // Should be the batch_size set specifically within index1
@@ -371,7 +372,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetBatchSizeForClassOnlyIndexes(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
         $config->setOnlyIndexes(['index1']);
 
         $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
@@ -389,7 +390,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetLowestBatchSize(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
 
         $this->assertEquals(25, $config->getLowestBatchSize());
     }
@@ -397,7 +398,7 @@ class IndexConfigurationTest extends SearchServiceTest
     public function testGetLowestBatchSizeOnlyIndexes(): void
     {
         $this->bootstrapIndexes();
-        $config = new IndexConfiguration();
+        $config = IndexConfiguration::singleton();
         $config->setOnlyIndexes(['index1']);
 
         $this->assertEquals(50, $config->getLowestBatchSize());
@@ -487,7 +488,7 @@ class IndexConfigurationTest extends SearchServiceTest
                 ],
                 'index4' => [
                     'includeClasses' => [
-                        ViewableData::class => [
+                        ModelData::class => [
                             'fields' => [
                                 'field9' => true,
                             ],

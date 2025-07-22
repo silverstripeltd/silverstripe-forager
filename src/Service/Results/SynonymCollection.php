@@ -4,9 +4,9 @@ namespace SilverStripe\Forager\Service\Results;
 
 use JsonSerializable;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\View\ViewableData;
+use SilverStripe\Model\ModelData;
 
-class SynonymCollection extends ViewableData implements JsonSerializable
+class SynonymCollection extends ModelData implements JsonSerializable
 {
 
     use Injectable;
@@ -21,7 +21,7 @@ class SynonymCollection extends ViewableData implements JsonSerializable
         return $this->id;
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->id,
