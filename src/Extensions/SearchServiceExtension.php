@@ -19,7 +19,6 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
-use Throwable;
 
 /**
  * The extension that provides implicit indexing features to DataObjects
@@ -153,23 +152,6 @@ class SearchServiceExtension extends Extension
         }
 
         $this->owner->removeFromIndexes();
-    }
-
-    /**
-     * On dev/build ensure that the indexer settings are up to date
-     */
-    protected function onAfterBuild(): void
-    {
-        // Wrap this in a try-catch so that dev/build can continue (with warnings) when no service has been set
-        try {
-            // This extension can be applied to many DataObjects; let's make sure we only run this once
-            if (!$this->hasConfigured) {
-                $this->getIndexService()->configure();
-                $this->hasConfigured = true;
-            }
-        } catch (Throwable $e) {
-            user_error(sprintf('Unable to configure search indexes: %s', $e->getMessage()), E_USER_WARNING);
-        }
     }
 
 }
