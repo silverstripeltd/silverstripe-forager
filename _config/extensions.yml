@@ -3,31 +3,31 @@ Name: silverstripe-forager-extensions
 ---
 SilverStripe\ORM\FieldType\DBField:
   extensions:
-    - SilverStripe\Forager\Extensions\DBFieldExtension
+    SilverStripeForagerDBFieldExtension: SilverStripe\Forager\Extensions\DBFieldExtension
 
 SilverStripe\ORM\FieldType\DBDate:
   extensions:
-    - SilverStripe\Forager\Extensions\DBDateExtension
+    SilverStripeForagerDBDateExtension: SilverStripe\Forager\Extensions\DBDateExtension
 
 SilverStripe\ORM\FieldType\DBBoolean:
   extensions:
-    - SilverStripe\Forager\Extensions\DBBooleanExtension
+    SilverStripeForagerDBBooleanExtension: SilverStripe\Forager\Extensions\DBBooleanExtension
 
 SilverStripe\ORM\FieldType\DBHTMLText:
   extensions:
-    - SilverStripe\Forager\Extensions\DBHTMLFieldExtension
+    SilverStripeForagerDBHTMLFieldExtension: SilverStripe\Forager\Extensions\DBHTMLFieldExtension
 
 SilverStripe\ORM\FieldType\DBHTMLVarchar:
   extensions:
-    - SilverStripe\Forager\Extensions\DBHTMLFieldExtension
+    SilverStripeForagerDBHTMLFieldExtension: SilverStripe\Forager\Extensions\DBHTMLFieldExtension
 
 Symbiote\QueuedJobs\Controllers\QueuedJobsAdmin:
   extensions:
-    - SilverStripe\Forager\Extensions\QueuedJobsAdminExtension
+    SilverStripeForagerQueuedJobsAdminExtension: SilverStripe\Forager\Extensions\QueuedJobsAdminExtension
 
 Symbiote\QueuedJobs\Services\QueuedJobService:
   extensions:
-    - SilverStripe\Forager\Extensions\JobRetryExtension
+    SilverStripeForagerJobRetryExtension: SilverStripe\Forager\Extensions\JobRetryExtension
 
 ---
 Name: 'silverstripe-forager-cms'
@@ -44,7 +44,7 @@ Name: silverstripe-forager-form-extension
 ---
 SilverStripe\AssetAdmin\Forms\FileFormFactory:
   extensions:
-    - SilverStripe\Forager\Extensions\SearchFormFactoryExtension
+    SearchFormFactoryExtension: SilverStripe\Forager\Extensions\SearchFormFactoryExtension
 
 SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
   exclude_classes:
@@ -58,3 +58,10 @@ Only:
 SilverStripe\Assets\File:
   extensions:
     ForagerFileExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
+
+---
+Name: silverstripe-forager-dbbuild-extension
+---
+SilverStripe\Dev\Command\DbBuild:
+  extensions:
+    SilverStripeForagerDbBuildExtension: SilverStripe\Forager\Extensions\DbBuildExtension
