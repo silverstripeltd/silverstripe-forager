@@ -195,7 +195,7 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
         $configuration = SearchServiceExtension::singleton()->getConfiguration();
 
-        foreach ($configuration->getIndexSuffixes() as $indexSuffix => $data) {
+        foreach ($configuration->getIndexConfigurations() as $indexSuffix => $data) {
             $localCount = 0;
 
             foreach ($configuration->getClassesForIndexSuffix($indexSuffix) as $class) {

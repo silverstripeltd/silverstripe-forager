@@ -37,9 +37,9 @@ class IndexConfigurationFake extends IndexConfiguration
         return $this->override['include_page_html'] ?? parent::shouldIncludePageHTML();
     }
 
-    public function getIndexSuffixes(): array
+    public function getIndexConfigurations(): array
     {
-        return $this->override['indexes'] ?? parent::getIndexSuffixes();
+        return $this->override['indexes'] ?? parent::getIndexConfigurations();
     }
 
     public function shouldUseSyncJobs(): bool

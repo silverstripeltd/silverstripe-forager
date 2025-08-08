@@ -49,7 +49,7 @@ class SearchReindex extends BuildTask
         }
 
         // Loop through all available indexes (with the above filter applied, if relevant)
-        foreach (array_keys($indexConfiguration->getIndexSuffixes()) as $index) {
+        foreach (array_keys($indexConfiguration->getIndexConfigurations()) as $index) {
             // If a specific class has been requested, then we'll limit ourselves to that, otherwise get all classes
             // for the index
             $classes = $onlyClass
