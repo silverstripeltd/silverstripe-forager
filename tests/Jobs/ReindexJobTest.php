@@ -32,7 +32,7 @@ class ReindexJobTest extends SapphireTest
         $this->loadDataObject(20);
         $this->loadDataObjectAlternate(10);
 
-        $job = ReindexJob::create([DataObjectFake::class, DataObjectFakeAlternate::class], []);
+        $job = ReindexJob::create('my-index', [DataObjectFake::class, DataObjectFakeAlternate::class]);
         $job->setConfiguration($config);
 
         $job->setup();
@@ -68,40 +68,25 @@ class ReindexJobTest extends SapphireTest
     {
         $this->mockConfig(true);
 
-        $job = ReindexJob::create();
+        $job = ReindexJob::create('my-index');
 
         $this->assertEquals([], $job->getOnlyClasses());
-        $this->assertEquals([], $job->getOnlyIndexes());
+        $this->assertEquals('my-index', $job->getIndexSuffix());
     }
 
     public function testConstructOnlyClasses(): void
     {
         $this->mockConfig(true);
 
-        $job = ReindexJob::create([DataObjectFake::class]);
+        $job = ReindexJob::create('my-index', [DataObjectFake::class]);
 
         $this->assertEquals([DataObjectFake::class], $job->getOnlyClasses());
-        $this->assertEquals([], $job->getOnlyIndexes());
+        $this->assertEquals('my-index', $job->getIndexSuffix());
 
-        $job = ReindexJob::create([Member::class]);
+        $job = ReindexJob::create('my-index', [Member::class]);
 
         $this->assertEquals([Member::class], $job->getOnlyClasses());
-        $this->assertEquals([], $job->getOnlyIndexes());
-    }
-
-    public function testConstructOnlyIndexes(): void
-    {
-        $this->mockConfig(true);
-
-        $job = ReindexJob::create([], ['index1']);
-
-        $this->assertEquals([], $job->getOnlyClasses());
-        $this->assertEquals(['index1'], $job->getOnlyIndexes());
-
-        $job = ReindexJob::create([], ['index2']);
-
-        $this->assertEquals([], $job->getOnlyClasses());
-        $this->assertEquals(['index2'], $job->getOnlyIndexes());
+        $this->assertEquals('my-index', $job->getIndexSuffix());
     }
 
 }

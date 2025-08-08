@@ -26,7 +26,7 @@ class IndexConfiguration
 
     private static bool $include_page_html = false;
 
-    private static array $indexes = [];
+    private static array $indexSuffixes = [];
 
     private static bool $use_sync_jobs = false;
 
@@ -43,9 +43,9 @@ class IndexConfiguration
 
     private ?string $indexPrefix;
 
-    private array $onlyIndexes = [];
+    private array $restrictToIndexSuffixes = [];
 
-    private array $indexesForClassName = [];
+    private array $indexSuffixesForClassName = [];
 
     /**
      * @param string|null $indexPrefix
@@ -98,33 +98,33 @@ class IndexConfiguration
         return $indexSuffix;
     }
 
-    public function setOnlyIndexes(array $indexes): static
+    public function restrictToIndexSuffixes(array $indexSuffixes): static
     {
-        $this->onlyIndexes = $indexes;
+        $this->restrictToIndexSuffixes = $indexSuffixes;
 
         return $this;
     }
 
-    public function getIndexes(): array
+    public function getIndexSuffixes(): array
     {
-        $indexes = $this->config()->get('indexes');
+        $indexSuffixes = $this->config()->get('indexSuffixes');
 
         // Convert environment variable defined in YML config to its value
-        array_walk($indexes, function (array &$configuration): void {
+        array_walk($indexSuffixes, function (array &$configuration): void {
             $configuration = $this->environmentVariableToValue($configuration);
         });
 
-        if (!$this->onlyIndexes) {
-            return $indexes;
+        if (!$this->restrictToIndexSuffixes) {
+            return $indexSuffixes;
         }
 
-        foreach (array_keys($indexes) as $index) {
-            if (!in_array($index, $this->onlyIndexes)) {
-                unset($indexes[$index]);
+        foreach (array_keys($indexSuffixes) as $indexSuffix) {
+            if (!in_array($indexSuffix, $this->restrictToIndexSuffixes)) {
+                unset($indexSuffixes[$indexSuffix]);
             }
         }
 
-        return $indexes;
+        return $indexSuffixes;
     }
 
     public function shouldUseSyncJobs(): bool
@@ -147,12 +147,12 @@ class IndexConfiguration
         return $this->config()->get('auto_dependency_tracking');
     }
 
-    public function getIndexesForClassName(string $class): array
+    public function getIndexSuffixesForClassName(string $class): array
     {
-        if (!isset($this->indexesForClassName[$class])) {
+        if (!isset($this->indexSuffixesForClassName[$class])) {
             $matches = [];
 
-            foreach ($this->getIndexes() as $indexSuffix => $data) {
+            foreach ($this->getIndexSuffixes() as $indexSuffix => $data) {
                 $classes = $data['includeClasses'] ?? [];
 
                 foreach ($classes as $candidate => $spec) {
@@ -168,19 +168,19 @@ class IndexConfiguration
                 }
             }
 
-            $this->indexesForClassName[$class] = $matches;
+            $this->indexSuffixesForClassName[$class] = $matches;
         }
 
-        return $this->indexesForClassName[$class];
+        return $this->indexSuffixesForClassName[$class];
     }
 
-    public function getIndexesForDocument(DocumentInterface $doc): array
+    public function getIndexSuffixesForDocument(DocumentInterface $doc): array
     {
-        $indexes = $this->getIndexesForClassName($doc->getSourceClass());
+        $indexSuffixes = $this->getIndexSuffixesForClassName($doc->getSourceClass());
 
-        $this->extend('updateIndexesForDocument', $doc, $indexes);
+        $this->extend('updateIndexSuffixesForDocument', $doc, $indexSuffixes);
 
-        return $indexes;
+        return $indexSuffixes;
     }
 
     public function isClassIndexed(string $class): bool
@@ -188,15 +188,15 @@ class IndexConfiguration
         return (bool) $this->getFieldsForClass($class);
     }
 
-    public function getClassesForIndex(string $index): array
+    public function getClassesForIndexSuffix(string $indexSuffix): array
     {
-        $index = $this->getIndexes()[$index] ?? null;
+        $indexSuffix = $this->getIndexSuffixes()[$indexSuffix] ?? null;
 
-        if (!$index) {
+        if (!$indexSuffix) {
             return [];
         }
 
-        $classes = $index['includeClasses'] ?? [];
+        $classes = $indexSuffix['includeClasses'] ?? [];
         $result = [];
 
         foreach ($classes as $className => $spec) {
@@ -214,8 +214,8 @@ class IndexConfiguration
     {
         $classes = [];
 
-        foreach (array_keys($this->getIndexes()) as $indexSuffix) {
-            $classes = array_merge($classes, $this->getClassesForIndex($indexSuffix));
+        foreach (array_keys($this->getIndexSuffixes()) as $indexSuffix) {
+            $classes = array_merge($classes, $this->getClassesForIndexSuffix($indexSuffix));
         }
 
         return array_unique($classes);
@@ -245,7 +245,7 @@ class IndexConfiguration
         $fieldObjs = [];
 
         while ($candidate) {
-            foreach ($this->getIndexes() as $config) {
+            foreach ($this->getIndexSuffixes() as $config) {
                 $includedClasses = $config['includeClasses'] ?? [];
                 $spec = $includedClasses[$candidate] ?? null;
 
@@ -289,11 +289,11 @@ class IndexConfiguration
     public function getLowestBatchSize(): int
     {
         $batchSizes = [];
-        // Fetch all index configurations (these might be filtered if onlyIndexes has been set)
-        $indexes = $this->getIndexes();
+        // Fetch all index configurations (these might be filtered if onlyIndexSuffixes has been set)
+        $indexSuffixes = $this->getIndexSuffixes();
 
         // Loop through each potential index configuration
-        foreach ($indexes as $config) {
+        foreach ($indexSuffixes as $config) {
             $includedClasses = $config['includeClasses'] ?? [];
 
             foreach ($includedClasses as $spec) {
@@ -317,22 +317,22 @@ class IndexConfiguration
         return $this->getBatchSize();
     }
 
-    public function getLowestBatchSizeForClass(string $class, ?string $index = null): int
+    public function getLowestBatchSizeForClass(string $class, ?string $indexSuffix = null): int
     {
         $candidate = $class;
         $batchSizes = [];
-        // Fetch all index configurations (these might be filtered if onlyIndexes has been set)
-        $indexes = $this->getIndexes();
+        // Fetch all index configurations (these might be filtered if onlyIndexSuffixes has been set)
+        $indexSuffixes = $this->getIndexSuffixes();
 
-        if ($index) {
+        if ($indexSuffix) {
             // If we're requesting the batch size for a specific index, then make sure we only have that specific index
             // configuration available
-            $indexes = array_intersect_key($indexes, array_flip([$index]));
+            $indexSuffixes = array_intersect_key($indexSuffixes, array_flip([$indexSuffix]));
         }
 
         while ($candidate) {
             // Loop through each potential index configuration
-            foreach ($indexes as $config) {
+            foreach ($indexSuffixes as $config) {
                 $includedClasses = $config['includeClasses'] ?? [];
                 $spec = $includedClasses[$candidate] ?? null;
 
@@ -382,7 +382,7 @@ class IndexConfiguration
             );
         }
 
-        $classes = $this->getClassesForIndex($index);
+        $classes = $this->getClassesForIndexSuffix($index);
 
         foreach ($classes as $class) {
             $fields = array_merge($fields, $this->getFieldsForClass($class));

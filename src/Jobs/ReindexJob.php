@@ -17,7 +17,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  * @property DocumentFetcherInterface[]|null $fetchers
  * @property int|null $fetcherIndex
  * @property array|null $onlyClasses
- * @property array|null $onlyIndexes
+ * @property string|null $indexSuffix
  */
 class ReindexJob extends BatchJob
 {
@@ -32,28 +32,20 @@ class ReindexJob extends BatchJob
         'configuration' => '%$' . IndexConfiguration::class,
     ];
 
-    /**
-     * @param array|null $onlyClasses
-     * @param array|null $onlyIndexes
-     */
-    public function __construct(?array $onlyClasses = [], ?array $onlyIndexes = [])
+    public function __construct(string $indexSuffix, ?array $onlyClasses = [])
     {
         parent::__construct();
 
+        $this->setIndexSuffix($indexSuffix);
         $this->setOnlyClasses($onlyClasses);
-        $this->setOnlyIndexes($onlyIndexes);
     }
 
     public function getTitle(): string
     {
-        $title = 'Search service reindex all documents';
-
-        if ($this->getOnlyIndexes()) {
-            $title .= ' in index ' . implode(',', $this->getOnlyIndexes());
-        }
+        $title = sprintf('Search service reindex all documents in index "%s"', $this->getIndexSuffix());
 
         if ($this->getOnlyClasses()) {
-            $title .= ' of class ' . implode(',', $this->getOnlyClasses());
+            $title = sprintf('%s %s', $title, implode(',', $this->getOnlyClasses()));
         }
 
         return $title;
@@ -69,10 +61,10 @@ class ReindexJob extends BatchJob
         $this->extend('onBeforeSetup');
         Versioned::set_stage(Versioned::LIVE);
 
-        if ($this->getOnlyIndexes() && count($this->getOnlyIndexes())) {
-            $this->getConfiguration()->setOnlyIndexes($this->getOnlyIndexes());
-        }
+        // Restrict this job to only processing the one index that we specified
+        $this->getConfiguration()->restrictToIndexSuffixes([$this->getIndexSuffix()]);
 
+        // Can optionally process specifically classes, or all classes
         $classes = $this->getOnlyClasses() && count($this->getOnlyClasses())
             ? $this->getOnlyClasses()
             : $this->getConfiguration()->getSearchableBaseClasses();
@@ -81,6 +73,7 @@ class ReindexJob extends BatchJob
         $fetchers = [];
 
         foreach ($classes as $class) {
+            // Each class is represented by its own fetcher
             $fetcher = $this->getRegistry()->getFetcher($class);
 
             if (!$fetcher) {
@@ -196,6 +189,20 @@ class ReindexJob extends BatchJob
         $this->fetcherIndex++;
     }
 
+    public function getIndexSuffix(): ?string
+    {
+        if (is_bool($this->indexSuffix)) {
+            return null;
+        }
+
+        return $this->indexSuffix;
+    }
+
+    private function setIndexSuffix(?string $indexSuffix): void
+    {
+        $this->indexSuffix = $indexSuffix;
+    }
+
     public function getOnlyClasses(): ?array
     {
         if (is_bool($this->onlyClasses)) {
@@ -208,20 +215,6 @@ class ReindexJob extends BatchJob
     private function setOnlyClasses(?array $onlyClasses): void
     {
         $this->onlyClasses = $onlyClasses;
-    }
-
-    public function getOnlyIndexes(): ?array
-    {
-        if (is_bool($this->onlyIndexes)) {
-            return null;
-        }
-
-        return $this->onlyIndexes;
-    }
-
-    private function setOnlyIndexes(?array $onlyIndexes): void
-    {
-        $this->onlyIndexes = $onlyIndexes;
     }
 
 }

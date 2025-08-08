@@ -37,9 +37,9 @@ class IndexConfigurationFake extends IndexConfiguration
         return $this->override['include_page_html'] ?? parent::shouldIncludePageHTML();
     }
 
-    public function getIndexes(): array
+    public function getIndexSuffixes(): array
     {
-        return $this->override['indexes'] ?? parent::getIndexes();
+        return $this->override['indexes'] ?? parent::getIndexSuffixes();
     }
 
     public function shouldUseSyncJobs(): bool
@@ -62,14 +62,14 @@ class IndexConfigurationFake extends IndexConfiguration
         return $this->override['auto_dependency_tracking'] ?? parent::shouldTrackDependencies();
     }
 
-    public function getIndexesForClassName(string $class): array
+    public function getIndexSuffixesForClassName(string $class): array
     {
-        return $this->override[__FUNCTION__][$class] ?? parent::getIndexesForClassName($class);
+        return $this->override[__FUNCTION__][$class] ?? parent::getIndexSuffixesForClassName($class);
     }
 
-    public function getIndexesForDocument(DocumentInterface $doc): array
+    public function getIndexSuffixesForDocument(DocumentInterface $doc): array
     {
-        return $this->override[__FUNCTION__][$doc->getIdentifier()] ?? parent::getIndexesForDocument($doc);
+        return $this->override[__FUNCTION__][$doc->getIdentifier()] ?? parent::getIndexSuffixesForDocument($doc);
     }
 
     public function isClassIndexed(string $class): bool
@@ -77,9 +77,9 @@ class IndexConfigurationFake extends IndexConfiguration
         return $this->override[__FUNCTION__][$class] ?? parent::isClassIndexed($class);
     }
 
-    public function getClassesForIndex(string $index): array
+    public function getClassesForIndexSuffix(string $indexSuffix): array
     {
-        return $this->override[__FUNCTION__][$index] ?? parent::getClassesForIndex($index);
+        return $this->override[__FUNCTION__][$indexSuffix] ?? parent::getClassesForIndexSuffix($indexSuffix);
     }
 
     public function getSearchableClasses(): array

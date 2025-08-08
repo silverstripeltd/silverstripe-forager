@@ -195,10 +195,10 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
 
         $configuration = SearchServiceExtension::singleton()->getConfiguration();
 
-        foreach ($configuration->getIndexes() as $indexSuffix => $data) {
+        foreach ($configuration->getIndexSuffixes() as $indexSuffix => $data) {
             $localCount = 0;
 
-            foreach ($configuration->getClassesForIndex($indexSuffix) as $class) {
+            foreach ($configuration->getClassesForIndexSuffix($indexSuffix) as $class) {
                 $query = new DataQuery($class);
                 $query->where('SearchIndexed IS NOT NULL');
 
