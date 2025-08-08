@@ -40,34 +40,30 @@ Page:
     Parent: =>Page.page4
     ShowInSearch: 1
   page6:
-    Title: Subsite Page 1
-    Subsite: =>SilverStripe\Subsites\Model\Subsite.subsite1
-    ShowInSearch: 1
-  page7:
     Title: Grandchild of Parent Page 1 - A1
     Parent: =>Page.page2
     ShowInSearch: 1
-  page8:
+  page7:
     Title: Grandchild of Parent Page 1 - A2
     Parent: =>Page.page2
     ShowInSearch: 1
 
 SilverStripe\Forager\Tests\Fake\PageFake:
-  page9:
+  page8:
     Title: Child of Parent Page 2 - B
     Parent: =>Page.page4
     Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.four,=>SilverStripe\Forager\Tests\Fake\TagFake.five
     Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.three
     ShowInSearch: 1
-  page10:
+  page9:
     Title: Grandchild of Parent Page 2 - B1
-    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page9
+    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page8
     Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.five,=>SilverStripe\Forager\Tests\Fake\TagFake.six
     Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.four
     ShowInSearch: 1
-  page11:
+  page10:
     Title: Great Grandchild of Parent Page 2 - B1 - One
-    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page10
+    Parent: =>SilverStripe\Forager\Tests\Fake\PageFake.page9
     Images: =>SilverStripe\Forager\Tests\Fake\ImageFake.five
     Tags: =>SilverStripe\Forager\Tests\Fake\TagFake.four,=>SilverStripe\Forager\Tests\Fake\TagFake.six
     ShowInSearch: 1

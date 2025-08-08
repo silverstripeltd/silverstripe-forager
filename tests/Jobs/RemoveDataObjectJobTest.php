@@ -2,20 +2,24 @@
 
 namespace SilverStripe\Forager\Tests\Jobs;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
+use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Security\Member;
 
-class RemoveDataObjectJobTest extends SearchServiceTest
+class RemoveDataObjectJobTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = '../fixtures.yml'; // phpcs:ignore
 
@@ -27,6 +31,7 @@ class RemoveDataObjectJobTest extends SearchServiceTest
         DataObjectFake::class,
         DataObjectFakePrivate::class,
         DataObjectFakeVersioned::class,
+        DataObjectFakePrivateShouldIndex::class,
         TagFake::class,
         ImageFake::class,
         Member::class,
@@ -97,7 +102,7 @@ class RemoveDataObjectJobTest extends SearchServiceTest
 
         $resultTitles = [];
 
-        // This determines whether the document should be added or removed from from the index
+        // This determines whether the document should be added or removed from the index
         foreach ($documents as $document) {
             $resultTitles[] = $document->getDataObject()?->Title;
 
@@ -108,8 +113,13 @@ class RemoveDataObjectJobTest extends SearchServiceTest
         $this->assertEqualsCanonicalizing($expectedTitles, $resultTitles);
 
         // Deleting related documents so that they will be removed from index as well
-        $this->objFromFixture(DataObjectFake::class, 'one')->delete();
-        $this->objFromFixture(DataObjectFake::class, 'three')->delete();
+        /** @var DataObjectFake $objectOne */
+        $objectOne = $this->objFromFixture(DataObjectFake::class, 'one');
+        /** @var DataObjectFake $objectTwo */
+        $objectTwo = $this->objFromFixture(DataObjectFake::class, 'three');
+
+        $objectOne->delete();
+        $objectTwo->delete();
 
         // This determines whether the document should be added or removed from the index
         foreach ($documents as $document) {
@@ -127,7 +137,7 @@ class RemoveDataObjectJobTest extends SearchServiceTest
         $this->assertNull($job->getDocument());
         $this->assertNotNull($job->getTimestamp());
         // Should be the lowest define batch_size across our index configuration
-        $this->assertEquals(25, $job->getBatchSize());
+        $this->assertEquals(5, $job->getBatchSize());
 
         $job = RemoveDataObjectJob::create(null, null, 33);
 

@@ -4,15 +4,15 @@ namespace SilverStripe\Forager\Service\Results;
 
 use JsonSerializable;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\View\ViewableData;
+use SilverStripe\Model\ModelData;
 
-class SynonymRule extends ViewableData implements JsonSerializable
+class SynonymRule extends ModelData implements JsonSerializable
 {
 
     use Injectable;
 
-    public const TYPE_EQUIVALENT = 'TYPE_EQUIVALENT';
-    public const TYPE_DIRECTIONAL = 'TYPE_DIRECTIONAL';
+    public const string TYPE_EQUIVALENT = 'TYPE_EQUIVALENT';
+    public const string TYPE_DIRECTIONAL = 'TYPE_DIRECTIONAL';
 
     /**
      * Different services have different names for their synonym types
@@ -141,7 +141,7 @@ class SynonymRule extends ViewableData implements JsonSerializable
         return $this;
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return [
             'id' => $this->getId(),

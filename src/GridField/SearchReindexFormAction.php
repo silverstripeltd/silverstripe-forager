@@ -3,7 +3,6 @@
 namespace SilverStripe\Forager\GridField;
 
 use SilverStripe\Control\Controller;
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridField_ActionMenuItem;
@@ -23,10 +22,13 @@ class SearchReindexFormAction implements GridField_ColumnProvider, GridField_Act
     {
         return GridField_FormAction::create(
             $gridField,
-            'FullReindex' . $record->IndexName,
+            'FullReindex' . $record->IndexSuffix,
             'Trigger Full Reindex',
             'dofullreindex',
-            ['IndexName' => $record->IndexName]
+            [
+                'IndexSuffix' => $record->IndexSuffix,
+                'IndexName' => $record->IndexName,
+            ]
         )->addExtraClass(
             'action-menu--handled btn btn-info btn-sm'
         );
@@ -108,19 +110,19 @@ class SearchReindexFormAction implements GridField_ColumnProvider, GridField_Act
             return;
         }
 
-        $getParams = [];
+        $indexSuffix = null;
+        $indexName = null;
 
-        if (array_key_exists('IndexName', $arguments)) {
-            $getParams['IndexName'] = $arguments['IndexName'];
+        if (array_key_exists('IndexSuffix', $arguments)) {
+            $indexSuffix = $arguments['IndexSuffix'];
+            $indexName = $arguments['IndexName'];
         }
 
-        $taskUrl = Controller::join_links('/dev/tasks/', SearchReindex::config()->get('segment'));
-        $request = new HTTPRequest('GET', $taskUrl, $getParams);
-        SearchReindex::singleton()->run($request);
+        SearchReindex::singleton()->processTaskExecution(null, $indexSuffix);
 
         Controller::curr()->getResponse()->addHeader(
             'X-Status',
-            rawurlencode(_t(static::class . '.REINDEXED', 'Reindex triggered for '. $arguments['IndexName']))
+            rawurlencode(_t(static::class . '.REINDEXED', 'Reindex triggered for ' . $indexName))
         );
     }
 

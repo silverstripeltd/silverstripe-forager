@@ -2,13 +2,16 @@
 
 namespace SilverStripe\Forager\Tests\Jobs;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
-class IndexJobTest extends SearchServiceTest
+class IndexJobTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
@@ -25,12 +28,13 @@ class IndexJobTest extends SearchServiceTest
             DataObjectFake::class => true,
         ]);
         $config->set('batch_size', 6);
-        $service = $this->loadIndex(20);
+        $service = $this->loadDataObject(20);
         $docs = $service->listDocuments('test', 100);
         $this->assertCount(20, $docs);
 
         $job = IndexJob::create($docs, Indexer::METHOD_ADD);
         $job->setup();
+        // Batch size should default back to the lowest configured batch_size
         $this->assertEquals(6, $job->getBatchSize());
         $this->assertCount(20, $job->getDocuments());
 
@@ -53,9 +57,9 @@ class IndexJobTest extends SearchServiceTest
         $this->assertEquals([], $job->getDocuments());
         $this->assertEquals(Indexer::METHOD_ADD, $job->getMethod());
         // Should be the lowest define batch_size across our index configuration
-        $this->assertEquals(25, $job->getBatchSize());
+        $this->assertEquals(5, $job->getBatchSize());
 
-        $service = $this->loadIndex(20);
+        $service = $this->loadDataObject(20);
         $docs = $service->listDocuments('test', 33);
         $job = IndexJob::create($docs, Indexer::METHOD_DELETE, 33);
 
