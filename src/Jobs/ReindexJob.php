@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Jobs;
 
+use InvalidArgumentException;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
@@ -16,8 +17,8 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
 /**
  * @property DocumentFetcherInterface[]|null $fetchers
  * @property int|null $fetcherIndex
- * @property array|null $onlyClasses
  * @property string|null $indexSuffix
+ * @property array|null $onlyClasses
  */
 class ReindexJob extends BatchJob
 {
@@ -32,7 +33,7 @@ class ReindexJob extends BatchJob
         'configuration' => '%$' . IndexConfiguration::class,
     ];
 
-    public function __construct(string $indexSuffix, ?array $onlyClasses = [])
+    public function __construct(?string $indexSuffix = null, ?array $onlyClasses = [])
     {
         parent::__construct();
 
@@ -42,7 +43,7 @@ class ReindexJob extends BatchJob
 
     public function getTitle(): string
     {
-        $title = sprintf('Search service reindex all documents in index "%s"', $this->getIndexSuffix());
+        $title = sprintf('Reindex all documents in index with suffix "%s"', $this->getIndexSuffix());
 
         if ($this->getOnlyClasses()) {
             $title = sprintf('%s %s', $title, implode(',', $this->getOnlyClasses()));
@@ -59,6 +60,11 @@ class ReindexJob extends BatchJob
     public function setup(): void
     {
         $this->extend('onBeforeSetup');
+
+        if (!$this->getIndexSuffix()) {
+            throw new InvalidArgumentException('An index suffix must be specified');
+        }
+
         Versioned::set_stage(Versioned::LIVE);
 
         // Restrict this job to only processing the one index that we specified
