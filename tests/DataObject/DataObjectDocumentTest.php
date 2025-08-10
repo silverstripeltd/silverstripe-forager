@@ -87,7 +87,7 @@ class DataObjectDocumentTest extends SapphireTest
 
         // Add all four documents to our indexes, as this isn't the functionality we're testing here
         $config->set(
-            'getIndexesForDocument',
+            'getIndexConfigurationsForDocument',
             [
                 $docOne->getIdentifier() => [
                     'index' => 'data',
@@ -116,7 +116,7 @@ class DataObjectDocumentTest extends SapphireTest
         $dataObjectOne->publishRecursive();
         $dataObjectTwo->publishRecursive();
 
-        // Need to re-fetch these DOs as their Versioned data will have changes
+        // Need to re-fetch these DOs as their Versioned data will have changed
         $dataObjectOne = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
         $dataObjectTwo = $this->objFromFixture(DataObjectFakeVersioned::class, 'two');
 
@@ -161,7 +161,7 @@ class DataObjectDocumentTest extends SapphireTest
 
         // Add both documents to our indexes, as this isn't the functionality we're testing here
         $config->set(
-            'getIndexesForDocument',
+            'getIndexConfigurationsForDocument',
             [
                 $docOne->getIdentifier() => [
                     'index' => 'data',
@@ -214,7 +214,7 @@ class DataObjectDocumentTest extends SapphireTest
     public function testGetIndexes(): void
     {
         $config = $this->mockConfig();
-        $config->set('getIndexesForClassName', [DataObjectFake::class => ['one', 'two']]);
+        $config->set('getIndexConfigurationsForClassName', [DataObjectFake::class => ['one', 'two']]);
 
         $dataobject = new DataObjectFake(['ShowInSearch' => true]);
         $doc = DataObjectDocument::create($dataobject);
@@ -616,7 +616,7 @@ class DataObjectDocumentTest extends SapphireTest
             $doc = DataObjectDocument::create($dataObject);
 
             $config->set(
-                'getIndexesForDocument',
+                'getIndexConfigurationsForDocument',
                 [
                     $doc->getIdentifier() => [
                         'index' => 'data',
@@ -654,7 +654,7 @@ class DataObjectDocumentTest extends SapphireTest
 
         $config = $this->mockConfig();
         $config->set(
-            'getIndexesForDocument',
+            'getIndexConfigurationsForDocument',
             [
                 $doc->getIdentifier() => [
                     'index' => 'data',

@@ -45,11 +45,11 @@ class SearchReindex extends BuildTask
 
         if ($onlyIndex) {
             // If we've requested to only reindex a specific index, then set this limitation on our IndexConfiguration
-            $indexConfiguration->setOnlyIndexes([$onlyIndex]);
+            $indexConfiguration->restrictToIndexes([$onlyIndex]);
         }
 
         // Loop through all available indexes (with the above filter applied, if relevant)
-        foreach (array_keys($indexConfiguration->getIndexes()) as $index) {
+        foreach (array_keys($indexConfiguration->getIndexConfigurations()) as $index) {
             // If a specific class has been requested, then we'll limit ourselves to that, otherwise get all classes
             // for the index
             $classes = $onlyClass
@@ -58,7 +58,7 @@ class SearchReindex extends BuildTask
 
             foreach ($classes as $class) {
                 // Create a job for this class and index
-                $job = ReindexJob::create([$class], [$index]);
+                $job = ReindexJob::create($index, [$class]);
 
                 if ($indexConfiguration->shouldUseSyncJobs()) {
                     // This can be a very memory and time intensive process

@@ -61,11 +61,11 @@ class SearchReindexTest extends SapphireTest
 
             // Each Job should be for a specific index and class
             $this->assertCount(1, $data['onlyClasses'] ?? []);
-            $this->assertCount(1, $data['onlyIndexes'] ?? []);
+            $this->assertNotNull($data['indexSuffix'] ?? null);
 
             // Grab the class and index that this job represents
             $class = array_shift($data['onlyClasses']);
-            $index = array_shift($data['onlyIndexes']);
+            $index = $data['indexSuffix'];
 
             // Start building out our expected data structure
             if (!array_key_exists($index, $result)) {
