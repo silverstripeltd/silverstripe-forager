@@ -56,7 +56,7 @@ it is assigned to. Be sure to check each item's `shouldIndex()` method, as well.
 Return value should be the unique ID of the document.
 
 ```php
-public function addDocument(DocumentInterface $document): ?string
+public function addDocument(DocumentInterface $document, array $indexSuffixes): ?string
 {
     if (!$document->shouldIndex()) {
         return null;
@@ -81,7 +81,7 @@ public function addDocument(DocumentInterface $document): ?string
 **Tip**: Consider passing `DocumentBuilder` and `IndexConfiguration` as a constructor 
 arguments to your indexing service.
 
-### addDocuments(array $documents): self
+### addDocuments(array $documents, array $indexSuffixes): self
 
 Same as `addDocument()`, but accepts an array of `DocumentInterface` objects. It is recommended
 that the `addDocument()` method works as a proxy for `addDocuments()`, e.g. 

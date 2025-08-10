@@ -624,7 +624,7 @@ class DataObjectDocumentTest extends SapphireTest
                 ]
             );
 
-            $indexer = new Indexer([$doc]);
+            $indexer = Indexer::create([$doc], ['index1']);
             $indexer->setIndexService($service = new ServiceFake());
             $indexer->setBatchSize(1);
             $indexer->processNode();
@@ -638,7 +638,7 @@ class DataObjectDocumentTest extends SapphireTest
             $dataObject->flushCache();
             $doc = DataObjectDocument::create($dataObject);
 
-            $indexer = new Indexer([$doc]);
+            $indexer = Indexer::create([$doc], ['index1']);
             $indexer->setIndexService($service = new ServiceFake());
             $indexer->setBatchSize(1);
             $indexer->processNode();

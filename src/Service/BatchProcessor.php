@@ -27,9 +27,9 @@ class BatchProcessor implements BatchDocumentInterface
      * @param DocumentInterface[] $documents
      * @throws Exception
      */
-    public function addDocuments(array $documents): array
+    public function addDocuments(array $documents, array $indexSuffixes): array
     {
-        $job = IndexJob::create($documents);
+        $job = IndexJob::create($documents, $indexSuffixes);
         $this->run($job);
 
         return [];
@@ -39,9 +39,9 @@ class BatchProcessor implements BatchDocumentInterface
      * @param DocumentInterface[] $documents
      * @throws Exception
      */
-    public function removeDocuments(array $documents): array
+    public function removeDocuments(array $documents, array $indexSuffixes): array
     {
-        $job = IndexJob::create($documents, Indexer::METHOD_DELETE);
+        $job = IndexJob::create($documents, $indexSuffixes, Indexer::METHOD_DELETE);
         $this->run($job);
 
         return [];

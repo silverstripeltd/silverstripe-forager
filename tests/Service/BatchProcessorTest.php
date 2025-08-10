@@ -35,10 +35,13 @@ class BatchProcessorTest extends SapphireTest
         Injector::inst()->registerService($mock, SyncJobRunner::class);
 
         $processor = new BatchProcessor($config);
-        $processor->addDocuments([
-            new DocumentFake('Fake', ['test' => 'foo']),
-            new DocumentFake('Fake', ['test' => 'bar']),
-        ]);
+        $processor->addDocuments(
+            [
+                new DocumentFake('Fake', ['test' => 'foo']),
+                new DocumentFake('Fake', ['test' => 'bar']),
+            ],
+            ['index1']
+        );
     }
 
     public function testRemoveDocumentsSync(): void
@@ -59,10 +62,13 @@ class BatchProcessorTest extends SapphireTest
         Injector::inst()->registerService($mock, SyncJobRunner::class);
 
         $processor = new BatchProcessor($config);
-        $processor->removeDocuments([
-            new DocumentFake('Fake', ['test' => 'foo']),
-            new DocumentFake('Fake', ['test' => 'bar']),
-        ]);
+        $processor->removeDocuments(
+            [
+                new DocumentFake('Fake', ['test' => 'foo']),
+                new DocumentFake('Fake', ['test' => 'bar']),
+            ],
+            ['index1']
+        );
     }
 
     public function testAddDocumentsQueued(): void
@@ -84,10 +90,13 @@ class BatchProcessorTest extends SapphireTest
         Injector::inst()->registerService($mock, QueuedJobService::class);
 
         $processor = new BatchProcessor($config);
-        $processor->addDocuments([
-            new DocumentFake('Fake', ['test' => 'foo']),
-            new DocumentFake('Fake', ['test' => 'bar']),
-        ]);
+        $processor->addDocuments(
+            [
+                new DocumentFake('Fake', ['test' => 'foo']),
+                new DocumentFake('Fake', ['test' => 'bar']),
+            ],
+            ['index1']
+        );
     }
 
     public function testRemoveDocumentsQueued(): void
@@ -109,10 +118,13 @@ class BatchProcessorTest extends SapphireTest
         Injector::inst()->registerService($mock, QueuedJobService::class);
 
         $processor = new BatchProcessor($config);
-        $processor->removeDocuments([
-            new DocumentFake('Fake', ['test' => 'foo']),
-            new DocumentFake('Fake', ['test' => 'bar']),
-        ]);
+        $processor->removeDocuments(
+            [
+                new DocumentFake('Fake', ['test' => 'foo']),
+                new DocumentFake('Fake', ['test' => 'bar']),
+            ],
+            ['index1']
+        );
     }
 
 }
