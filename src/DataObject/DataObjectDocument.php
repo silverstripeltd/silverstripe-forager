@@ -166,7 +166,7 @@ class DataObjectDocument implements
             return false;
         }
 
-        if (!$this->getConfiguration()->getIndexesForDocument($this)) {
+        if (!$this->getConfiguration()->getIndexConfigurationsForDocument($this)) {
             return false;
         }
 
@@ -205,7 +205,7 @@ class DataObjectDocument implements
 
     public function getIndexes(): array
     {
-        return $this->getConfiguration()->getIndexesForClassName(
+        return $this->getConfiguration()->getIndexConfigurationsForClassName(
             get_class($this->getDataObject())
         );
     }

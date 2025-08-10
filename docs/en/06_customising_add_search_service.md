@@ -63,7 +63,7 @@ public function addDocument(DocumentInterface $document): ?string
     }
     
     $fields = DocumentBuilder::singleton()->toArray($document);
-    $indexes = IndexConfiguration::singleton()->getIndexesForDocument($document);
+    $indexes = IndexConfiguration::singleton()->getIndexConfigurationsForDocument($document);
     
     foreach (array_keys($indexes) as $indexSuffix) {
         // your custom API call here
@@ -105,7 +105,7 @@ Return value should be the unique ID of the document.
 ```php
 public function removeDocument(DocumentInterface $document): ?string
 {
-    $indexes = IndexConfiguration::singleton()->getIndexesForDocument($document);
+    $indexes = IndexConfiguration::singleton()->getIndexConfigurationsForDocument($document);
     
     foreach (array_keys($indexes) as $indexSuffix) {
         // your custom API call here

@@ -69,7 +69,7 @@ class RemoveDataObjectJobTest extends SapphireTest
         ];
 
         $config->set(
-            'getIndexesForClassName',
+            'getIndexConfigurationsForClassName',
             [
                 DataObjectFake::class => $index,
                 TagFake::class => $index,
