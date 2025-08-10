@@ -27,7 +27,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
 
-        $result = $config->getIndexesForClassName(DataObjectFake::class);
+        $result = $config->getIndexConfigurationsForClassName(DataObjectFake::class);
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -39,7 +39,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForClassName(DataObjectSubclassFake::class);
+        $result = $config->getIndexConfigurationsForClassName(DataObjectSubclassFake::class);
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -51,7 +51,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForClassName(ModelData::class);
+        $result = $config->getIndexConfigurationsForClassName(ModelData::class);
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -63,7 +63,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForClassName(DataObjectFakeAlternate::class);
+        $result = $config->getIndexConfigurationsForClassName(DataObjectFakeAlternate::class);
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -75,15 +75,15 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $this->assertEmpty($config->getIndexesForClassName(ServiceFake::class));
+        $this->assertEmpty($config->getIndexConfigurationsForClassName(ServiceFake::class));
     }
 
-    public function testGetIndexesForDocument(): void
+    public function testGetIndexConfigurationsForDocument(): void
     {
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
 
-        $result = $config->getIndexesForDocument(new DocumentFake(DataObjectFake::class));
+        $result = $config->getIndexConfigurationsForDocument(new DocumentFake(DataObjectFake::class));
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -95,7 +95,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForDocument(new DocumentFake(DataObjectSubclassFake::class));
+        $result = $config->getIndexConfigurationsForDocument(new DocumentFake(DataObjectSubclassFake::class));
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -107,7 +107,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $result = $config->getIndexesForDocument(new DocumentFake(ModelData::class));
+        $result = $config->getIndexConfigurationsForDocument(new DocumentFake(ModelData::class));
         $this->assertTrue(is_array($result));
         $indexSuffixes = array_keys($result);
 
@@ -119,7 +119,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertFalse(in_array('index5', $indexSuffixes));
         $this->assertFalse(in_array('index6', $indexSuffixes));
 
-        $this->assertEmpty($config->getIndexesForDocument(new DocumentFake('ClassDoesNotExist')));
+        $this->assertEmpty($config->getIndexConfigurationsForDocument(new DocumentFake('ClassDoesNotExist')));
     }
 
     public function testIsClassIndexed(): void
@@ -369,16 +369,16 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertEquals(100, $config->getLowestBatchSizeForClass(Controller::class));
     }
 
-    public function testGetBatchSizeForClassOnlyIndexes(): void
+    public function testGetBatchSizeForClassRestrictToIndexes(): void
     {
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
-        $config->setOnlyIndexes(['index1']);
+        $config->restrictToIndexes(['index1']);
 
         $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
         // Should be the batch_size set specifically within index1
         $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class, 'index1'));
-        // Should be exactly the same as above, because we have filtered OnlyIndexes() to 'index1'
+        // Should be exactly the same as above, because we have filtered restrictToIndexes() to 'index1'
         $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class));
         // Should use batch_size for DataObjectFake, since DataObjectSubclassFake doesn't have an explicit definition
         // in index1
@@ -395,15 +395,15 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertEquals(25, $config->getLowestBatchSize());
     }
 
-    public function testGetLowestBatchSizeOnlyIndexes(): void
+    public function testGetLowestBatchSizeRestrictToIndexes(): void
     {
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
-        $config->setOnlyIndexes(['index1']);
+        $config->restrictToIndexes(['index1']);
 
         $this->assertEquals(50, $config->getLowestBatchSize());
 
-        $config->setOnlyIndexes(['index4']);
+        $config->restrictToIndexes(['index4']);
 
         $this->assertEquals(100, $config->getLowestBatchSize());
     }
