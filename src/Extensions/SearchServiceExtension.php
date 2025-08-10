@@ -109,7 +109,9 @@ class SearchServiceExtension extends Extension
     public function addToIndexes(): void
     {
         $document = DataObjectDocument::create($this->owner);
-        $this->getBatchProcessor()->addDocuments([$document]);
+        $indexSuffixes = IndexConfiguration::singleton()->getIndexSuffixes();
+
+        $this->getBatchProcessor()->addDocuments([$document], $indexSuffixes);
     }
 
     /**
@@ -118,7 +120,9 @@ class SearchServiceExtension extends Extension
     public function removeFromIndexes(): void
     {
         $document = DataObjectDocument::create($this->owner)->setShouldFallbackToLatestVersion();
-        $this->getBatchProcessor()->removeDocuments([$document]);
+        $indexSuffixes = IndexConfiguration::singleton()->getIndexSuffixes();
+
+        $this->getBatchProcessor()->removeDocuments([$document], $indexSuffixes);
     }
 
     /**

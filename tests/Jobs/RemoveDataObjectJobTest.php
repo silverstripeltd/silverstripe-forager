@@ -81,7 +81,11 @@ class RemoveDataObjectJobTest extends SapphireTest
         // Queue up a job to remove our Tag, the result should be that any related DataObject (DOs that have this Tag
         // assigned to them) are added as related Documents
         $job = RemoveDataObjectJob::create(
-            DataObjectDocument::create($tag)
+            DataObjectDocument::create($tag),
+            [
+                'index1',
+                'index2',
+            ]
         );
         $job->setup();
 
@@ -139,7 +143,7 @@ class RemoveDataObjectJobTest extends SapphireTest
         // Should be the lowest define batch_size across our index configuration
         $this->assertEquals(5, $job->getBatchSize());
 
-        $job = RemoveDataObjectJob::create(null, null, 33);
+        $job = RemoveDataObjectJob::create(null, [], null, 33);
 
         $this->assertNull($job->getDocument());
         $this->assertNotNull($job->getTimestamp());

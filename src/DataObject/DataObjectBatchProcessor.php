@@ -22,18 +22,18 @@ class DataObjectBatchProcessor extends BatchProcessor
      * @param DocumentInterface[] $documents
      * @throws ValidationException
      */
-    public function removeDocuments(array $documents): array
+    public function removeDocuments(array $documents, array $indexSuffixes): array
     {
         $timestamp = DBDatetime::now()->getTimestamp() - $this->config()->get('buffer_seconds');
 
         // Remove the DataObjects, ignore dependencies
-        $job = IndexJob::create($documents, Indexer::METHOD_DELETE, null, false);
+        $job = IndexJob::create($documents, $indexSuffixes, Indexer::METHOD_DELETE, null, false);
         $this->run($job);
 
         foreach ($documents as $doc) {
             // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
             // and decide whether we should delete or update them automatically.
-            $childJob = RemoveDataObjectJob::create($doc, $timestamp);
+            $childJob = RemoveDataObjectJob::create($doc, $indexSuffixes, $timestamp);
             $this->run($childJob);
         }
 

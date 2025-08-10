@@ -15,30 +15,37 @@ class ServiceFake implements IndexingInterface
 
     public int $maxDocSize = 1000;
 
-    public function addDocument(DocumentInterface $document): ?string
+    public function addDocument(DocumentInterface $document, array $indexSuffixes): ?string
     {
         $this->documents[$document->getIdentifier()] = DocumentBuilder::singleton()->toArray($document);
 
         return $document->getIdentifier();
     }
 
-    public function addDocuments(array $documents): array
+    public function addDocuments(array $documents, array $indexSuffixes): array
     {
         $ids = [];
 
         foreach ($documents as $document) {
-            $ids[] = $this->addDocument($document);
+            $ids[] = $this->addDocument($document, $indexSuffixes);
         }
 
         return $ids;
     }
 
-    public function removeDocuments(array $documents): array
+    public function removeDocument(DocumentInterface $document, array $indexSuffixes): ?string
+    {
+        unset($this->documents[$document->getIdentifier()]);
+
+        return $document->getIdentifier();
+    }
+
+    public function removeDocuments(array $documents, array $indexSuffixes): array
     {
         $ids = [];
 
         foreach ($documents as $document) {
-            $ids[] = $this->removeDocument($document);
+            $ids[] = $this->removeDocument($document, $indexSuffixes);
         }
 
         return $ids;
@@ -54,13 +61,6 @@ class ServiceFake implements IndexingInterface
         $this->documents = [];
 
         return $numDocs;
-    }
-
-    public function removeDocument(DocumentInterface $document): ?string
-    {
-        unset($this->documents[$document->getIdentifier()]);
-
-        return $document->getIdentifier();
     }
 
     public function getDocument(string $id): ?DocumentInterface
