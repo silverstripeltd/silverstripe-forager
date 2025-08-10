@@ -413,7 +413,6 @@ class IndexConfigurationTest extends SapphireTest
         $this->bootstrapIndexes();
         $className = ServiceFake::class;
 
-
         IndexConfiguration::config()->set(
             'indexes',
             [
@@ -434,6 +433,23 @@ class IndexConfigurationTest extends SapphireTest
         $config = IndexConfiguration::singleton();
         $this->expectException(IndexConfigurationException::class);
         $config->getFieldsForIndex('index5');
+    }
+
+    public function testGetIndexSuffixes(): void
+    {
+        $this->bootstrapIndexes();
+
+        $this->assertEquals(
+            [
+                'index1',
+                'index2',
+                'index3',
+                'index4',
+                'index5',
+                'index6',
+            ],
+            IndexConfiguration::singleton()->getIndexSuffixes()
+        );
     }
 
     protected function bootstrapIndexes(): void

@@ -99,7 +99,7 @@ trait SearchServiceTestTrait
 
             $dataObject->write();
             $doc = DataObjectDocument::create($dataObject);
-            $service->addDocument($doc);
+            $service->addDocument($doc, ['index1', 'index2']);
         }
 
         return $service;
@@ -116,7 +116,7 @@ trait SearchServiceTestTrait
 
             $dataObject->write();
             $doc = DataObjectDocument::create($dataObject);
-            $service->addDocument($doc);
+            $service->addDocument($doc, ['index1', 'index2']);
         }
 
         return $service;

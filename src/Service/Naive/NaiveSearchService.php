@@ -8,17 +8,22 @@ use SilverStripe\Forager\Interfaces\IndexingInterface;
 class NaiveSearchService implements IndexingInterface
 {
 
-    public function addDocument(DocumentInterface $document): ?string
+    public function addDocument(DocumentInterface $document, array $indexSuffixes): ?string
     {
         return null;
     }
 
-    public function addDocuments(array $documents): array
+    public function addDocuments(array $documents, array $indexSuffixes): array
     {
         return [];
     }
 
-    public function removeDocuments(array $documents): array
+    public function removeDocument(DocumentInterface $document, array $indexSuffixes): ?string
+    {
+        return null;
+    }
+
+    public function removeDocuments(array $documents, array $indexSuffixes): array
     {
         return [];
     }
@@ -56,11 +61,6 @@ class NaiveSearchService implements IndexingInterface
     public function getDocumentTotal(string $indexSuffix): int
     {
         return 0;
-    }
-
-    public function removeDocument(DocumentInterface $document): ?string
-    {
-        return null;
     }
 
     public function getMaxDocumentSize(): int

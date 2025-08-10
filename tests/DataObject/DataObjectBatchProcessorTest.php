@@ -61,7 +61,8 @@ class DataObjectBatchProcessorTest extends SapphireTest
             [
                 DataObjectDocumentFake::create(DataObjectFake::create()),
                 DataObjectDocumentFake::create(DataObjectFake::create()),
-            ]
+            ],
+            ['index1']
         );
     }
 

@@ -12,13 +12,13 @@ interface IndexingInterface extends BatchDocumentInterface
      * @return string|null ID of the Document added
      * @throws IndexingServiceException
      */
-    public function addDocument(DocumentInterface $document): ?string;
+    public function addDocument(DocumentInterface $document, array $indexSuffixes): ?string;
 
     /**
      * @return string|null ID of the Document removed
      * @throws IndexingServiceException
      */
-    public function removeDocument(DocumentInterface $document): ?string;
+    public function removeDocument(DocumentInterface $document, array $indexSuffixes): ?string;
 
     /**
      * @throws IndexingServiceException

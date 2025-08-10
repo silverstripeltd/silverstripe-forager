@@ -16,6 +16,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  *
  * @property DocumentInterface[] $documents
  * @property DocumentInterface[] $remainingDocuments
+ * @property string[] $indexSuffixes
  * @property int $method
  * @property int|null $batchSize
  * @property bool $processDependencies
@@ -31,6 +32,7 @@ class IndexJob extends BatchJob
      */
     public function __construct(
         array $documents = [],
+        array $indexSuffixes = [],
         int $method = Indexer::METHOD_ADD,
         ?int $batchSize = null,
         bool $processDependencies = true
@@ -39,6 +41,7 @@ class IndexJob extends BatchJob
         $batchSize = $batchSize ?: IndexConfiguration::singleton()->getLowestBatchSize();
 
         $this->setDocuments($documents);
+        $this->setIndexSuffixes($indexSuffixes);
         $this->setMethod($method);
         $this->setBatchSize($batchSize);
         $this->setProcessDependencies($processDependencies);
@@ -99,7 +102,12 @@ class IndexJob extends BatchJob
         // Indexer is being instantiated in process() rather that __construct() to prevent the following exception:
         // Uncaught Exception: Serialization of 'CurlHandle' is not allowed
         // The CurlHandle is created in a third-party dependency
-        $indexer = Indexer::create($documentToProcess, $this->getMethod(), $this->getBatchSize());
+        $indexer = Indexer::create(
+            $documentToProcess,
+            $this->getIndexSuffixes(),
+            $this->getMethod(),
+            $this->getBatchSize()
+        );
         $indexer->setProcessDependencies($this->shouldProcessDependencies());
 
         $this->extend('onBeforeProcess');
@@ -189,6 +197,20 @@ class IndexJob extends BatchJob
     private function setProcessDependencies(bool $processDependencies): void
     {
         $this->processDependencies = $processDependencies;
+    }
+
+    public function getIndexSuffixes(): ?array
+    {
+        if (is_bool($this->indexSuffixes)) {
+            return null;
+        }
+
+        return $this->indexSuffixes;
+    }
+
+    public function setIndexSuffixes(array $indexSuffixes): void
+    {
+        $this->indexSuffixes = $indexSuffixes;
     }
 
 }

@@ -105,6 +105,15 @@ class IndexConfiguration
         return $this;
     }
 
+    public function getIndexSuffixes(): array
+    {
+        if ($this->restrictToIndexes) {
+            return $this->restrictToIndexes;
+        }
+
+        return array_keys($this->config()->get('indexes'));
+    }
+
     public function getIndexConfigurations(): array
     {
         $indexConfigurations = $this->config()->get('indexes');
