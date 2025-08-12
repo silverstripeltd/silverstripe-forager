@@ -80,6 +80,17 @@ class DataObjectDocument implements
     private ?DataObject $dataObject = null;
 
     /**
+     * This is the classname of the data object, populated for the purpose of handling un-versioned deletions
+     * and their dependencies
+     */
+    private ?string $className = null;
+
+    /**
+     * This is the identifier (id) used in the search engine, based on the class and object id.
+     */
+    private ?string $identifier = null;
+
+    /**
      * @var PageCrawler|null
      */
     private ?PageCrawler $pageCrawler = null;
@@ -95,10 +106,18 @@ class DataObjectDocument implements
     public function __construct(DataObject $dataObject)
     {
         $this->setDataObject($dataObject);
+        $this->identifier = $this->getIdentifier();
+        $this->className = $this->getSourceClass();
     }
 
     public function getIdentifier(): string
     {
+        // check if we already have the identifier
+        if ($this->identifier) {
+            return $this->identifier;
+        }
+
+        // otherwise generate the identifier from the base class and ID
         $type = str_replace('\\', '_', $this->getDataObject()->baseClass());
         $id = $this->getDataObject()->ID;
 
@@ -110,6 +129,10 @@ class DataObjectDocument implements
      */
     public function getSourceClass(): string
     {
+        if ($this->className) {
+            return $this->className;
+        }
+
         return $this->getDataObject()->ClassName;
     }
 
@@ -391,6 +414,14 @@ class DataObjectDocument implements
             return is_subclass_of($class, DataObject::class);
         });
         $ownedDataObject = $this->getDataObject();
+
+        // if there is no data object available, it might have been a deleted non-versioned object
+        // then return empty dependency documents with the assumption that any dependencies
+        // will be handled separately
+        if (!$ownedDataObject) {
+            return [];
+        }
+
         $docs = [];
 
         foreach ($dataObjectClasses as $class) {
@@ -475,7 +506,7 @@ class DataObjectDocument implements
     /**
      * @return DataObject&SearchServiceExtension|Versioned
      */
-    public function getDataObject(): DataObject
+    public function getDataObject(): ?DataObject
     {
         return $this->dataObject;
     }
@@ -602,13 +633,31 @@ class DataObjectDocument implements
 
     public function __serialize(): array
     {
+        // check if the data object is available (it might have been removed already)
+        $dataObject = $this->getDataObject();
+
+        if (!$dataObject) {
+            return [
+                'identifier' => $this->getIdentifier(),
+                'className' => $this->getSourceClass()
+            ];
+        }
+
         return [
-            'className' => $this->getDataObject()->baseClass(),
+            'className' => $this->getSourceClass(),
             'id' => $this->getDataObject()->ID ?: $this->getDataObject()->OldID,
             'fallback' => $this->shouldFallbackToLatestVersion,
+            'identifier' => $this->getIdentifier(),
         ];
     }
 
+    /**
+     * Unserializes the job data.
+     *
+     * @param array $data
+     * @return void
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
     public function __unserialize(array $data): void
     {
         $dataObject = DataObject::get_by_id($data['className'], $data['id']);
@@ -621,12 +670,24 @@ class DataObjectDocument implements
             );
         }
 
+        // for removal from index, the dataobject might no longer exist, for example if it is non-versioned
+        // we don't need a dataobject for deletions, just the identifier and the base class
+
         if (!$dataObject) {
-            throw new Exception(sprintf('DataObject %s : %s does not exist', $data['className'], $data['id']));
+            // throw new Exception(sprintf('DataObject %s : %s does not exist', $data['className'], $data['id']));
+            $this->identifier = $data['identifier'];
+            $this->className = $data['className'];
+            $this->setDependencies();
+
+            return;
         }
 
         $this->setDataObject($dataObject);
+        $this->setDependencies();
+    }
 
+    public function setDependencies(): void
+    {
         foreach (static::config()->get('dependencies') as $name => $service) {
             $method = 'set' . $name;
             $this->$method(Injector::inst()->get($service));
@@ -642,6 +703,11 @@ class DataObjectDocument implements
     public function onAddToSearchIndexes(string $event): void
     {
         if ($event === DocumentAddHandler::BEFORE_ADD) {
+            // if this is a non versioned object we don't need to update to 'live'
+            if (!$this->getDataObject()->hasExtension(Versioned::class)) {
+                return;
+            }
+
             // make sure DataObject is always live on adding to the index
             Versioned::withVersionedMode(function (): void {
                 Versioned::set_stage(Versioned::LIVE);

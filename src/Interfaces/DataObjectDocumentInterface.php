@@ -10,6 +10,6 @@ use SilverStripe\ORM\DataObject;
 interface DataObjectDocumentInterface
 {
 
-    public function getDataObject(): DataObject;
+    public function getDataObject(): ?DataObject;
 
 }

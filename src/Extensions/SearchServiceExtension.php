@@ -153,6 +153,21 @@ class SearchServiceExtension extends DataExtension
     }
 
     /**
+     * After writing the record, check if it should be added to the index.
+     *
+     */
+    public function onAfterWrite(): void
+    {
+        // if a versioned object, then don't add to index here as it will be
+        // added on publish.
+        if ($this->owner->hasExtension(Versioned::class)) {
+            return;
+        }
+
+        $this->owner->addToIndexes();
+    }
+
+    /**
      * When unpublishing this item, remove from search
      */
     public function onAfterUnpublish(): void
