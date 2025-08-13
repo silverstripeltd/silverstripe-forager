@@ -3,9 +3,7 @@
 namespace SilverStripe\Forager\Tests\Extensions;
 
 use NZLS\Registry\Renewals\MembershipJob;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
-use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
@@ -15,7 +13,6 @@ use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
-use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 
 class SearchServiceExtensionTest extends SearchServiceTest
 {
@@ -25,7 +22,7 @@ class SearchServiceExtensionTest extends SearchServiceTest
         '../pages.yml',
     ];
 
-    protected static $extra_dataobjects = [
+    protected static $extra_dataobjects = [ // phpcs:ignore
         DataObjectFake::class,
         TagFake::class,
         ImageFake::class,

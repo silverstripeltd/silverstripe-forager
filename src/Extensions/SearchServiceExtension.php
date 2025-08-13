@@ -154,7 +154,6 @@ class SearchServiceExtension extends DataExtension
 
     /**
      * After writing the record, check if it should be added to the index.
-     *
      */
     public function onAfterWrite(): void
     {
