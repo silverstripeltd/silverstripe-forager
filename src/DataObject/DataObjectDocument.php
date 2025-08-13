@@ -80,13 +80,14 @@ class DataObjectDocument implements
     private ?DataObject $dataObject = null;
 
     /**
-     * This is the classname of the data object, populated for the purpose of handling un-versioned deletions
-     * and their dependencies
+     * The classname of the data object - stored in the serialized object for the purpose of
+     * handling non-versioned deletions and their dependencies
      */
     private ?string $className = null;
 
     /**
-     * This is the identifier (id) used in the search engine, based on the class and object id.
+     * The identifier (id) used in the search engine, based on the class and object id - stored in the serialized
+     * object and used for handling non-versioned deletions
      */
     private ?string $identifier = null;
 
@@ -415,9 +416,9 @@ class DataObjectDocument implements
         });
         $ownedDataObject = $this->getDataObject();
 
-        // if there is no data object available, it might have been a deleted non-versioned object
-        // then return empty dependency documents with the assumption that any dependencies
-        // will be handled separately
+        // If there is no data object available, it might have been a deleted non-versioned object.
+        // In this case, return empty dependency documents with the assumption that any dependencies
+        // will be handled separately.
         if (!$ownedDataObject) {
             return [];
         }
@@ -633,9 +634,10 @@ class DataObjectDocument implements
 
     public function __serialize(): array
     {
-        // check if the data object is available (it might have been removed already)
         $dataObject = $this->getDataObject();
 
+        // check if the data object is available (it might have been removed already, in which
+        // case we only need the identifier and classname)
         if (!$dataObject) {
             return [
                 'identifier' => $this->getIdentifier(),
@@ -651,13 +653,6 @@ class DataObjectDocument implements
         ];
     }
 
-    /**
-     * Unserializes the job data.
-     *
-     * @param array $data
-     * @return void
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     */
     public function __unserialize(array $data): void
     {
         $isVersionedObject = DataObject::has_extension($data['className'], Versioned::class);
@@ -672,8 +667,8 @@ class DataObjectDocument implements
             );
         }
 
-        // if this is a non versioned object and has been deleted, then just set the identifier
-        // needed for removal from the index
+        // if the class is a non versioned object and hasn't been found, it was likely deleted.
+        // just set the identifier and classname
         if (!$dataObject && !$isVersionedObject) {
             $this->identifier = $data['identifier'];
             $this->className = $data['className'];
@@ -707,7 +702,7 @@ class DataObjectDocument implements
     public function onAddToSearchIndexes(string $event): void
     {
         if ($event === DocumentAddHandler::BEFORE_ADD) {
-            // if this is a non versioned object we don't need to update to 'live'
+            // if this is a non versioned object we don't need to update to the 'live' version
             if (!$this->getDataObject()->hasExtension(Versioned::class)) {
                 return;
             }

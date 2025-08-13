@@ -27,19 +27,20 @@ class DataObjectBatchProcessor extends BatchProcessor
     {
         $timestamp = DBDatetime::now()->getTimestamp() - $this->config()->get('buffer_seconds');
 
-        // Remove the dataobjects, ignore dependencies
+        // Remove the data objects, ignore dependencies
         $job = IndexJob::create($documents, Indexer::METHOD_DELETE, null, false);
         $this->run($job);
 
+        // Now take care of any dependencies
         foreach ($documents as $doc) {
-            // this takes care of updating dependencies. for non versioned data objects
-            // once this object is deleted there will be no history to get dependencies from.
             $dataObject = $doc->getDataObject();
 
+            // for non versioned data objects, once this object is deleted there will be no history to
+            // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
             if (!$dataObject->hasExtension(Versioned::class)) {
                 $dataObjectDocument = DataObjectDocument::create($dataObject);
 
-                // assumption here is that it is only considered a dependency if the data object being
+                // get the dependencies - note, it is only considered a dependency if the data object being
                 // removed is indexed by another object
                 $dependencies = $dataObjectDocument->getDependentDocuments();
 
