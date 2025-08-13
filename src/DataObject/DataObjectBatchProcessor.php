@@ -43,6 +43,10 @@ class DataObjectBatchProcessor extends BatchProcessor
                 // removed is indexed by another object
                 $dependencies = $dataObjectDocument->getDependentDocuments();
 
+                if (count($dependencies) === 0) {
+                    continue;
+                }
+
                 // set up the separate job to update these dependencies
                 $job = IndexJob::create($dependencies, Indexer::METHOD_ADD, null, false);
                 $this->run($job);

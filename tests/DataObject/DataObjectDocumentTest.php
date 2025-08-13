@@ -748,15 +748,40 @@ class DataObjectDocumentTest extends SearchServiceTest
     }
 
     /**
-     * Test that when a non versioned data object is deleted any dependencies are also updated.
+     * Test that when a non versioned data object is deleted, any dependencies are also updated.
      */
     public function testDeletedNonVersionedDataObjectWithDependencies(): void
     {
+        $config = $this->mockConfig();
+        $config->set('getSearchableClasses', [
+            DataObjectFake::class,
+            ImageFake::class,
+            PageFake::class,
+        ]);
+        $config->set('getFieldsForClass', [
+            DataObjectFake::class => [
+                new Field('title'),
+                new Field('memberfirst', 'Member.FirstName'),
+                new Field('tagtitles', 'Tags.Title'),
+                new Field('imageurls', 'Images.URL'),
+                new Field('imagetags', 'Images.Tags.Title'),
+            ],
+            ImageFake::class => [
+                new Field('tagtitles', 'Tags.Title'),
+            ],
+            PageFake::class => [
+                new Field('title'),
+                new Field('content'),
+                new Field('dataobjects', 'DataObjects.Title'),
+            ],
+        ]);
+
         // get page and add data object dependency
         $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
-        $pageOne = $this->objFromFixture(PageFake::class, 'page9');
-        $pageOne->DataObjects()->add($dataObject->ID);
-        $pageOne->write();
+        $page = $this->objFromFixture(PageFake::class, 'page9');
+        $page->DataObjects()->add($dataObject->ID);
+        $page->write();
+        $page->publishSingle();
 
         // now delete the data object
         $dataObject->delete();
