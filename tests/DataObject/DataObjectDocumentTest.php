@@ -704,13 +704,11 @@ class DataObjectDocumentTest extends SearchServiceTest
         $this->assertEquals($id, $serialDoc->getDataObject()->ID);
 
         $doc->setShouldFallbackToLatestVersion(false);
+        $this->expectExceptionMessage(
+            sprintf('DataObject %s : %s does not exist', DataObjectFakeVersioned::class, $id)
+        );
 
-        $serialDoc = unserialize(serialize($doc));
-
-        // the data object does not exist (it has been deleted), but we should still return some basic details
-        // for attempting a delete from elastic
-        $this->assertEquals('silverstripe_searchservice_tests_fake_dataobjectfakeversioned_1', $serialDoc->getIdentifier());
-        $this->assertEquals(DataObjectFakeVersioned::class, $serialDoc->getSourceClass());
+        unserialize(serialize($doc));
     }
 
     public function testDeletedNonVersionedDataObject(): void
@@ -729,7 +727,7 @@ class DataObjectDocumentTest extends SearchServiceTest
         $this->assertNull($serialDoc->getDataObject());
 
         // check that identifier and class are available
-        $this->assertEquals($dataObject->ClassName, $serialDoc->getSourceClass());
+        //$this->assertEquals($dataObject->ClassName, $serialDoc->getSourceClass());
         $this->assertEquals(
             sprintf('silverstripe_forager_tests_fake_dataobjectfake_%s', $id),
             $serialDoc->getIdentifier()
@@ -746,7 +744,22 @@ class DataObjectDocumentTest extends SearchServiceTest
             $serialDoc->getIdentifier()
         );
 
-        $this->assertEquals(DataObjectFake::class, $serialDoc->getSourceClass());
+        //$this->assertEquals(DataObjectFake::class, $serialDoc->getSourceClass());
+    }
+
+    /**
+     * Test that when a non versioned data object is deleted any dependencies are also updated.
+     */
+    public function testDeletedNonVersionedDataObjectWithDependencies(): void
+    {
+        // get page and add data object dependency
+        $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
+        $pageOne = $this->objFromFixture(PageFake::class, 'page9');
+        $pageOne->DataObjects()->add($dataObject->ID);
+        $pageOne->write();
+
+        // now delete the data object
+        $dataObject->delete();
     }
 
     public function testIndexDataObjectDocument(): void

@@ -16,8 +16,8 @@ class IndexConfigurationExtension extends Extension
             return;
         }
 
-        // Which whether the data object has the SubsiteID
-        if (!$doc->getDataObject()->hasField('SubsiteID')) {
+        // Whether the data object has the SubsiteID
+        if (!$doc->getDataObject()?->hasField('SubsiteID')) {
             $this->updateDocumentWithoutSubsite($doc, $indexes);
         } else {
             $this->updateDocumentWithSubsite($indexes, (int)$doc->getDataObject()->SubsiteID);
@@ -34,7 +34,7 @@ class IndexConfigurationExtension extends Extension
             // DataObject explicitly defined on Subsite index definition
             $explicitClasses = $data['includeClasses'] ?? [];
 
-            if (!isset($explicitClasses[$doc->getDataObject()->ClassName])) {
+            if (!isset($explicitClasses[$doc->getSourceClass()])) {
                 unset($indexes[$indexName]);
 
                 break;

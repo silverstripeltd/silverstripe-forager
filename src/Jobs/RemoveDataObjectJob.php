@@ -11,7 +11,7 @@ use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\Versioned\Versioned;
 
 /**
- *  By virture of the default parameter, Index::METHOD_ADD, this does not remove the documents straight away.
+ *  By virtue of the default parameter, Index::METHOD_ADD, this does not remove the documents straight away.
  *  It checks first the status of the underlaying DataObjects and decides whether to remove or add them to the index.
  *  Then pass on to the parent's process() method to handle the job.
  *
@@ -40,6 +40,7 @@ class RemoveDataObjectJob extends IndexJob
 
     public function getTitle(): string
     {
+        // @TODO - maybe this title needs updating - could be a non versioned data object
         return sprintf(
             'Search service unpublishing document "%s" (ID: %s)',
             $this->getDocument()->getDataObject()->getTitle(),
@@ -55,6 +56,11 @@ class RemoveDataObjectJob extends IndexJob
         /** @var DBDatetime $datetime - set the documents in setup to ensure async */
         $datetime = DBField::create_field('Datetime', $this->getTimestamp());
         $archiveDate = $datetime->format($datetime->getISOFormat());
+
+        // @TODO
+        // if a non versioned data object then by this point the object is deleted
+        // with no versioning history, so nothing we can do here
+
         $documents = Versioned::withVersionedMode(function () use ($archiveDate) {
             Versioned::reading_archived_date($archiveDate);
 

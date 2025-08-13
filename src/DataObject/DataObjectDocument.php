@@ -639,7 +639,7 @@ class DataObjectDocument implements
         if (!$dataObject) {
             return [
                 'identifier' => $this->getIdentifier(),
-                'className' => $this->getSourceClass()
+                'className' => $this->getSourceClass(),
             ];
         }
 
@@ -660,9 +660,11 @@ class DataObjectDocument implements
      */
     public function __unserialize(array $data): void
     {
+        $isVersionedObject = DataObject::has_extension($data['className'], Versioned::class);
+
         $dataObject = DataObject::get_by_id($data['className'], $data['id']);
 
-        if (!$dataObject && DataObject::has_extension($data['className'], Versioned::class) && $data['fallback']) {
+        if (!$dataObject && $isVersionedObject && $data['fallback']) {
             // get the latest version - usually this is an object that has been deleted
             $dataObject = Versioned::get_latest_version(
                 $data['className'],
@@ -670,16 +672,18 @@ class DataObjectDocument implements
             );
         }
 
-        // for removal from index, the dataobject might no longer exist, for example if it is non-versioned
-        // we don't need a dataobject for deletions, just the identifier and the base class
-
-        if (!$dataObject) {
-            // throw new Exception(sprintf('DataObject %s : %s does not exist', $data['className'], $data['id']));
+        // if this is a non versioned object and has been deleted, then just set the identifier
+        // needed for removal from the index
+        if (!$dataObject && !$isVersionedObject) {
             $this->identifier = $data['identifier'];
             $this->className = $data['className'];
             $this->setDependencies();
 
             return;
+        }
+
+        if (!$dataObject) {
+            throw new Exception(sprintf('DataObject %s : %s does not exist', $data['className'], $data['id']));
         }
 
         $this->setDataObject($dataObject);

@@ -176,11 +176,13 @@ class SearchServiceExtension extends DataExtension
     }
 
     /**
-     * Before deleting this record ensure that it is removed from search
+     * Before deleting this record ensure that it is removed from search.
+     * This needs to be done before the data object is deleted, otherwise
+     * the batch processor won't be able to get dependencies.
      *
      * @throws Exception
      */
-    public function onAfterDelete(): void
+    public function onBeforeDelete(): void
     {
         if ($this->owner->hasExtension(Versioned::class)) {
             return;

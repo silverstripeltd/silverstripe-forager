@@ -36,6 +36,7 @@ class DataObjectFake extends DataObject implements TestOnly
 
     private static array $has_one = [
         'Member' => Member::class,
+        'DataObject' => PageFake::class,
     ];
 
     private static string $default_sort = 'Sort ASC';

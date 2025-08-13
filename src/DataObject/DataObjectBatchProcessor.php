@@ -10,6 +10,7 @@ use SilverStripe\Forager\Service\BatchProcessor;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\ValidationException;
+use SilverStripe\Versioned\Versioned;
 
 class DataObjectBatchProcessor extends BatchProcessor
 {
@@ -31,6 +32,24 @@ class DataObjectBatchProcessor extends BatchProcessor
         $this->run($job);
 
         foreach ($documents as $doc) {
+            // this takes care of updating dependencies. for non versioned data objects
+            // once this object is deleted there will be no history to get dependencies from.
+            $dataObject = $doc->getDataObject();
+
+            if (!$dataObject->hasExtension(Versioned::class)) {
+                $dataObjectDocument = DataObjectDocument::create($dataObject);
+
+                // assumption here is that it is only considered a dependency if the data object being
+                // removed is indexed by another object
+                $dependencies = $dataObjectDocument->getDependentDocuments();
+
+                // set up the separate job to update these dependencies
+                $job = IndexJob::create($dependencies, Indexer::METHOD_ADD, null, false);
+                $this->run($job);
+
+                continue;
+            }
+
             // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
             // and decide whether we should delete or update them automatically.
             $childJob = RemoveDataObjectJob::create($doc, $timestamp);
