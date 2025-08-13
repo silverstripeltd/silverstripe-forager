@@ -79,6 +79,10 @@ class DataObjectDocument implements
      */
     private ?DataObject $dataObject = null;
 
+    private ?string $className = null;
+
+    private ?int $id = null;
+
     /**
      * @var PageCrawler|null
      */
@@ -477,6 +481,32 @@ class DataObjectDocument implements
      */
     public function getDataObject(): DataObject
     {
+        if ($this->dataObject) {
+            return $this->dataObject;
+        }
+
+        $dataObject = DataObject::get_by_id($this->className, $this->id);
+        $isVersioned = DataObject::has_extension($this->className, Versioned::class);
+
+        if (!$dataObject && $isVersioned && $this->shouldFallbackToLatestVersion) {
+            // get the latest version - usually this is an object that has been deleted
+            $dataObject = Versioned::get_latest_version(
+                $this->className,
+                $this->id
+            );
+        }
+
+        if (!$dataObject) {
+            throw new Exception(sprintf('DataObject %s : %s does not exist', $this->className, $this->id));
+        }
+
+        $this->dataObject = $dataObject;
+
+        foreach (static::config()->get('dependencies') as $name => $service) {
+            $method = 'set' . $name;
+            $this->$method(Injector::inst()->get($service));
+        }
+
         return $this->dataObject;
     }
 
@@ -615,26 +645,9 @@ class DataObjectDocument implements
 
     public function __unserialize(array $data): void
     {
-        $dataObject = DataObject::get_by_id($data['className'], $data['id']);
-
-        if (!$dataObject && DataObject::has_extension($data['className'], Versioned::class) && $data['fallback']) {
-            // get the latest version - usually this is an object that has been deleted
-            $dataObject = Versioned::get_latest_version(
-                $data['className'],
-                $data['id']
-            );
-        }
-
-        if (!$dataObject) {
-            throw new Exception(sprintf('DataObject %s : %s does not exist', $data['className'], $data['id']));
-        }
-
-        $this->setDataObject($dataObject);
-
-        foreach (static::config()->get('dependencies') as $name => $service) {
-            $method = 'set' . $name;
-            $this->$method(Injector::inst()->get($service));
-        }
+        $this->className = $data['className'];
+        $this->id = $data['id'];
+        $this->shouldFallbackToLatestVersion = $data['fallback'];
     }
 
     /**

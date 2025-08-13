@@ -22,14 +22,14 @@ class RemoveDataObjectJob extends IndexJob
 {
 
     public function __construct(
+        ?string $indexSuffix = null,
         ?DataObjectDocument $document = null,
-        array $indexSuffixes = [],
         ?int $timestamp = null,
         ?int $batchSize = null
     ) {
         // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
         // whether we should delete or update them automatically.
-        parent::__construct([], $indexSuffixes, Indexer::METHOD_ADD, $batchSize);
+        parent::__construct($indexSuffix, [], Indexer::METHOD_ADD, $batchSize);
 
         if ($document !== null) {
             // We do this so that if the Dataobject is deleted, not just unpublished, we can still act upon it

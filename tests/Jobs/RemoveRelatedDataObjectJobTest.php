@@ -145,7 +145,7 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
 
         // Queue up a job to remove a page with child pages are added as related documents
         $pageDoc = DataObjectDocument::create($pageOne);
-        $job = RemoveDataObjectJob::create($pageDoc);
+        $job = RemoveDataObjectJob::create('index1', $pageDoc);
         $job->setup();
 
         // Creating this job does not necessarily mean to delete documents from index
@@ -186,6 +186,7 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         // Queue up a job to remove our Tag, the result should be that any related DataObject (DOs that have this Tag
         // assigned to them) are added as related Documents
         $job = RemoveDataObjectJob::create(
+            'index1',
             DataObjectDocument::create($tagFour)
         );
         $job->setup();
@@ -253,6 +254,7 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         // Queue up a job to remove our Tag, the result should be that any related DataObject (DOs that have this Tag
         // assigned to them) are added as related Documents
         $job2 = RemoveDataObjectJob::create(
+            'index1',
             DataObjectDocument::create($tagFive)
         );
         $job2->setup();
@@ -357,6 +359,7 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         $imageFive = $this->objFromFixture(ImageFake::class, 'five');
         // Queue up a job to remove our Image, the result should be that any related DataObject
         $job = RemoveDataObjectJob::create(
+            'index1',
             DataObjectDocument::create($imageFive)
         );
         $job->setup();

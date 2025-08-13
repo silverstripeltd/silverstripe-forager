@@ -299,10 +299,10 @@ class IndexConfiguration
     {
         $batchSizes = [];
         // Fetch all index configurations (these might be filtered if restrictToIndexes has been set)
-        $indexSuffixes = $this->getIndexConfigurations();
+        $indexConfigurations = $this->getIndexConfigurations();
 
         // Loop through each potential index configuration
-        foreach ($indexSuffixes as $config) {
+        foreach ($indexConfigurations as $config) {
             $includedClasses = $config['includeClasses'] ?? [];
 
             foreach ($includedClasses as $spec) {

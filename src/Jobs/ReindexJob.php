@@ -123,8 +123,8 @@ class ReindexJob extends BatchJob
 
         // Use the same batch size on the Fetcher for the Indexer
         $indexer = Indexer::create(
+            $this->getIndexSuffix(),
             $documents,
-            [$this->getIndexSuffix()],
             Indexer::METHOD_ADD,
             $fetcher->getBatchSize()
         );

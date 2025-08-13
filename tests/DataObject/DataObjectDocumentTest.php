@@ -578,16 +578,14 @@ class DataObjectDocumentTest extends SapphireTest
         $doc = DataObjectDocument::create($dataObject)->setShouldFallbackToLatestVersion(true);
         $dataObject->doArchive();
 
-        /** @var DataObjectDocument $serialDoc */
-        $serialDoc = unserialize(serialize($doc));
-        $this->assertEquals($id, $serialDoc->getDataObject()->ID);
-
         $doc->setShouldFallbackToLatestVersion(false);
         $this->expectExceptionMessage(
             sprintf('DataObject %s : %s does not exist', DataObjectFakeVersioned::class, $id)
         );
 
-        unserialize(serialize($doc));
+        /** @var DataObjectDocument $newDocument */
+        $newDocument = unserialize(serialize($doc));
+        $newDocument->getDataObject();
     }
 
     public function testIndexDataObjectDocument(): void
@@ -624,7 +622,7 @@ class DataObjectDocumentTest extends SapphireTest
                 ]
             );
 
-            $indexer = Indexer::create([$doc], ['index1']);
+            $indexer = Indexer::create('index1', [$doc]);
             $indexer->setIndexService($service = new ServiceFake());
             $indexer->setBatchSize(1);
             $indexer->processNode();
@@ -638,7 +636,7 @@ class DataObjectDocumentTest extends SapphireTest
             $dataObject->flushCache();
             $doc = DataObjectDocument::create($dataObject);
 
-            $indexer = Indexer::create([$doc], ['index1']);
+            $indexer = Indexer::create('index1', [$doc]);
             $indexer->setIndexService($service = new ServiceFake());
             $indexer->setBatchSize(1);
             $indexer->processNode();

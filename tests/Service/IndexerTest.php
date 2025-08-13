@@ -19,21 +19,16 @@ class IndexerTest extends SapphireTest
 
     public function testConstructor(): void
     {
-        $indexSuffixes = [
-                'index1',
-                'index2',
-            ];
-
         $config = $this->mockConfig();
         $config->set('batch_size', 7);
         $indexer = Indexer::create(
-            [new DocumentFake('Fake'), new DocumentFake('Fake')],
-            $indexSuffixes
+            'index1',
+            [new DocumentFake('Fake'), new DocumentFake('Fake')]
         );
         $this->assertCount(2, $indexer->getDocuments());
         $this->assertEquals(Indexer::METHOD_ADD, $indexer->getMethod());
         $this->assertEquals(7, $indexer->getBatchSize());
-        $this->assertEquals($indexSuffixes, $indexer->getIndexSuffixes());
+        $this->assertEquals('index1', $indexer->getIndexSuffix());
     }
 
     public function testChunking(): void
@@ -46,7 +41,7 @@ class IndexerTest extends SapphireTest
             $docs[] = new DocumentFake('Fake');
         }
 
-        $indexer = Indexer::create($docs, ['index1', 'index2']);
+        $indexer = Indexer::create('index1', $docs);
         $this->assertEquals(3, $indexer->getChunkCount());
         $docs[] = new DocumentFake('Fake');
         $docs[] = new DocumentFake('Fake');
@@ -79,7 +74,7 @@ class IndexerTest extends SapphireTest
 
         $docs[0]->index = false;
 
-        $indexer = Indexer::create($docs, ['index1', 'index2']);
+        $indexer = Indexer::create('index1', $docs);
         $indexer->setIndexService($service = new ServiceFake());
 
         $this->assertEquals(3, $indexer->getChunkCount());
@@ -110,7 +105,7 @@ class IndexerTest extends SapphireTest
             $docs[] = new DocumentFake('Fake', ['id' => 'node-' . $i]);
         }
 
-        $indexer = Indexer::create($docs, ['index1', 'index2']);
+        $indexer = Indexer::create('index1', $docs);
         $indexer->setIndexService($service = new ServiceFake());
         $indexer->setBatchSize(50);
         $indexer->processNode();
@@ -173,7 +168,7 @@ class IndexerTest extends SapphireTest
             $blog1,
             $blog2,
         ];
-        $indexer = Indexer::create($tagDocs, ['index1', 'index2']);
+        $indexer = Indexer::create('index1', $tagDocs);
         $indexer->processNode();
         $this->assertTrue($indexer->finished());
 
@@ -183,7 +178,7 @@ class IndexerTest extends SapphireTest
 
         $blog1->index = false;
 
-        $indexer = Indexer::create($tagDocs, ['index1', 'index2']);
+        $indexer = Indexer::create('index1', $tagDocs);
         $indexer->processNode();
         $this->assertTrue($indexer->finished());
 

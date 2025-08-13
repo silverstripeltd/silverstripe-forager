@@ -58,11 +58,11 @@ class DataObjectBatchProcessorTest extends SapphireTest
         $processor = new DataObjectBatchProcessor(IndexConfiguration::singleton());
 
         $processor->removeDocuments(
+            'index1',
             [
                 DataObjectDocumentFake::create(DataObjectFake::create()),
                 DataObjectDocumentFake::create(DataObjectFake::create()),
-            ],
-            ['index1']
+            ]
         );
     }
 

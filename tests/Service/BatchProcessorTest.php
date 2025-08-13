@@ -36,11 +36,11 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->addDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
@@ -63,11 +63,11 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->removeDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
@@ -91,11 +91,11 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->addDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
@@ -119,11 +119,11 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->removeDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
