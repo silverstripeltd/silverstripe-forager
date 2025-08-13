@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Tests\Extensions;
 
-use NZLS\Registry\Renewals\MembershipJob;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
