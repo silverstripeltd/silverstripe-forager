@@ -40,6 +40,7 @@ use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\ViewableData;
+use Throwable;
 
 class DataObjectDocument implements
     DocumentInterface,
@@ -89,7 +90,7 @@ class DataObjectDocument implements
      * The identifier (id) used in the search engine, based on the class and object id - stored in the serialized
      * object and used for handling non-versioned deletions
      */
-    private ?string $identifier = null;
+    private ?int $id = null;
 
     /**
      * @var PageCrawler|null
@@ -107,20 +108,15 @@ class DataObjectDocument implements
     public function __construct(DataObject $dataObject)
     {
         $this->setDataObject($dataObject);
-        $this->identifier = $this->getIdentifier();
-        $this->className = $this->getSourceClass();
+        $this->id = $dataObject->ID;
+        $this->className = $dataObject->ClassName;
     }
 
     public function getIdentifier(): string
     {
-        // check if we already have the identifier
-        if ($this->identifier) {
-            return $this->identifier;
-        }
-
-        // otherwise generate the identifier from the base class and ID
-        $type = str_replace('\\', '_', $this->getDataObject()->baseClass());
-        $id = $this->getDataObject()->ID;
+        // generate the identifier from the base class and ID
+        $type = str_replace('\\', '_', $this->getSourceClass());
+        $id = $this->id;
 
         return strtolower(sprintf('%s_%s', $type, $id));
     }
@@ -134,7 +130,9 @@ class DataObjectDocument implements
             return $this->className;
         }
 
-        return $this->getDataObject()->ClassName;
+        $this->className = $this->getDataObject()->ClassName;
+
+        return $this->className;
     }
 
     public function setShouldFallbackToLatestVersion(bool $fallback = true): self
@@ -414,13 +412,19 @@ class DataObjectDocument implements
         $dataObjectClasses = array_filter($searchableClasses, function ($class) {
             return is_subclass_of($class, DataObject::class);
         });
-        $ownedDataObject = $this->getDataObject();
 
-        // If there is no data object available, it might have been a deleted non-versioned object.
-        // In this case, return empty dependency documents with the assumption that any dependencies
-        // will be handled separately.
-        if (!$ownedDataObject) {
-            return [];
+        try {
+            $ownedDataObject = $this->getDataObject();
+        } catch (Exception $e) {
+            // If there is no data object available, it might have been a deleted non-versioned object.
+            // In this case, return empty dependency documents with the assumption that any dependencies
+            // will be handled separately.
+            if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                return [];
+            };
+
+            // otherwise, throw the exception for versioned objects
+            throw $e;
         }
 
         $docs = [];
@@ -507,8 +511,34 @@ class DataObjectDocument implements
     /**
      * @return DataObject&SearchServiceExtension|Versioned
      */
-    public function getDataObject(): ?DataObject
+    public function getDataObject(): DataObject
     {
+        if ($this->dataObject) {
+            return $this->dataObject;
+        }
+
+        foreach (static::config()->get('dependencies') as $name => $service) {
+            $method = 'set' . $name;
+            $this->$method(Injector::inst()->get($service));
+        }
+
+        $dataObject = DataObject::get_by_id($this->className, $this->id);
+        $isVersioned = DataObject::has_extension($this->className, Versioned::class);
+
+        if (!$dataObject && $isVersioned && $this->shouldFallbackToLatestVersion) {
+            // get the latest version - usually this is an object that has been deleted
+            $dataObject = Versioned::get_latest_version(
+                $this->className,
+                $this->id
+            );
+        }
+
+        if (!$dataObject) {
+            throw new Exception(sprintf('DataObject %s : %s does not exist', $this->className, $this->id));
+        }
+
+        $this->dataObject = $dataObject;
+
         return $this->dataObject;
     }
 
@@ -634,63 +664,32 @@ class DataObjectDocument implements
 
     public function __serialize(): array
     {
-        $dataObject = $this->getDataObject();
+        $id = $this->id;
 
-        // check if the data object is available (it might have been removed already, in which
-        // case we only need the identifier and classname)
-        if (!$dataObject) {
-            return [
-                'identifier' => $this->getIdentifier(),
-                'className' => $this->getSourceClass(),
-            ];
+        // attempt to get data object (this won't be available for deleted non versioned objects)
+        try {
+            $dataObject = $this->getDataObject();
+            $id = $dataObject->ID ?: $dataObject->OldID;
+        }
+        catch (Exception $e) {
+            // allow non versioned data objects to continue
+            if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                throw $e;
+            }
         }
 
         return [
             'className' => $this->getSourceClass(),
-            'id' => $this->getDataObject()->ID ?: $this->getDataObject()->OldID,
+            'id' => $id,
             'fallback' => $this->shouldFallbackToLatestVersion,
-            'identifier' => $this->getIdentifier(),
         ];
     }
 
     public function __unserialize(array $data): void
     {
-        $isVersionedObject = DataObject::has_extension($data['className'], Versioned::class);
-
-        $dataObject = DataObject::get_by_id($data['className'], $data['id']);
-
-        if (!$dataObject && $isVersionedObject && $data['fallback']) {
-            // get the latest version - usually this is an object that has been deleted
-            $dataObject = Versioned::get_latest_version(
-                $data['className'],
-                $data['id']
-            );
-        }
-
-        // if the class is a non versioned object and hasn't been found, it was likely deleted.
-        // just set the identifier and classname
-        if (!$dataObject && !$isVersionedObject) {
-            $this->identifier = $data['identifier'];
-            $this->className = $data['className'];
-            $this->setDependencies();
-
-            return;
-        }
-
-        if (!$dataObject) {
-            throw new Exception(sprintf('DataObject %s : %s does not exist', $data['className'], $data['id']));
-        }
-
-        $this->setDataObject($dataObject);
-        $this->setDependencies();
-    }
-
-    public function setDependencies(): void
-    {
-        foreach (static::config()->get('dependencies') as $name => $service) {
-            $method = 'set' . $name;
-            $this->$method(Injector::inst()->get($service));
-        }
+        $this->className = $data['className'];
+        $this->id = $data['id'];
+        $this->shouldFallbackToLatestVersion = $data['fallback'];
     }
 
     /**

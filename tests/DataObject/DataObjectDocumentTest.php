@@ -689,6 +689,10 @@ class DataObjectDocumentTest extends SearchServiceTest
         });
     }
 
+    /**
+     * Test that when a versioned data object is archived, the data object can still be
+     * obtained from the serialized data.
+     */
     public function testDeletedDataObject(): void
     {
         $dataObject = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
@@ -704,13 +708,21 @@ class DataObjectDocumentTest extends SearchServiceTest
         $this->assertEquals($id, $serialDoc->getDataObject()->ID);
 
         $doc->setShouldFallbackToLatestVersion(false);
+
+        $serialDoc = unserialize(serialize($doc));
+
+        // expect exception when trying to access the deleted data object
         $this->expectExceptionMessage(
             sprintf('DataObject %s : %s does not exist', DataObjectFakeVersioned::class, $id)
         );
 
-        unserialize(serialize($doc));
+        $serialDoc->getDataObject();
     }
 
+    /**
+     * Test that when a non versioned data object is deleted relevant data can be
+     * obtained from the serialized data.
+     */
     public function testDeletedNonVersionedDataObject(): void
     {
         $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
@@ -723,14 +735,24 @@ class DataObjectDocumentTest extends SearchServiceTest
 
         /** @var DataObjectDocument $serialDoc */
         $serialDoc = unserialize(serialize($doc));
-        // in this case the object has already been deleted and there are no fallbacks
-        $this->assertNull($serialDoc->getDataObject());
 
-        // check that identifier and class are available
-        //$this->assertEquals($dataObject->ClassName, $serialDoc->getSourceClass());
+        // in this case the object has already been deleted so expect an error to be thrown
+        $this->expectExceptionMessage(
+            sprintf('DataObject SilverStripe\Forager\Tests\Fake\DataObjectFake : %s does not exist',$id)
+        );
+
+        $serialDoc->getDataObject();
+
+        // check that the identifier can be retrieved
         $this->assertEquals(
             sprintf('silverstripe_forager_tests_fake_dataobjectfake_%s', $id),
             $serialDoc->getIdentifier()
+        );
+
+        // check that the classname can be retrieved
+        $this->assertEquals(
+            DataObjectFake::class,
+            $serialDoc->getSourceClass()
         );
 
         $doc->setShouldFallbackToLatestVersion(false);
@@ -743,48 +765,6 @@ class DataObjectDocumentTest extends SearchServiceTest
             sprintf('silverstripe_forager_tests_fake_dataobjectfake_%s', $id),
             $serialDoc->getIdentifier()
         );
-
-        //$this->assertEquals(DataObjectFake::class, $serialDoc->getSourceClass());
-    }
-
-    /**
-     * Test that when a non versioned data object is deleted, any dependencies are also updated.
-     */
-    public function testDeletedNonVersionedDataObjectWithDependencies(): void
-    {
-        $config = $this->mockConfig();
-        $config->set('getSearchableClasses', [
-            DataObjectFake::class,
-            ImageFake::class,
-            PageFake::class,
-        ]);
-        $config->set('getFieldsForClass', [
-            DataObjectFake::class => [
-                new Field('title'),
-                new Field('memberfirst', 'Member.FirstName'),
-                new Field('tagtitles', 'Tags.Title'),
-                new Field('imageurls', 'Images.URL'),
-                new Field('imagetags', 'Images.Tags.Title'),
-            ],
-            ImageFake::class => [
-                new Field('tagtitles', 'Tags.Title'),
-            ],
-            PageFake::class => [
-                new Field('title'),
-                new Field('content'),
-                new Field('dataobjects', 'DataObjects.Title'),
-            ],
-        ]);
-
-        // get page and add data object dependency
-        $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
-        $page = $this->objFromFixture(PageFake::class, 'page9');
-        $page->DataObjects()->add($dataObject->ID);
-        $page->write();
-        $page->publishSingle();
-
-        // now delete the data object
-        $dataObject->delete();
     }
 
     public function testIndexDataObjectDocument(): void
