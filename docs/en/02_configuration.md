@@ -71,7 +71,12 @@ MyProject\MyApp\Product:
     - SilverStripe\Forager\Extensions\SearchServiceExtension
 ```
 
-DataObjects also require the `SilverStripe\Versioned\Versioned` extension. Non-versioned content is not yet supported. By default a versioned object will be added to the index when it is published and removed when it is unpublished.
+Both versioned DataObjects (that is, having the `SilverStripe\Versioned\Versioned` extension) and non versioned DataObjects are now supported.
+
+By default a **versioned** object will be added to the index when it is published and removed when it is unpublished.
+
+For a **non versioned** object, it will be added to the index when it is written, and removed when it is deleted.
+
 
 ### DataObject Fields
 
