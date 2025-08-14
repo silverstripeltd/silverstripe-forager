@@ -2,12 +2,12 @@
 
 namespace SilverStripe\Forager\Extensions\Subsites;
 
-use Exception;
 use SilverStripe\Core\Extension;
 use SilverStripe\Forager\Interfaces\DataObjectDocumentInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
+use Throwable;
 
 class IndexConfigurationExtension extends Extension
 {
@@ -23,7 +23,7 @@ class IndexConfigurationExtension extends Extension
 
         try {
             $dataObject = $doc->getDataObject();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             // if a data object has been deleted then an exception is thrown,
             // but in the case of a non-versioned data object that has been deleted,
             // we still need to remove it from the index

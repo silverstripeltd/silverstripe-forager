@@ -738,7 +738,7 @@ class DataObjectDocumentTest extends SearchServiceTest
 
         // in this case the object has already been deleted so expect an error to be thrown
         $this->expectExceptionMessage(
-            sprintf('DataObject SilverStripe\Forager\Tests\Fake\DataObjectFake : %s does not exist',$id)
+            sprintf('DataObject SilverStripe\Forager\Tests\Fake\DataObjectFake : %s does not exist', $id)
         );
 
         $serialDoc->getDataObject();

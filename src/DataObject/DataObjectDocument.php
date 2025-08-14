@@ -415,13 +415,13 @@ class DataObjectDocument implements
 
         try {
             $ownedDataObject = $this->getDataObject();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             // If there is no data object available, it might have been a deleted non-versioned object.
             // In this case, return empty dependency documents with the assumption that any dependencies
             // will be handled separately.
             if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
                 return [];
-            };
+            }
 
             // otherwise, throw the exception for versioned objects
             throw $e;
@@ -670,8 +670,7 @@ class DataObjectDocument implements
         try {
             $dataObject = $this->getDataObject();
             $id = $dataObject->ID ?: $dataObject->OldID;
-        }
-        catch (Exception $e) {
+        } catch (Throwable $e) {
             // allow non versioned data objects to continue
             if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
                 throw $e;
