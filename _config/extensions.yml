@@ -40,17 +40,6 @@ SilverStripe\CMS\Model\SiteTree:
     SiteTreeHierarchyExtension: SilverStripe\Forager\Extensions\SiteTreeHierarchyExtension
 
 ---
-Name: silverstripe-forager-form-extension
----
-SilverStripe\AssetAdmin\Forms\FileFormFactory:
-  extensions:
-    - SilverStripe\Forager\Extensions\SearchFormFactoryExtension
-
-SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
-  exclude_classes:
-    - SilverStripe\Assets\Image
-
----
 Name: forager-extensions-file
 Only:
   envvarset: SEARCH_INDEX_FILES
@@ -58,3 +47,9 @@ Only:
 SilverStripe\Assets\File:
   extensions:
     ForagerFileExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
+SilverStripe\AssetAdmin\Forms\FileFormFactory:
+  extensions:
+    - SilverStripe\Forager\Extensions\SearchFormFactoryExtension
+SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
+  exclude_classes:
+    - SilverStripe\Assets\Image
