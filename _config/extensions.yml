@@ -50,6 +50,3 @@ SilverStripe\Assets\File:
 SilverStripe\AssetAdmin\Forms\FileFormFactory:
   extensions:
     - SilverStripe\Forager\Extensions\SearchFormFactoryExtension
-SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
-  exclude_classes:
-    - SilverStripe\Assets\Image
