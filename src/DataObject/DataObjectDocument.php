@@ -87,8 +87,7 @@ class DataObjectDocument implements
     private ?string $className = null;
 
     /**
-     * The identifier (id) used in the search engine, based on the class and object id - stored in the serialized
-     * object and used for handling non-versioned deletions
+     * The ID of the data object being indexed.
      */
     private ?int $id = null;
 
@@ -112,6 +111,11 @@ class DataObjectDocument implements
         $this->className = $dataObject->ClassName;
     }
 
+    /**
+     * The identifier (id) used in the search engine, based on the class and object id.
+     *
+     * @return string
+     */
     public function getIdentifier(): string
     {
         // generate the identifier from the base class and ID
@@ -122,6 +126,8 @@ class DataObjectDocument implements
     }
 
     /**
+     * Get the source class for the data object.
+     *
      * @return string
      */
     public function getSourceClass(): string
