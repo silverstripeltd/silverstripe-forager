@@ -33,10 +33,11 @@ use SilverStripe\Security\PermissionProvider;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
-class SearchAdmin extends LeftAndMain implements PermissionProvider
+class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 {
 
     private const string PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
+
     private const string PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
 
     private static string $url_segment = 'search-indexing';
@@ -196,26 +197,28 @@ class SearchAdmin extends LeftAndMain implements PermissionProvider
         $configuration = SearchServiceExtension::singleton()->getConfiguration();
 
         foreach ($configuration->getIndexConfigurations() as $indexSuffix => $data) {
-            $localCount = 0;
+            $indexData = $configuration->getIndexDataForSuffix($indexSuffix);
+            $indexData->withIndexContext(function () use ($configuration, $indexSuffix, $indexer, $list): void {
+                $localCount = 0;
+                foreach ($configuration->getClassesForIndex($indexSuffix) as $class) {
+                    $query = new DataQuery($class);
+                    $query->where('SearchIndexed IS NOT NULL');
 
-            foreach ($configuration->getClassesForIndex($indexSuffix) as $class) {
-                $query = new DataQuery($class);
-                $query->where('SearchIndexed IS NOT NULL');
+                    if (property_exists($class, 'ShowInSearch')) {
+                        $query->where('ShowInSearch = 1');
+                    }
 
-                if (property_exists($class, 'ShowInSearch')) {
-                    $query->where('ShowInSearch = 1');
+                    $this->extend('updateQuery', $query, $data);
+                    $localCount += $query->count();
                 }
 
-                $this->extend('updateQuery', $query, $data);
-                $localCount += $query->count();
-            }
-
-            $result = new IndexedDocumentsResult();
-            $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
-            $result->IndexSuffix = $indexSuffix;
-            $result->DBDocs = $localCount;
-            $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
-            $list->push($result);
+                $result = new IndexedDocumentsResult();
+                $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
+                $result->IndexSuffix = $indexSuffix;
+                $result->DBDocs = $localCount;
+                $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
+                $list->push($result);
+            });
         }
 
         $this->extend('updateDocumentList', $list);

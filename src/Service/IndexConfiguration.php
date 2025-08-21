@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Service;
 
+use Exception;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extensible;
@@ -134,6 +135,17 @@ class IndexConfiguration
         }
 
         return $indexConfigurations;
+    }
+
+    public function getIndexDataForSuffix(string $indexSuffix): IndexData
+    {
+        $configurations = $this->getIndexConfigurations();
+
+        if (!array_key_exists($indexSuffix, $configurations)) {
+            throw new Exception(sprintf("No data for the '%s' suffix is configured", $indexSuffix));
+        }
+
+        return IndexData::create($configurations[$indexSuffix], $indexSuffix);
     }
 
     public function shouldUseSyncJobs(): bool

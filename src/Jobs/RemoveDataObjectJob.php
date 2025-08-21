@@ -56,46 +56,50 @@ class RemoveDataObjectJob extends IndexJob
      */
     public function setup(): void
     {
-        /** @var DBDatetime $datetime - set the documents in setup to ensure async */
-        $datetime = DBField::create_field('Datetime', $this->getTimestamp());
-        $archiveDate = $datetime->format($datetime->getISOFormat());
-        $documents = Versioned::withVersionedMode(function () use ($archiveDate) {
-            Versioned::reading_archived_date($archiveDate);
+         $config = $this->getConfiguration();
+        $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
+        $indexData->withIndexContext(function() {
+            /** @var DBDatetime $datetime - set the documents in setup to ensure async */
+            $datetime = DBField::create_field('Datetime', $this->getTimestamp());
+            $archiveDate = $datetime->format($datetime->getISOFormat());
+            $documents = Versioned::withVersionedMode(function () use ($archiveDate) {
+                Versioned::reading_archived_date($archiveDate);
 
-            $currentDocument = $this->getDocument();
-            // Go back in time to find out what the owners were before unpublish
-            $dependentDocs = $currentDocument->getDependentDocuments();
+                $currentDocument = $this->getDocument();
+                // Go back in time to find out what the owners were before unpublish
+                $dependentDocs = $currentDocument->getDependentDocuments();
 
-            // refetch everything on the live stage
-            Versioned::set_stage(Versioned::LIVE);
+                // refetch everything on the live stage
+                Versioned::set_stage(Versioned::LIVE);
 
-            return array_reduce(
-                $dependentDocs,
-                function (array $carry, DataObjectDocument $doc) {
-                    $record = DataObject::get_by_id($doc->getSourceClass(), $doc->getDataObject()->ID);
+                return array_reduce(
+                    $dependentDocs,
+                    function (array $carry, DataObjectDocument $doc) {
+                        $record = DataObject::get_by_id($doc->getSourceClass(), $doc->getDataObject()->ID);
 
-                    // Since SiteTree::onBeforeDelete recursively deletes the child pages,
-                    // they end up not found on a live environment which breaks DataObjectDocument::_constructor
-                    if ($record) {
-                        $document = DataObjectDocument::create($record);
+                        // Since SiteTree::onBeforeDelete recursively deletes the child pages,
+                        // they end up not found on a live environment which breaks DataObjectDocument::_constructor
+                        if ($record) {
+                            $document = DataObjectDocument::create($record);
+                            $carry[$document->getIdentifier()] = $document;
+
+                            return $carry;
+                        }
+
+                        // Taking into account that this queued job has a reference of existing child pages
+                        // We need to make sure that we are able to send these pages to ElasticSearch etc. for removal
+                        $oldRecord = $doc->getDataObject();
+                        $document = DataObjectDocument::create($oldRecord);
                         $carry[$document->getIdentifier()] = $document;
 
                         return $carry;
-                    }
+                    },
+                    []
+                );
+            });
 
-                    // Taking into account that this queued job has a reference of existing child pages
-                    // We need to make sure that we are able to send these pages to ElasticSearch etc. for removal
-                    $oldRecord = $doc->getDataObject();
-                    $document = DataObjectDocument::create($oldRecord);
-                    $carry[$document->getIdentifier()] = $document;
-
-                    return $carry;
-                },
-                []
-            );
+            $this->setDocuments($documents);
         });
-
-        $this->setDocuments($documents);
 
         parent::setup();
     }

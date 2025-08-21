@@ -8,10 +8,10 @@ use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 use SilverStripe\Forager\Service\DocumentFetchCreatorRegistry;
 use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\RegistryAware;
-use SilverStripe\Versioned\Versioned;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
@@ -65,39 +65,42 @@ class ReindexJob extends BatchJob
             throw new InvalidArgumentException('An index suffix must be specified');
         }
 
-        Versioned::set_stage(Versioned::LIVE);
-
         // Restrict this job to only processing the one index that we specified
-        $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
+       $config = $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
+       $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
 
-        // Can optionally process specifically classes, or all classes
-        $classes = $this->getOnlyClasses() && count($this->getOnlyClasses())
-            ? $this->getOnlyClasses()
-            : $this->getConfiguration()->getSearchableBaseClasses();
+       $indexData->withIndexContext(function (IndexData $indexData): void {
+            // Can optionally process specifically classes, or all classes
+            $classes = $this->getOnlyClasses() && count($this->getOnlyClasses())
+                ? $this->getOnlyClasses()
+                : $indexData->getClasses();
 
-        /** @var DocumentFetcherInterface[] $fetchers */
-        $fetchers = [];
+            /** @var DocumentFetcherInterface[] $fetchers */
+            $fetchers = [];
 
-        foreach ($classes as $class) {
-            // Each class is represented by its own fetcher
-            $fetcher = $this->getRegistry()->getFetcher($class);
+            foreach ($classes as $class) {
+                // Each class is represented by its own fetcher
+                $fetcher = $this->getRegistry()->getFetcher($class);
 
-            if (!$fetcher) {
-                continue;
+                if (!$fetcher) {
+                    continue;
+                }
+
+                $fetchers[$class] = $fetcher;
             }
 
-            $fetchers[$class] = $fetcher;
-        }
 
-        $steps = array_reduce($fetchers, function (int $total, DocumentFetcherInterface $fetcher) {
-            return $total + $fetcher->getTotalBatches();
-        }, 0);
+            $steps = array_reduce($fetchers, function (int $total, DocumentFetcherInterface $fetcher) {
+                return $total + $fetcher->getTotalBatches();
+            }, 0);
 
-        $this->totalSteps = $steps;
-        $this->isComplete = $steps === 0;
-        $this->currentStep = 0;
-        $this->setFetchers(array_values($fetchers));
-        $this->setFetcherIndex(0);
+            $this->totalSteps = $steps;
+            $this->isComplete = $steps === 0;
+            $this->currentStep = 0;
+            $this->setFetchers(array_values($fetchers));
+            $this->setFetcherIndex(0);
+        });
+
         $this->extend('onAfterSetup');
     }
 
@@ -108,42 +111,48 @@ class ReindexJob extends BatchJob
     {
         $this->currentStep++;
         $this->extend('onBeforeProcess');
-        $fetcher = $this->getFetcher($this->getFetcherIndex());
+        $config = $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
+        $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
 
-        // We must have finished processing all of our Fetchers
-        if (!$fetcher) {
-            $this->isComplete = true;
+        $indexData->withIndexContext(function (): void {
 
-            return;
-        }
+            $fetcher = $this->getFetcher($this->getFetcherIndex());
 
-        // The Fetcher itself knows what batch size and offset to use. It's ok if this is an empty array. The Indexer
-        // will simply not process anything
-        $documents = $fetcher->fetch();
+            // We must have finished processing all of our Fetchers
+            if (!$fetcher) {
+                $this->isComplete = true;
 
-        // Use the same batch size on the Fetcher for the Indexer
-        $indexer = Indexer::create(
-            $this->getIndexSuffix(),
-            $documents,
-            Indexer::METHOD_ADD,
-            $fetcher->getBatchSize()
-        );
-        $indexer->setProcessDependencies(false);
+                return;
+            }
 
-        while (!$indexer->finished()) {
-            $indexer->processNode();
-        }
+            // The Fetcher itself knows what batch size and offset to use. It's ok if this is an empty array. The Indexer
+            // will simply not process anything
+            $documents = $fetcher->fetch();
 
-        // Let's check if the Fetcher still has more records for us to process
-        $nextOffset = $fetcher->getOffset() + $fetcher->getBatchSize();
+            // Use the same batch size on the Fetcher for the Indexer
+            $indexer = Indexer::create(
+                $this->getIndexSuffix(),
+                $documents,
+                Indexer::METHOD_ADD,
+                $fetcher->getBatchSize()
+            );
+            $indexer->setProcessDependencies(false);
 
-        if ($nextOffset >= $fetcher->getTotalDocuments()) {
-            // We have finished processing all the records for this Fetcher, so let's move to the next one
-            $this->incrementFetcherIndex();
-        } else {
-            // Keep going with this Fetcher, but move to the next batch
-            $fetcher->incrementOffsetUp();
-        }
+            while (!$indexer->finished()) {
+                $indexer->processNode();
+            }
+
+            // Let's check if the Fetcher still has more records for us to process
+            $nextOffset = $fetcher->getOffset() + $fetcher->getBatchSize();
+
+            if ($nextOffset >= $fetcher->getTotalDocuments()) {
+                // We have finished processing all the records for this Fetcher, so let's move to the next one
+                $this->incrementFetcherIndex();
+            } else {
+                // Keep going with this Fetcher, but move to the next batch
+                $fetcher->incrementOffsetUp();
+            }
+        });
 
         $this->extend('onAfterProcess');
 

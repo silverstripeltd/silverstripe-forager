@@ -42,3 +42,11 @@ SilverStripe\Core\Injector\Injector:
     constructor:
       configuration: '%$SilverStripe\Forager\Service\IndexConfiguration'
       registry: '%$SilverStripe\Forager\Service\DocumentFetchCreatorRegistry'
+
+  SilverStripe\Forager\Service\IndexData:
+    properties:
+      contexts:
+        default:
+          SilverstripeForagerLiveIndexDataContext: '%$SilverStripe\Forager\Service\LiveIndexDataContext'
+
+
