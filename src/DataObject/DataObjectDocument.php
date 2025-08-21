@@ -5,6 +5,7 @@ namespace SilverStripe\Forager\DataObject;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
@@ -426,6 +427,13 @@ class DataObjectDocument implements
             // In this case, return empty dependency documents with the assumption that any dependencies
             // will be handled separately.
             if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                Injector::inst()->get(LoggerInterface::class)->info(sprintf(
+                    'Unable to get document for checking dependencies. '
+                        .'Non versioned %s data object with ID %s cannot be found.',
+                    $this->getSourceClass(),
+                    $this->id,
+                ));
+
                 return [];
             }
 
@@ -521,11 +529,6 @@ class DataObjectDocument implements
     {
         if ($this->dataObject) {
             return $this->dataObject;
-        }
-
-        foreach (static::config()->get('dependencies') as $name => $service) {
-            $method = 'set' . $name;
-            $this->$method(Injector::inst()->get($service));
         }
 
         $dataObject = DataObject::get_by_id($this->className, $this->id);
@@ -695,6 +698,11 @@ class DataObjectDocument implements
         $this->className = $data['className'];
         $this->id = $data['id'];
         $this->shouldFallbackToLatestVersion = $data['fallback'];
+
+        foreach (static::config()->get('dependencies') as $name => $service) {
+            $method = 'set' . $name;
+            $this->$method(Injector::inst()->get($service));
+        }
     }
 
     /**

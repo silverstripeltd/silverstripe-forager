@@ -2,7 +2,10 @@
 
 namespace SilverStripe\Forager\Tests\DataObject;
 
+use Monolog\Logger;
 use Page;
+use Psr\Log\LoggerInterface;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentAddHandler;
@@ -624,6 +627,31 @@ class DataObjectDocumentTest extends SearchServiceTest
         }
 
         $this->assertEqualsCanonicalizing($expectedPages, $resultPages);
+    }
+
+    /**
+     * Test that for deleted non versioned data objects, the getDependencyDocuments function returns
+     * an empty array, but adds a log.
+     */
+    public function testGetDependentDocumentsForDeletedNonVersionedDataObject(): void
+    {
+        $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
+        $doc = DataObjectDocument::create($dataObject);
+
+        $mockLogger = $this->getMockBuilder(Logger::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['info'])
+            ->getMock();
+
+        Injector::inst()->registerService($mockLogger, LoggerInterface::class);
+        $mockLogger->expects($this->once())->method('info');
+
+        $dataObject->delete();
+        /** @var DataObjectDocument $serialDoc */
+        $serialDoc = unserialize(serialize($doc));
+
+        $dependentDocuments = $serialDoc->getDependentDocuments();
+        $this->assertEmpty($dependentDocuments);
     }
 
     public function testExtensionRequired(): void
