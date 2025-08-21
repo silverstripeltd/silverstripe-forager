@@ -38,7 +38,6 @@ SilverStripe\CMS\Model\SiteTree:
   extensions:
     SearchServiceExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
     SiteTreeHierarchyExtension: SilverStripe\Forager\Extensions\SiteTreeHierarchyExtension
-
 ---
 Name: forager-extensions-file
 Only:
@@ -47,6 +46,7 @@ Only:
 SilverStripe\Assets\File:
   extensions:
     ForagerFileExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
+    ForagerFileExclusionExtension: SilverStripe\Forager\Extensions\SearchServiceFileExclusionExtension
 SilverStripe\AssetAdmin\Forms\FileFormFactory:
   extensions:
     - SilverStripe\Forager\Extensions\SearchFormFactoryExtension

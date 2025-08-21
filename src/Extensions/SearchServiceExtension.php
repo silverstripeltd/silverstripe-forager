@@ -14,6 +14,7 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
+use SilverStripe\Forager\Traits\SearchServiceExclusionTrait;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyField;
@@ -36,6 +37,7 @@ class SearchServiceExtension extends DataExtension
     use ServiceAware;
     use ConfigurationAware;
     use BatchProcessorAware;
+    use SearchServiceExclusionTrait;
 
     private static array $db = [
         'ShowInSearch' => 'Boolean(1)',
