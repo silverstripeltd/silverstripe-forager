@@ -31,6 +31,8 @@ class DataObjectBatchProcessor extends BatchProcessor
         $job = IndexJob::create($documents, Indexer::METHOD_DELETE, null, false);
         $this->run($job);
 
+        $shouldTrackDependencies = $this->getConfiguration()->shouldTrackDependencies();
+
         // Now take care of any dependencies
         foreach ($documents as $doc) {
             $dataObject = $doc->getDataObject();
@@ -38,6 +40,11 @@ class DataObjectBatchProcessor extends BatchProcessor
             // for non versioned data objects, once this object is deleted there will be no history to
             // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
             if (!$dataObject->hasExtension(Versioned::class)) {
+                // do nothing if auto dependency tracking is disabled
+                if (!$shouldTrackDependencies) {
+                    continue;
+                }
+
                 $dataObjectDocument = DataObjectDocument::create($dataObject);
 
                 // get the dependencies - note, it is only considered a dependency if the data object being

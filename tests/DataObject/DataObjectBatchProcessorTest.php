@@ -216,4 +216,77 @@ class DataObjectBatchProcessorTest extends SearchServiceTest
         );
     }
 
+    /**
+     * Test that when auto dependency tracking is disabled, additional jobs are not created for updating dependencies
+     * of non versioned data objects to be deleted.
+     */
+    public function testRemoveDocumentsNonVersionedDependencyTrackingDisabled(): void
+    {
+        $config = $this->mockConfig();
+        $config->set('use_sync_jobs', true);
+
+        $config->set('getSearchableClasses', [
+            PageFake::class,
+            DataObjectBatchProcessor::class,
+        ]);
+
+        $config->set('getFieldsForClass', [
+            PageFake::class => [
+                new Field('data_objects', 'DataObjects.Title'),
+            ],
+        ]);
+
+        // this is the important config change for this test
+        $config->set('auto_dependency_tracking', false);
+
+        Config::modify()->set(
+            DataObjectBatchProcessor::class,
+            'buffer_seconds',
+            100
+        );
+        DBDatetime::set_mock_now(1000);
+
+        $syncRunnerMock = $this->getMockBuilder(SyncJobRunner::class)
+            ->onlyMethods(['runJob'])
+            ->getMock();
+
+        // set up expectations, we are only expecting one job for the removal
+        // of the document, and nothing else will get updated
+        $syncRunnerMock->expects($this->exactly(1))
+            ->method('runJob')
+            ->withConsecutive(
+                [
+                    // first job to delete both documents
+                    $this->callback(function (IndexJob $arg) {
+                        $this->assertInstanceOf(IndexJob::class, $arg);
+                        $this->assertCount(2, $arg->getDocuments());
+                        $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
+
+                        return true;
+                    }),
+                ]
+            );
+
+        Injector::inst()->registerService($syncRunnerMock, SyncJobRunner::class);
+
+        $processor = new DataObjectBatchProcessor(IndexConfiguration::singleton());
+
+        // set up the first data object to have a dependency
+        $dataObjectOne = DataObjectFake::create();
+        $dataObjectOne->write();
+
+        $page = PageFake::create(['Title' => 'Test Page']);
+        $page->DataObjects()->add($dataObjectOne);
+        $page->write();
+        $page->publishSingle();
+
+        $processor->removeDocuments(
+            [
+                DataObjectDocumentFake::create($dataObjectOne),
+                DataObjectDocumentFake::create(DataObjectFake::create()),
+            ]
+        );
+
+    }
+
 }
