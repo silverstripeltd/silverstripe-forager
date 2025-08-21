@@ -286,7 +286,6 @@ class DataObjectBatchProcessorTest extends SearchServiceTest
                 DataObjectDocumentFake::create(DataObjectFake::create()),
             ]
         );
-
     }
 
 }
