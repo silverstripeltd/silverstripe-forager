@@ -56,7 +56,7 @@ class RemoveDataObjectJob extends IndexJob
      */
     public function setup(): void
     {
-         $config = $this->getConfiguration();
+        $config = $this->getConfiguration();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
         $indexData->withIndexContext(function() {
             /** @var DBDatetime $datetime - set the documents in setup to ensure async */

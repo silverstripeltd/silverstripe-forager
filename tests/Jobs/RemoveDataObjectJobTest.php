@@ -39,7 +39,7 @@ class RemoveDataObjectJobTest extends SapphireTest
 
     public function testJob(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
 
         $config->set(
             'getSearchableClasses',
