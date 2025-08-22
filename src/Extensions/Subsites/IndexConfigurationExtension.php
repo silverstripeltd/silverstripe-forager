@@ -5,6 +5,9 @@ namespace SilverStripe\Forager\Extensions\Subsites;
 use SilverStripe\Core\Extension;
 use SilverStripe\Forager\Interfaces\DataObjectDocumentInterface;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Versioned\Versioned;
+use Throwable;
 
 class IndexConfigurationExtension extends Extension
 {
@@ -16,8 +19,22 @@ class IndexConfigurationExtension extends Extension
             return;
         }
 
-        // Which whether the data object has the SubsiteID
-        if (!$doc->getDataObject()->hasField('SubsiteID')) {
+        $dataObject = null;
+
+        try {
+            $dataObject = $doc->getDataObject();
+        } catch (Throwable $e) {
+            // if a data object has been deleted then an exception is thrown,
+            // but in the case of a non-versioned data object that has been deleted,
+            // we still need to remove it from the index
+            if (DataObject::has_extension($doc->getSourceClass(), Versioned::class)) {
+                throw $e;
+            }
+        }
+
+        // Check whether the data object has a Subsite ID
+        // @TODO: if a non versioned data object has been deleted, how do we know whether it had a subsite
+        if (!$dataObject || !$dataObject->hasField('SubsiteID')) {
             $this->updateDocumentWithoutSubsite($doc, $indexes);
         } else {
             $this->updateDocumentWithSubsite($indexes, (int)$doc->getDataObject()->SubsiteID);
@@ -34,7 +51,7 @@ class IndexConfigurationExtension extends Extension
             // DataObject explicitly defined on Subsite index definition
             $explicitClasses = $data['includeClasses'] ?? [];
 
-            if (!isset($explicitClasses[$doc->getDataObject()->ClassName])) {
+            if (!isset($explicitClasses[$doc->getSourceClass()])) {
                 unset($indexes[$indexName]);
 
                 break;
