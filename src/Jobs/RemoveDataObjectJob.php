@@ -58,7 +58,7 @@ class RemoveDataObjectJob extends IndexJob
     {
         $config = $this->getConfiguration();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
-        $indexData->withIndexContext(function() {
+        $indexData->withIndexContext(function (): void {
             /** @var DBDatetime $datetime - set the documents in setup to ensure async */
             $datetime = DBField::create_field('Datetime', $this->getTimestamp());
             $archiveDate = $datetime->format($datetime->getISOFormat());

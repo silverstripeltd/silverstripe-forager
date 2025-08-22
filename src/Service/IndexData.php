@@ -13,17 +13,16 @@ use SilverStripe\Forager\Interfaces\IndexDataContextProvider;
  */
 class IndexData
 {
+
     use Injectable;
     use Extensible;
 
-    public const CONTEXT_KEY = 'context';
-    public const CONTEXT_KEY_DEFAULT = 'default';
+    public const string CONTEXT_KEY = 'context';
+    public const string CONTEXT_KEY_DEFAULT = 'default';
 
-    public function __construct(
-        private array $data,
-        private string $suffix
-    )
-    {}
+    public function __construct(private array $data, private string $suffix)
+    {
+    }
 
     /**
      * Index contexts
@@ -89,14 +88,24 @@ class IndexData
 
         $context = $contexts[$contextKey];
 
-        $wrappers = array_map(fn(IndexDataContextProvider $provider) => $provider->getContext(), array_values($context));
+        $wrappers = array_map(
+            function (IndexDataContextProvider $provider) {
+                return $provider->getContext();
+            },
+            array_values($context)
+        );
 
-        $next = fn() => $callback($this);
+        $next = function () use ($callback): mixed {
+            return $callback($this);
+        };
 
         foreach (array_reverse($wrappers) as $wrapper) {
-            $next = fn(): mixed => $wrapper($next, $this);
+            $next = function () use ($wrapper, $next): mixed {
+                 return $wrapper($next, $this);
+            };
         }
 
         $next();
     }
+
 }

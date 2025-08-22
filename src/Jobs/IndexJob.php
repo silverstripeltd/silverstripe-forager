@@ -70,7 +70,7 @@ class IndexJob extends BatchJob
 
         $config = $this->getConfiguration();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
-        $indexData->withIndexContext(function() {
+        $indexData->withIndexContext(function (): void {
             // There could be 0 documents. If that's the case, then there's zero steps
             $this->totalSteps = $this->getDocuments()
                 ? (int) ceil(count($this->getDocuments()) / $this->getBatchSize())
@@ -110,7 +110,7 @@ class IndexJob extends BatchJob
 
         $config = $this->getConfiguration();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
-        $indexData->withIndexContext(function() {
+        $indexData->withIndexContext(function (): void {
             $remainingDocuments = $this->getRemainingDocuments();
             // Splice a bunch of Documents from the start of the remaining documents
             $documentToProcess = array_splice($remainingDocuments, 0, $this->getBatchSize());

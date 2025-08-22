@@ -66,10 +66,10 @@ class ReindexJob extends BatchJob
         }
 
         // Restrict this job to only processing the one index that we specified
-       $config = $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
-       $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
+        $config = $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
+        $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
 
-       $indexData->withIndexContext(function (IndexData $indexData): void {
+        $indexData->withIndexContext(function (IndexData $indexData): void {
             // Can optionally process specifically classes, or all classes
             $classes = $this->getOnlyClasses() && count($this->getOnlyClasses())
                 ? $this->getOnlyClasses()
@@ -88,7 +88,6 @@ class ReindexJob extends BatchJob
 
                 $fetchers[$class] = $fetcher;
             }
-
 
             $steps = array_reduce($fetchers, function (int $total, DocumentFetcherInterface $fetcher) {
                 return $total + $fetcher->getTotalBatches();
@@ -125,7 +124,8 @@ class ReindexJob extends BatchJob
                 return;
             }
 
-            // The Fetcher itself knows what batch size and offset to use. It's ok if this is an empty array. The Indexer
+            // The Fetcher itself knows what batch size and offset to use.
+            // It's ok if this is an empty array. The Indexer
             // will simply not process anything
             $documents = $fetcher->fetch();
 

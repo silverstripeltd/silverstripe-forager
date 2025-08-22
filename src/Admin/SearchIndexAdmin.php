@@ -200,6 +200,7 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
             $indexData = $configuration->getIndexDataForSuffix($indexSuffix);
             $indexData->withIndexContext(function () use ($configuration, $indexSuffix, $indexer, $list): void {
                 $localCount = 0;
+
                 foreach ($configuration->getClassesForIndex($indexSuffix) as $class) {
                     $query = new DataQuery($class);
                     $query->where('SearchIndexed IS NOT NULL');

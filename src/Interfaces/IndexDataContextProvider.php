@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Interfaces;
 
-
 /**
  * Index Data Contexts can set the environment for which
  * index operations are made - such as fluent or versioned state

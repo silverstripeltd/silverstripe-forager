@@ -8,9 +8,11 @@ use SilverStripe\Versioned\Versioned;
 
 class LiveIndexDataContext implements IndexDataContextProvider
 {
+
     use Injectable;
 
-    public function getContext(): callable {
+    public function getContext(): callable
+    {
         return function (callable $next): mixed {
             return Versioned::withVersionedMode(function () use ($next): mixed {
                 Versioned::set_stage(Versioned::LIVE);
@@ -19,4 +21,5 @@ class LiveIndexDataContext implements IndexDataContextProvider
             });
         };
     }
+
 }
