@@ -171,7 +171,9 @@ SilverStripe\Forager\Service\IndexConfiguration:
         - SilverStripe\Assets\Image
 ```
 
-This will result in Images and Folders not being included while indexing files
+This will result in Images and Folders not being included while indexing files. This occurs in the `canIndexInSearch` extension hook.
+
+More information can be found in the [Customising More](08_customising_more.md)
 
 # see below for per-class options
 
