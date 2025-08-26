@@ -7,6 +7,7 @@ use SilverStripe\Core\Extension;
 use SilverStripe\Forms\DatetimeField;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormFactory;
+use SilverStripe\Forms\LiteralField;
 
 class SearchFormFactoryExtension extends Extension
 {
@@ -22,6 +23,23 @@ class SearchFormFactoryExtension extends Extension
 
         if (!$fields || !$file) {
             return;
+        }
+
+        // Display a banner if this file is an excluded class or extension
+        if (in_array(false, $file->invokeWithExtensions('canIndexInSearch'), true)) {
+            $fields->insertAfter(
+                'ShowInSearch',
+                LiteralField::create(
+                    'FileIndexInfo',
+                    sprintf(
+                        '<div class="alert alert-info">%s</div>',
+                        _t(
+                            self::class . '.FILE_IN_EXCLUDED_LIST',
+                            'This file is excluded from one or more search indexes.',
+                        )
+                    )
+                ),
+            );
         }
 
         $fields->push(
