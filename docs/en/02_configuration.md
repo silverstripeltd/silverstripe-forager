@@ -203,6 +203,22 @@ SilverStripe\Forager\Service\IndexConfiguration:
             
 ```
 
+### Batch size memory and use with files
+
+Batch size has a significant impact on memory used by the indexing jobs. An index job must build a request that contains all the records for a single batch and this can add up quickly if individual documents are large. A good example of this is when indexing file content. Say you have a set of 10MB PDF files then a batch of 10 files will result in at least a 100MB payload which is above the limit of most search services and may overwhelm servers processing it. Each batch becomes a step in an index job so lowering the batch size will reduce the maximum memory used per step. 
+
+For this reason its recommended to set a small batch size on files and other large documents such as the following:
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    myindex:
+      includeClasses:
+        SilverStripe\Assets\File:
+          batch_size: 5
+            
+```
+
 ## Batch cooldown
 
 If you would like to specify a "cooldown period" after each batch of a Job is processed, then you can do so with the
@@ -219,7 +235,7 @@ Use cases:
 * Some services include rate limits. You could use this feature to effectively "slow down" your processing of records
 
 * Some classes can be quite process intensive (EG: Files that require you to load them into memory in order to send
-them to your service provider). This "cooldown", plus `batch_sizes` at a class level, should provide you with some dials
+them to your service provider). This "cooldown", plus [batch_sizes](#batch-size) at a class level, should provide you with some dials
 to turn to try and reduce the impact that reindexing has on your application
 
 ## Advanced configuration
