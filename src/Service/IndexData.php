@@ -2,11 +2,13 @@
 
 namespace SilverStripe\Forager\Service;
 
-use Exception;
 use InvalidArgumentException;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\IndexDataContextProvider;
+use SilverStripe\Forager\Schema\Field;
 
 /**
  * Class to contain configuration data for a single index suffix
@@ -43,18 +45,24 @@ class IndexData
 
     public function getClassData(): array
     {
-        return $this->data['includeClasses'];
+        return $this->data['includeClasses'] ?? [];
     }
 
-    public function getClassConfig(string $class): array
+    public function getClassConfig(string $class): ?array
     {
-        $classes = $this->getClassData();
+        $classData = $this->getClassData();
 
-        if (!array_key_exists($class, $classes)) {
-            throw new Exception(sprintf("No data for the '%s' class is configured", $class));
+        if (!array_key_exists($class, $classData)) {
+            return null;
         }
 
-        return $classes[$class];
+        $spec = $classData[$class];
+
+        if (!is_array($spec)) {
+            return null;
+        }
+
+        return $classData[$class];
     }
 
     /**
@@ -62,7 +70,18 @@ class IndexData
      */
     public function getClasses(): array
     {
-        return array_keys($this->getClassData());
+        $classes = $this->getClassData() ?? [];
+        $result = [];
+
+        foreach ($classes as $className => $spec) {
+            if ($spec === false) {
+                continue;
+            }
+
+            $result[] = $className;
+        }
+
+        return $result;
     }
 
     public function getContextKey(): string
@@ -78,7 +97,6 @@ class IndexData
 
     public function withIndexContext(callable $callback): void
     {
-
         $contextKey = $this->getContextKey();
         $contexts = $this->contexts;
 
@@ -101,11 +119,154 @@ class IndexData
 
         foreach (array_reverse($wrappers) as $wrapper) {
             $next = function () use ($wrapper, $next): mixed {
-                 return $wrapper($next, $this);
+                return $wrapper($next, $this);
             };
         }
 
         $next();
+    }
+
+    public function getFields(): array
+    {
+        $fields = [];
+
+        $defaultFields = [
+            // Default fields that relate to our DataObjects
+            IndexConfiguration::singleton()->getSourceClassField(),
+            DataObjectDocument::config()->get('base_class_field'),
+            DataObjectDocument::config()->get('record_id_field'),
+        ];
+
+        foreach ($defaultFields as $defaultField) {
+            $fields[$defaultField] = new Field(
+                $defaultField,
+                null,
+                []
+            );
+        }
+
+        $classes = $this->getClasses();
+
+        foreach ($classes as $class) {
+            $classFields = $this->getFieldsForClass($class);
+
+            if (!$classFields) {
+                continue;
+            }
+
+            $fields = array_merge($fields, $classFields);
+        }
+
+        return $fields;
+    }
+
+    public function getFieldsForClass(string $class): ?array
+    {
+        $candidate = $class;
+        $fieldObjs = [];
+
+        while ($candidate) {
+            $spec = $this->getClassConfig($candidate);
+
+            if (!$spec) {
+                $candidate = get_parent_class($candidate);
+
+                continue;
+            }
+
+            $fields = $spec['fields'] ?? [];
+
+            foreach ($fields as $searchName => $data) {
+                if ($data === false) {
+                    continue;
+                }
+
+                $fieldConfig = (array) $data;
+                // This is a callout to a common misconfiguration that will result in developers receiving an
+                // unexpected field type. The correct yaml format is for this to be part of the "options" object
+                $invalidTypeField = $fieldConfig['type'] ?? null;
+
+                if ($invalidTypeField) {
+                    throw new IndexConfigurationException(
+                        'Field configuration for "type" should be defined under the "options" object.'
+                        . ' Please see 02_configuration.md#basic-configuration for an example.'
+                    );
+                }
+
+                $fieldObjs[$searchName] = new Field(
+                    $searchName,
+                    $fieldConfig['property'] ?? null,
+                    $fieldConfig['options'] ?? []
+                );
+            }
+
+            $candidate = get_parent_class($candidate);
+        }
+
+        return $fieldObjs;
+    }
+
+    public function getLowestBatchSize(): ?int
+    {
+        $classData = $this->getClassData();
+        $batchSizes = [];
+
+        foreach ($classData as $spec) {
+            // Check to see if a batch size was defined for this class
+            $batchSize = $spec['batch_size'] ?? null;
+
+            if (!$batchSize) {
+                continue;
+            }
+
+            // In the case where there are multiple candidate configurations, we'll keep them all and then pick the
+            // lowest at the end
+            $batchSizes[] = $batchSize;
+        }
+
+        if (!$batchSizes) {
+            return null;
+        }
+
+        return min($batchSizes);
+    }
+
+    public function getLowestBatchSizeForClass(string $class): ?int
+    {
+        $candidate = $class;
+        $batchSizes = [];
+
+        while ($candidate) {
+            $spec = $this->getClassConfig($candidate);
+
+            if (!$spec) {
+                $candidate = get_parent_class($candidate);
+
+                continue;
+            }
+
+            // Check to see if a batch size was defined for this class
+            $batchSize = $spec['batch_size'] ?? null;
+
+            if (!$batchSize) {
+                $candidate = get_parent_class($candidate);
+
+                continue;
+            }
+
+            // In the case where there are multiple candidate configurations, we'll keep them all and then pick the
+            // lowest at the end
+            $batchSizes[] = $batchSize;
+
+            $candidate = get_parent_class($candidate);
+        }
+
+        if (!$batchSizes) {
+            return null;
+        }
+
+        // Return the lowest defined batch size
+        return min($batchSizes);
     }
 
 }

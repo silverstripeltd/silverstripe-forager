@@ -66,6 +66,36 @@ class IndexConfiguration
         return $this->config()->get('batch_size');
     }
 
+    public function shouldCrawlPageContent(): bool
+    {
+        return $this->config()->get('crawl_page_content');
+    }
+
+    public function shouldIncludePageHTML(): bool
+    {
+        return $this->config()->get('include_page_html');
+    }
+
+    public function shouldUseSyncJobs(): bool
+    {
+        return $this->config()->get('use_sync_jobs');
+    }
+
+    public function getIDField(): string
+    {
+        return $this->config()->get('id_field');
+    }
+
+    public function getSourceClassField(): string
+    {
+        return $this->config()->get('source_class_field');
+    }
+
+    public function shouldTrackDependencies(): bool
+    {
+        return $this->config()->get('auto_dependency_tracking');
+    }
+
     public function getIndexPrefix(): ?string
     {
         return $this->indexPrefix;
@@ -76,16 +106,6 @@ class IndexConfiguration
         $this->indexPrefix = $indexPrefix;
 
         return $this;
-    }
-
-    public function shouldCrawlPageContent(): bool
-    {
-        return $this->config()->get('crawl_page_content');
-    }
-
-    public function shouldIncludePageHTML(): bool
-    {
-        return $this->config()->get('include_page_html');
     }
 
     public function environmentizeIndex(string $indexSuffix): string
@@ -137,35 +157,15 @@ class IndexConfiguration
         return $indexConfigurations;
     }
 
-    public function getIndexDataForSuffix(string $indexSuffix): IndexData
+    public function getIndexDataForSuffix(string $indexSuffix): ?IndexData
     {
         $configurations = $this->getIndexConfigurations();
 
         if (!array_key_exists($indexSuffix, $configurations)) {
-            throw new Exception(sprintf("No data for the '%s' suffix is configured", $indexSuffix));
+            return null;
         }
 
         return IndexData::create($configurations[$indexSuffix], $indexSuffix);
-    }
-
-    public function shouldUseSyncJobs(): bool
-    {
-        return $this->config()->get('use_sync_jobs');
-    }
-
-    public function getIDField(): string
-    {
-        return $this->config()->get('id_field');
-    }
-
-    public function getSourceClassField(): string
-    {
-        return $this->config()->get('source_class_field');
-    }
-
-    public function shouldTrackDependencies(): bool
-    {
-        return $this->config()->get('auto_dependency_tracking');
     }
 
     public function getIndexConfigurationsForClassName(string $class): array
@@ -209,34 +209,12 @@ class IndexConfiguration
         return (bool) $this->getFieldsForClass($class);
     }
 
-    public function getClassesForIndex(string $indexSuffix): array
-    {
-        $indexSuffix = $this->getIndexConfigurations()[$indexSuffix] ?? null;
-
-        if (!$indexSuffix) {
-            return [];
-        }
-
-        $classes = $indexSuffix['includeClasses'] ?? [];
-        $result = [];
-
-        foreach ($classes as $className => $spec) {
-            if ($spec === false) {
-                continue;
-            }
-
-            $result[] = $className;
-        }
-
-        return $result;
-    }
-
     public function getSearchableClasses(): array
     {
         $classes = [];
 
         foreach (array_keys($this->getIndexConfigurations()) as $indexSuffix) {
-            $classes = array_merge($classes, $this->getClassesForIndex($indexSuffix));
+            $classes = array_merge($classes, $this->getIndexDataForSuffix($indexSuffix)->getClasses());
         }
 
         return array_unique($classes);
@@ -262,46 +240,16 @@ class IndexConfiguration
      */
     public function getFieldsForClass(string $class): ?array
     {
-        $candidate = $class;
         $fieldObjs = [];
 
-        while ($candidate) {
-            foreach ($this->getIndexConfigurations() as $config) {
-                $includedClasses = $config['includeClasses'] ?? [];
-                $spec = $includedClasses[$candidate] ?? null;
+        foreach ($this->getIndexSuffixes() as $indexSuffix) {
+            $fields = $this->getIndexDataForSuffix($indexSuffix)?->getFieldsForClass($class);
 
-                if (!$spec || !is_array($spec)) {
-                    continue;
-                }
-
-                $fields = $spec['fields'] ?? [];
-
-                foreach ($fields as $searchName => $data) {
-                    if ($data === false) {
-                        continue;
-                    }
-
-                    $fieldConfig = (array) $data;
-                    // This is a callout to a common misconfiguration that will result in developers receiving an
-                    // unexpected field type. The correct yaml format is for this to be part of the "options" object
-                    $invalidTypeField = $fieldConfig['type'] ?? null;
-
-                    if ($invalidTypeField) {
-                        throw new IndexConfigurationException(
-                            'Field configuration for "type" should be defined under the "options" object.'
-                            . ' Please see 02_configuration.md#basic-configuration for an example.'
-                        );
-                    }
-
-                    $fieldObjs[$searchName] = new Field(
-                        $searchName,
-                        $fieldConfig['property'] ?? null,
-                        $fieldConfig['options'] ?? []
-                    );
-                }
+            if (!$fields) {
+                continue;
             }
 
-            $candidate = get_parent_class($candidate);
+            $fieldObjs = array_merge($fieldObjs, $fields);
         }
 
         return $fieldObjs;
@@ -310,25 +258,16 @@ class IndexConfiguration
     public function getLowestBatchSize(): int
     {
         $batchSizes = [];
-        // Fetch all index configurations (these might be filtered if restrictToIndexes has been set)
-        $indexConfigurations = $this->getIndexConfigurations();
 
-        // Loop through each potential index configuration
-        foreach ($indexConfigurations as $config) {
-            $includedClasses = $config['includeClasses'] ?? [];
+        // Loop through each potential index suffixes
+        foreach ($this->getIndexSuffixes() as $indexSuffix) {
+            $batchSize = $this->getIndexDataForSuffix($indexSuffix)?->getLowestBatchSize();
 
-            foreach ($includedClasses as $spec) {
-                // Check to see if a batch size was defined for this class
-                $batchSize = $spec['batch_size'] ?? null;
-
-                if (!$batchSize) {
-                    continue;
-                }
-
-                // In the case where there are multiple candidate configurations, we'll keep them all and then pick the
-                // lowest at the end
-                $batchSizes[] = $batchSize;
+            if (!$batchSize) {
+                continue;
             }
+
+            $batchSizes[] = $batchSize;
         }
 
         if ($batchSizes) {
@@ -338,42 +277,19 @@ class IndexConfiguration
         return $this->getBatchSize();
     }
 
-    public function getLowestBatchSizeForClass(string $class, ?string $indexSuffix = null): int
+    public function getLowestBatchSizeForClass(string $class): int
     {
-        $candidate = $class;
         $batchSizes = [];
-        // Fetch all index configurations (these might be filtered if restrictToIndexes has been set)
-        $indexSuffixes = $this->getIndexConfigurations();
 
-        if ($indexSuffix) {
-            // If we're requesting the batch size for a specific index, then make sure we only have that specific index
-            // configuration available
-            $indexSuffixes = array_intersect_key($indexSuffixes, array_flip([$indexSuffix]));
-        }
+        // Loop through each potential index configuration
+        foreach ($this->getIndexSuffixes() as $indexSuffix) {
+            $batchSize = $this->getIndexDataForSuffix($indexSuffix)?->getLowestBatchSizeForClass($class);
 
-        while ($candidate) {
-            // Loop through each potential index configuration
-            foreach ($indexSuffixes as $config) {
-                $includedClasses = $config['includeClasses'] ?? [];
-                $spec = $includedClasses[$candidate] ?? null;
-
-                if (!$spec || !is_array($spec)) {
-                    continue;
-                }
-
-                // Check to see if a batch size was defined for this class
-                $batchSize = $spec['batch_size'] ?? null;
-
-                if (!$batchSize) {
-                    continue;
-                }
-
-                // In the case where there are multiple candidate configurations, we'll keep them all and then pick the
-                // lowest at the end
-                $batchSizes[] = $batchSize;
+            if (!$batchSize) {
+                continue;
             }
 
-            $candidate = get_parent_class($candidate);
+            $batchSizes[] = $batchSize;
         }
 
         if ($batchSizes) {
@@ -382,36 +298,6 @@ class IndexConfiguration
         }
 
         return $this->getBatchSize();
-    }
-
-    public function getFieldsForIndex(string $index): array
-    {
-        $fields = [];
-
-        $defaultFields = [
-            // Default fields that relate to our DataObjects
-            $this->getSourceClassField(),
-            DataObjectDocument::config()->get('base_class_field'),
-            DataObjectDocument::config()->get('record_id_field'),
-        ];
-
-        foreach ($defaultFields as $defaultField) {
-            $fields[$defaultField] = new Field(
-                $defaultField,
-                null,
-                []
-            );
-        }
-
-        $classes = $this->getClassesForIndex($index);
-
-        foreach ($classes as $class) {
-            $fields = array_merge($fields, $this->getFieldsForClass($class));
-        }
-
-        $this->extend('extendGetFieldsForIndex', $fields);
-
-        return $fields;
     }
 
     /**

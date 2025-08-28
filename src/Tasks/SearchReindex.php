@@ -49,16 +49,16 @@ class SearchReindex extends BuildTask
         }
 
         // Loop through all available indexes (with the above filter applied, if relevant)
-        foreach (array_keys($indexConfiguration->getIndexConfigurations()) as $index) {
+        foreach (array_keys($indexConfiguration->getIndexConfigurations()) as $indexSuffix) {
             // If a specific class has been requested, then we'll limit ourselves to that, otherwise get all classes
             // for the index
             $classes = $onlyClass
                 ? [$onlyClass]
-                : $indexConfiguration->getClassesForIndex($index);
+                : $indexConfiguration->getIndexDataForSuffix($indexSuffix)->getClasses();
 
             foreach ($classes as $class) {
                 // Create a job for this class and index
-                $job = ReindexJob::create($index, [$class]);
+                $job = ReindexJob::create($indexSuffix, [$class]);
 
                 if ($indexConfiguration->shouldUseSyncJobs()) {
                     // This can be a very memory and time intensive process

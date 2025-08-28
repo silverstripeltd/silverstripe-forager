@@ -141,33 +141,33 @@ class IndexConfigurationTest extends SapphireTest
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
 
-        $result = $config->getClassesForIndex('index1');
+        $result = $config->getIndexDataForSuffix('index1')->getClasses();
         $this->assertTrue(is_array($result));
         $this->assertCount(2, $result);
         $this->assertContains(DataObjectFake::class, $result);
         $this->assertContains(Member::class, $result);
 
-        $result = $config->getClassesForIndex('index2');
+        $result = $config->getIndexDataForSuffix('index2')->getClasses();
         $this->assertTrue(is_array($result));
         $this->assertCount(2, $result);
         $this->assertContains(DataObjectFake::class, $result);
         $this->assertContains(Controller::class, $result);
 
-        $result = $config->getClassesForIndex('index3');
+        $result = $config->getIndexDataForSuffix('index3')->getClasses();
         $this->assertTrue(is_array($result));
         $this->assertCount(1, $result);
         $this->assertContains(DataObjectSubclassFake::class, $result);
 
-        $result = $config->getClassesForIndex('index4');
+        $result = $config->getIndexDataForSuffix('index4')->getClasses();
         $this->assertTrue(is_array($result));
         $this->assertCount(1, $result);
         $this->assertContains(ModelData::class, $result);
 
-        $result = $config->getClassesForIndex('index5');
+        $result = $config->getIndexDataForSuffix('index5')->getClasses();
         $this->assertTrue(is_array($result));
         $this->assertEmpty($result);
 
-        $result = $config->getClassesForIndex('index6');
+        $result = $config->getIndexDataForSuffix('index6')->getClasses();
         $this->assertTrue(is_array($result));
         $this->assertEmpty($result);
     }
@@ -283,48 +283,40 @@ class IndexConfigurationTest extends SapphireTest
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
 
-        $result = $config->getFieldsForIndex('index1');
+        $result = $config->getIndexDataForSuffix('index1')->getFields();
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(8, $names);
+        $this->assertCount(6, $names);
         $this->assertContains($config->getSourceClassField(), $names);
         $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
         $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
+        $this->assertContains('field1', $names);
         $this->assertContains('field2', $names);
         $this->assertContains('field3', $names);
-        $this->assertContains('field5', $names);
-        $this->assertContains('field9', $names);
 
-        $result = $config->getFieldsForIndex('index2');
+        $result = $config->getIndexDataForSuffix('index2')->getFields();
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(8, $names);
+        $this->assertCount(5, $names);
         $this->assertContains($config->getSourceClassField(), $names);
         $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
         $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
-        $this->assertContains('field1', $names);
-        $this->assertContains('field2', $names);
+        $this->assertContains('field5', $names);
         $this->assertContains('field6', $names);
-        $this->assertContains('field5', $names);
-        $this->assertContains('field9', $names);
 
-        $result = $config->getFieldsForIndex('index3');
+        $result = $config->getIndexDataForSuffix('index3')->getFields();
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
-        $this->assertCount(8, $names);
+        $this->assertCount(4, $names);
         $this->assertContains($config->getSourceClassField(), $names);
         $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
         $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
-        $this->assertContains('field1', $names);
-        $this->assertContains('field2', $names);
-        $this->assertContains('field5', $names);
         $this->assertContains('field7', $names);
-        $this->assertContains('field9', $names);
 
-        $result = $config->getFieldsForIndex('index4');
+        $result = $config->getIndexDataForSuffix('index4')->getFields();
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
@@ -334,7 +326,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
         $this->assertContains('field9', $names);
 
-        $result = $config->getFieldsForIndex('index5');
+        $result = $config->getIndexDataForSuffix('index5')->getFields();
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
@@ -343,7 +335,7 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertContains(DataObjectDocument::config()->get('base_class_field'), $names);
         $this->assertContains(DataObjectDocument::config()->get('record_id_field'), $names);
 
-        $result = $config->getFieldsForIndex('index6');
+        $result = $config->getIndexDataForSuffix('index6')->getFields();
         $names = array_map(function (Field $field) {
             return $field->getSearchFieldName();
         }, $result);
@@ -359,8 +351,6 @@ class IndexConfigurationTest extends SapphireTest
         $config = IndexConfiguration::singleton();
 
         $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
-        // Should be the batch_size set specifically within index1
-        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class, 'index1'));
         // Should pick the lowest defined batch_size across all of our indexes
         $this->assertEquals(50, $config->getLowestBatchSizeForClass(DataObjectFake::class));
         // Should not get mixed up with the definitions for DataObjectFake
@@ -376,8 +366,6 @@ class IndexConfigurationTest extends SapphireTest
         $config->restrictToIndexes(['index1']);
 
         $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
-        // Should be the batch_size set specifically within index1
-        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class, 'index1'));
         // Should be exactly the same as above, because we have filtered restrictToIndexes() to 'index1'
         $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class));
         // Should use batch_size for DataObjectFake, since DataObjectSubclassFake doesn't have an explicit definition
@@ -432,7 +420,7 @@ class IndexConfigurationTest extends SapphireTest
 
         $config = IndexConfiguration::singleton();
         $this->expectException(IndexConfigurationException::class);
-        $config->getFieldsForIndex('index5');
+        $config->getIndexDataForSuffix('index5')->getFields();
     }
 
     public function testGetIndexSuffixes(): void

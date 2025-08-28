@@ -77,11 +77,6 @@ class IndexConfigurationFake extends IndexConfiguration
         return $this->override[__FUNCTION__][$class] ?? parent::isClassIndexed($class);
     }
 
-    public function getClassesForIndex(string $indexSuffix): array
-    {
-        return $this->override[__FUNCTION__][$indexSuffix] ?? parent::getClassesForIndex($indexSuffix);
-    }
-
     public function getSearchableClasses(): array
     {
         return $this->override[__FUNCTION__] ?? parent::getSearchableClasses();
@@ -95,11 +90,6 @@ class IndexConfigurationFake extends IndexConfiguration
     public function getFieldsForClass(string $class): ?array
     {
         return $this->override[__FUNCTION__][$class] ?? parent::getFieldsForClass($class);
-    }
-
-    public function getFieldsForIndex(string $index): array
-    {
-        return $this->override[__FUNCTION__][$index] ?? parent::getFieldsForIndex($index);
     }
 
     public function getIndexPrefix(): ?string
