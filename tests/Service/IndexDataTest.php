@@ -153,9 +153,9 @@ class IndexDataTest extends SapphireTest
         $fields = $indexData->getFields();
 
         $this->assertArrayHasKey('Title', $fields);
-        $this->assertArrayHasKey('ForagerSourceClass', $fields);
-        $this->assertArrayHasKey('ForagerBaseClass', $fields);
-        $this->assertArrayHasKey('ForagerRecordID', $fields);
+        $this->assertArrayHasKey('source_class', $fields);
+        $this->assertArrayHasKey('record_base_class', $fields);
+        $this->assertArrayHasKey('record_id', $fields);
     }
 
     public function testGetFieldsForClass(): void
