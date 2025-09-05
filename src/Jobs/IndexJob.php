@@ -9,7 +9,6 @@ use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
-use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
@@ -28,11 +27,6 @@ class IndexJob extends BatchJob
 
     use Injectable;
     use Extensible;
-    use ConfigurationAware;
-
-    private static array $dependencies = [
-        'configuration' => '%$' . IndexConfiguration::class,
-    ];
 
     /**
      * @param DocumentInterface[] $documents
@@ -46,9 +40,9 @@ class IndexJob extends BatchJob
     ) {
         if ($indexSuffix) {
             // only run with a value on initial creation
-            $config = IndexConfiguration::singleton()->restrictToIndexes([$indexSuffix]);
+            $config = IndexConfiguration::singleton();
             // Use the provided batch size, or determine batch size from our IndexConfiguration
-            $batchSize = $batchSize ?: $config->getLowestBatchSize();
+            $batchSize = $batchSize ?: $config->getIndexDataForSuffix($indexSuffix)->getLowestBatchSize();
             $this->setBatchSize($batchSize);
         }
 
@@ -68,7 +62,7 @@ class IndexJob extends BatchJob
             throw new InvalidArgumentException('An index suffix must be specified');
         }
 
-        $config = $this->getConfiguration();
+        $config = IndexConfiguration::singleton();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
         $indexData->withIndexContext(function (): void {
             // There could be 0 documents. If that's the case, then there's zero steps
@@ -108,7 +102,7 @@ class IndexJob extends BatchJob
             return;
         }
 
-        $config = $this->getConfiguration();
+        $config = IndexConfiguration::singleton();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
         $indexData->withIndexContext(function (): void {
             $remainingDocuments = $this->getRemainingDocuments();
