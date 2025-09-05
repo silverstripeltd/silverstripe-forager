@@ -11,15 +11,17 @@ use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
 class IndexDataTest extends SapphireTest
 {
+    use SearchServiceTestTrait;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        Injector::inst()->registerService(new IndexConfigurationFake(), IndexConfiguration::class);
+        $this->mockConfig(true);
     }
 
     public function testGetData(): void
@@ -230,7 +232,7 @@ class IndexDataTest extends SapphireTest
         ];
 
         $indexData = new IndexData($config, 'foo');
-        $this->assertNull($indexData->getLowestBatchSize());
+        $this->assertEquals(100, $indexData->getLowestBatchSize());
     }
 
     public function testGetLowestBatchSizeForClass(): void
@@ -256,7 +258,7 @@ class IndexDataTest extends SapphireTest
         ];
 
         $indexData = new IndexData($config, 'foo');
-        $this->assertNull($indexData->getLowestBatchSizeForClass(DataObjectFake::class));
+        $this->assertEquals(100, $indexData->getLowestBatchSizeForClass(DataObjectFake::class));
     }
 
 }

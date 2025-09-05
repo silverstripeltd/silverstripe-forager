@@ -206,7 +206,7 @@ class IndexData
         return $fieldObjs;
     }
 
-    public function getLowestBatchSize(): ?int
+    public function getLowestBatchSize(): int
     {
         $classData = $this->getClassData();
         $batchSizes = [];
@@ -225,13 +225,14 @@ class IndexData
         }
 
         if (!$batchSizes) {
-            return null;
+            // fall back to global index configuration
+            return IndexConfiguration::singleton()->getBatchSize();
         }
 
         return min($batchSizes);
     }
 
-    public function getLowestBatchSizeForClass(string $class): ?int
+    public function getLowestBatchSizeForClass(string $class): int
     {
         $candidate = $class;
         $batchSizes = [];
@@ -262,7 +263,8 @@ class IndexData
         }
 
         if (!$batchSizes) {
-            return null;
+            // fall back to global index configuration
+            return IndexConfiguration::singleton()->getBatchSize();
         }
 
         // Return the lowest defined batch size
