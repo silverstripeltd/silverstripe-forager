@@ -95,6 +95,17 @@ class IndexData
         return $this->data[static::CONTEXT_KEY];
     }
 
+    /**
+     * With Index Context wrapper function
+     * withIndexContext will execute the provided callback
+     * within any registered IndexDataContextProvider functions.
+     * This is used at a top level way to set global operational contexts
+     * such as Versioned reading mode or Fluent state per index.
+     *
+     * @param callable $callback
+     * @return void
+     * @see SilverStripe\Forager\Interfaces\IndexDataContextProvider
+     */
     public function withIndexContext(callable $callback): void
     {
         $contextKey = $this->getContextKey();

@@ -12,11 +12,14 @@ interface IndexDataContextProvider
     /**
      * Contexts are objects of type callable that
      * take another callable as an argument returns
-     * the result of calling that argument
+     * the result of calling that argument.
+     *
+     * The current IndexData is provided as the second argument
+     *
      *
      * ```PHP
      * public function getContext(): callable {
-     *      return function (callable $next): mixed {
+     *      return function (callable $next, IndexData $indexData): mixed {
      *          return Versioned::withVersionedMode(function () use ($next): mixed {
      *               Versioned::set_stage(Versioned::LIVE);
      *
