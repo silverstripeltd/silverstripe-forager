@@ -23,7 +23,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
 
     public function testRemoveDocuments(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         Config::modify()->set(

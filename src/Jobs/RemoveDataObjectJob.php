@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Jobs;
 
 use Exception;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
@@ -56,7 +57,7 @@ class RemoveDataObjectJob extends IndexJob
      */
     public function setup(): void
     {
-        $config = $this->getConfiguration();
+        $config = IndexConfiguration::singleton();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
         $indexData->withIndexContext(function (): void {
             /** @var DBDatetime $datetime - set the documents in setup to ensure async */
