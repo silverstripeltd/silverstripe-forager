@@ -503,6 +503,12 @@ class DataObjectDocument implements
         $this->dataObject = $dataObject;
 
         foreach (static::config()->get('dependencies') as $name => $service) {
+            $getter = 'get' . $name;
+
+            if ($this->$getter() !== null) {
+                continue;
+            }
+
             $method = 'set' . $name;
             $this->$method(Injector::inst()->get($service));
         }
