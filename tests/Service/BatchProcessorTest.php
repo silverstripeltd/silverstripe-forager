@@ -19,7 +19,7 @@ class BatchProcessorTest extends SapphireTest
 
     public function testAddDocumentsSync(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         $mock = $this->getMockBuilder(SyncJobRunner::class)
@@ -36,17 +36,17 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->addDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
     public function testRemoveDocumentsSync(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         $mock = $this->getMockBuilder(SyncJobRunner::class)
@@ -63,17 +63,17 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->removeDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
     public function testAddDocumentsQueued(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', false);
 
         $mock = $this->getMockBuilder(QueuedJobService::class)
@@ -91,17 +91,17 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->addDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 
     public function testRemoveDocumentsQueued(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', false);
 
         $mock = $this->getMockBuilder(QueuedJobService::class)
@@ -119,11 +119,11 @@ class BatchProcessorTest extends SapphireTest
 
         $processor = new BatchProcessor($config);
         $processor->removeDocuments(
+            'index1',
             [
                 new DocumentFake('Fake', ['test' => 'foo']),
                 new DocumentFake('Fake', ['test' => 'bar']),
-            ],
-            ['index1']
+            ]
         );
     }
 

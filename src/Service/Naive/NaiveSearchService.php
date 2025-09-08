@@ -8,22 +8,22 @@ use SilverStripe\Forager\Interfaces\IndexingInterface;
 class NaiveSearchService implements IndexingInterface
 {
 
-    public function addDocument(DocumentInterface $document, array $indexSuffixes): ?string
+    public function addDocument(string $indexSuffix, DocumentInterface $document): ?string
     {
         return null;
     }
 
-    public function addDocuments(array $documents, array $indexSuffixes): array
+    public function addDocuments(string $indexSuffix, array $documents): array
     {
         return [];
     }
 
-    public function removeDocument(DocumentInterface $document, array $indexSuffixes): ?string
+    public function removeDocument(string $indexSuffix, DocumentInterface $document): ?string
     {
         return null;
     }
 
-    public function removeDocuments(array $documents, array $indexSuffixes): array
+    public function removeDocuments(string $indexSuffix, array $documents): array
     {
         return [];
     }

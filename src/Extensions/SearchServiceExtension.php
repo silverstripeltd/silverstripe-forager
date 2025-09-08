@@ -111,7 +111,9 @@ class SearchServiceExtension extends Extension
         $document = DataObjectDocument::create($this->owner);
         $indexSuffixes = IndexConfiguration::singleton()->getIndexSuffixes();
 
-        $this->getBatchProcessor()->addDocuments([$document], $indexSuffixes);
+        foreach ($indexSuffixes as $indexSuffix) {
+            $this->getBatchProcessor()->addDocuments($indexSuffix, [$document]);
+        }
     }
 
     /**
@@ -122,7 +124,9 @@ class SearchServiceExtension extends Extension
         $document = DataObjectDocument::create($this->owner)->setShouldFallbackToLatestVersion();
         $indexSuffixes = IndexConfiguration::singleton()->getIndexSuffixes();
 
-        $this->getBatchProcessor()->removeDocuments([$document], $indexSuffixes);
+        foreach ($indexSuffixes as $indexSuffix) {
+            $this->getBatchProcessor()->removeDocuments($indexSuffix, [$document]);
+        }
     }
 
     /**

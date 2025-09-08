@@ -38,18 +38,16 @@ class SearchReindexTest extends SapphireTest
         /** @var QueuedJobDescriptor[] $jobDescriptors */
         $jobDescriptors = QueuedJobDescriptor::get()->column('SavedJobData');
 
-        // 2 indexes, 1 has 3 defined classes, the other has 2 defined classes = 5 jobs total
-        $this->assertCount(5, $jobDescriptors);
+        // 2 indexes, 1 has 2 defined classes, the other has 1 defined class = 3 jobs total
+        $this->assertCount(3, $jobDescriptors);
 
         $expected = [
             'index1' => [
                 DataObjectFake::class,
                 DataObjectFakeAlternate::class,
-                Member::class,
             ],
             'index2' => [
                 DataObjectFake::class,
-                Controller::class,
             ],
         ];
 

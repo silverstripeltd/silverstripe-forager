@@ -91,7 +91,13 @@ class DataObjectFetcher implements DocumentFetcherInterface
 
     public function getTotalBatches(): int
     {
-        return max(1, (int) ceil($this->getTotalDocuments() / $this->getBatchSize()));
+        $total = $this->getTotalDocuments();
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        return max(1, (int) ceil($total / $this->getBatchSize()));
     }
 
     public function createDocument(array $data): ?DocumentInterface

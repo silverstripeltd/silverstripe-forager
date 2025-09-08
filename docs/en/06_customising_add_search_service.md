@@ -56,7 +56,7 @@ it is assigned to. Be sure to check each item's `shouldIndex()` method, as well.
 Return value should be the unique ID of the document.
 
 ```php
-public function addDocument(DocumentInterface $document, array $indexSuffixes): ?string
+public function addDocument(array $indexSuffix, DocumentInterface $document): ?string
 {
     if (!$document->shouldIndex()) {
         return null;
@@ -81,7 +81,7 @@ public function addDocument(DocumentInterface $document, array $indexSuffixes): 
 **Tip**: Consider passing `DocumentBuilder` and `IndexConfiguration` as a constructor 
 arguments to your indexing service.
 
-### addDocuments(array $documents, array $indexSuffixes): self
+### addDocuments(array $indexSuffix, array $documents): self
 
 Same as `addDocument()`, but accepts an array of `DocumentInterface` objects. It is recommended
 that the `addDocument()` method works as a proxy for `addDocuments()`, e.g. 
@@ -103,7 +103,7 @@ Removes a document from its indexes.
 Return value should be the unique ID of the document.
 
 ```php
-public function removeDocument(DocumentInterface $document): ?string
+public function removeDocument(string $indexSuffix, DocumentInterface $document): ?string
 {
     $indexes = IndexConfiguration::singleton()->getIndexConfigurationsForDocument($document);
     

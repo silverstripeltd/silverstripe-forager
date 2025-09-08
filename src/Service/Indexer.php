@@ -38,7 +38,7 @@ class Indexer
      */
     private array $documents = [];
 
-    private array $indexSuffixes = [];
+    private string $indexSuffix;
 
     private int $batchSize;
 
@@ -49,17 +49,17 @@ class Indexer
     private bool $isComplete = false;
 
     public function __construct(
+        string $indexSuffix,
         array $documents = [],
-        array $indexSuffixes = [],
         int $method = self::METHOD_ADD,
         ?int $batchSize = null
     ) {
         $this->setConfiguration(IndexConfiguration::singleton());
+        $this->setIndexSuffix($indexSuffix);
         $this->setMethod($method);
         $this->setBatchSize($batchSize ?: $this->getConfiguration()->getBatchSize());
         $this->setProcessDependencies($this->getConfiguration()->shouldTrackDependencies());
         $this->setDocuments($documents);
-        $this->setIndexSuffixes($indexSuffixes);
     }
 
     public function processNode(): void
@@ -69,7 +69,7 @@ class Indexer
         $documents = array_shift($remainingChildren);
 
         if ($this->method === static::METHOD_DELETE) {
-            $this->getIndexService()->removeDocuments($documents, $this->getIndexSuffixes());
+            $this->getIndexService()->removeDocuments($this->getIndexSuffix(), $documents);
         } else {
             $toRemove = [];
             $toUpdate = [];
@@ -95,7 +95,7 @@ class Indexer
             }
 
             if ($toUpdate) {
-                $this->getIndexService()->addDocuments($toUpdate, $this->getIndexSuffixes());
+                $this->getIndexService()->addDocuments($this->getIndexSuffix(), $toUpdate);
 
                 foreach ($toUpdate as $document) {
                     if ($document instanceof DocumentAddHandler) {
@@ -105,7 +105,7 @@ class Indexer
             }
 
             if ($toRemove) {
-                $this->getIndexService()->removeDocuments($toRemove, $this->getIndexSuffixes());
+                $this->getIndexService()->removeDocuments($this->getIndexSuffix(), $toRemove);
 
                 foreach ($toRemove as $document) {
                     if ($document instanceof DocumentRemoveHandler) {
@@ -134,8 +134,8 @@ class Indexer
                     // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
                     // and decide whether we should delete or update them automatically.
                     $child = static::create(
+                        $this->getIndexSuffix(),
                         $dependentDocs,
-                        $this->getIndexSuffixes(),
                         self::METHOD_ADD,
                         $this->getBatchSize()
                     );
@@ -224,14 +224,14 @@ class Indexer
         return $this;
     }
 
-    public function getIndexSuffixes(): array
+    public function getIndexSuffix(): string
     {
-        return $this->indexSuffixes;
+        return $this->indexSuffix;
     }
 
-    public function setIndexSuffixes(array $indexSuffixes): static
+    public function setIndexSuffix(string $indexSuffix): static
     {
-        $this->indexSuffixes = $indexSuffixes;
+        $this->indexSuffix = $indexSuffix;
 
         return $this;
     }
