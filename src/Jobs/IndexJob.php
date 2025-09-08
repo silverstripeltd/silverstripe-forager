@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\Jobs;
 
 use Exception;
+use InvalidArgumentException;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
@@ -37,14 +38,17 @@ class IndexJob extends BatchJob
         ?int $batchSize = null,
         bool $processDependencies = true
     ) {
-        IndexConfiguration::singleton()->restrictToIndexes([$indexSuffix]);
-        // Use the provided batch size, or determine batch size from our IndexConfiguration
-        $batchSize = $batchSize ?: IndexConfiguration::singleton()->getLowestBatchSize();
+        if ($indexSuffix) {
+            // only run with a value on initial creation
+            $config = IndexConfiguration::singleton();
+            // Use the provided batch size, or determine batch size from our IndexConfiguration
+            $batchSize = $batchSize ?: $config->getIndexDataForSuffix($indexSuffix)->getLowestBatchSize();
+            $this->setBatchSize($batchSize);
+        }
 
         $this->setDocuments($documents);
         $this->setIndexSuffix($indexSuffix);
         $this->setMethod($method);
-        $this->setBatchSize($batchSize);
         $this->setProcessDependencies($processDependencies);
 
         parent::__construct();
@@ -54,15 +58,23 @@ class IndexJob extends BatchJob
     {
         $this->extend('onBeforeSetup');
 
-        // There could be 0 documents. If that's the case, then there's zero steps
-        $this->totalSteps = $this->getDocuments()
-            ? (int) ceil(count($this->getDocuments()) / $this->getBatchSize())
-            : 0;
+        if (!$this->getIndexSuffix()) {
+            throw new InvalidArgumentException('An index suffix must be specified');
+        }
 
-        $this->currentStep = 0;
-        $this->setRemainingDocuments($this->getDocuments());
+        $config = IndexConfiguration::singleton();
+        $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
+        $indexData->withIndexContext(function (): void {
+            // There could be 0 documents. If that's the case, then there's zero steps
+            $this->totalSteps = $this->getDocuments()
+                ? (int) ceil(count($this->getDocuments()) / $this->getBatchSize())
+                : 0;
 
-        parent::setup();
+            $this->currentStep = 0;
+            $this->setRemainingDocuments($this->getDocuments());
+
+            parent::setup();
+        });
 
         $this->extend('onAfterSetup');
     }
@@ -90,40 +102,45 @@ class IndexJob extends BatchJob
             return;
         }
 
-        $remainingDocuments = $this->getRemainingDocuments();
-        // Splice a bunch of Documents from the start of the remaining documents
-        $documentToProcess = array_splice($remainingDocuments, 0, $this->getBatchSize());
+        $config = IndexConfiguration::singleton();
+        $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
+        $indexData->withIndexContext(function (): void {
+            $remainingDocuments = $this->getRemainingDocuments();
+            // Splice a bunch of Documents from the start of the remaining documents
+            $documentToProcess = array_splice($remainingDocuments, 0, $this->getBatchSize());
 
-        if (!$documentToProcess) {
-            $this->isComplete = true;
+            if (!$documentToProcess) {
+                $this->isComplete = true;
 
-            return;
-        }
+                return;
+            }
 
-        // Indexer is being instantiated in process() rather that __construct() to prevent the following exception:
-        // Uncaught Exception: Serialization of 'CurlHandle' is not allowed
-        // The CurlHandle is created in a third-party dependency
-        $indexer = Indexer::create(
-            $this->getIndexSuffix(),
-            $documentToProcess,
-            $this->getMethod(),
-            $this->getBatchSize()
-        );
-        $indexer->setProcessDependencies($this->shouldProcessDependencies());
+            // Indexer is being instantiated in process() rather that __construct() to prevent the following exception:
+            // Uncaught Exception: Serialization of 'CurlHandle' is not allowed
+            // The CurlHandle is created in a third-party dependency
+            $indexer = Indexer::create(
+                $this->getIndexSuffix(),
+                $documentToProcess,
+                $this->getMethod(),
+                $this->getBatchSize()
+            );
+            $indexer->setProcessDependencies($this->shouldProcessDependencies());
 
-        $this->extend('onBeforeProcess');
-        $indexer->processNode();
-        $this->extend('onAfterProcess');
+            $this->extend('onBeforeProcess');
+            $indexer->processNode();
+            $this->extend('onAfterProcess');
 
-        // Save away whatever Documents are still remaining
-        $this->setRemainingDocuments($remainingDocuments);
-        $this->currentStep++;
+            // Save away whatever Documents are still remaining
+            $this->setRemainingDocuments($remainingDocuments);
+            $this->currentStep++;
 
-        if ($this->currentStep >= $this->totalSteps) {
-            $this->isComplete = true;
+            if ($this->currentStep >= $this->totalSteps) {
+                $this->isComplete = true;
 
-            return;
-        }
+                return;
+            }
+        });
+
 
         $this->cooldown();
     }

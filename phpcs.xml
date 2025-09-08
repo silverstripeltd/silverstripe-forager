@@ -178,4 +178,10 @@
             <property name="linesCountAfterWhenLastInLastCaseOrDefault" value="0"/>
         </properties>
     </rule>
+
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable">
+        <properties>
+            <property name="ignoreUnusedValuesWhenOnlyKeysAreUsedInForeach" value="true"/>
+        </properties>
+    </rule>
 </ruleset>

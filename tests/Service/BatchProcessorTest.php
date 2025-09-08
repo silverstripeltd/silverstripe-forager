@@ -19,7 +19,7 @@ class BatchProcessorTest extends SapphireTest
 
     public function testAddDocumentsSync(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         $mock = $this->getMockBuilder(SyncJobRunner::class)
@@ -46,7 +46,7 @@ class BatchProcessorTest extends SapphireTest
 
     public function testRemoveDocumentsSync(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         $mock = $this->getMockBuilder(SyncJobRunner::class)
@@ -73,7 +73,7 @@ class BatchProcessorTest extends SapphireTest
 
     public function testAddDocumentsQueued(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', false);
 
         $mock = $this->getMockBuilder(QueuedJobService::class)
@@ -101,7 +101,7 @@ class BatchProcessorTest extends SapphireTest
 
     public function testRemoveDocumentsQueued(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', false);
 
         $mock = $this->getMockBuilder(QueuedJobService::class)

@@ -64,7 +64,7 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         $this->objFromFixture(TagFake::class, 'five')->publishRecursive();
         $this->objFromFixture(TagFake::class, 'six')->publishRecursive();
 
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
 
         $config->set(
             'getSearchableClasses',
