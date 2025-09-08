@@ -40,6 +40,9 @@
         }
     },
     "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        },
         "project-files-installed": [
             "behat.yml",
             "phpunit.xml.dist"
