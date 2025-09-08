@@ -143,6 +143,7 @@ class IndexData
 
         $defaultFields = [
             // Default fields that relate to our DataObjects
+            // @todo don't hardcode DataObjectDocument in here
             IndexConfiguration::singleton()->getSourceClassField(),
             DataObjectDocument::config()->get('base_class_field'),
             DataObjectDocument::config()->get('record_id_field'),
