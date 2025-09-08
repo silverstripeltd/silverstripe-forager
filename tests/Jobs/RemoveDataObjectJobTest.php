@@ -39,7 +39,7 @@ class RemoveDataObjectJobTest extends SapphireTest
 
     public function testJob(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
 
         $config->set(
             'getSearchableClasses',
@@ -81,11 +81,8 @@ class RemoveDataObjectJobTest extends SapphireTest
         // Queue up a job to remove our Tag, the result should be that any related DataObject (DOs that have this Tag
         // assigned to them) are added as related Documents
         $job = RemoveDataObjectJob::create(
+            'index1',
             DataObjectDocument::create($tag),
-            [
-                'index1',
-                'index2',
-            ]
         );
         $job->setup();
 
@@ -136,15 +133,16 @@ class RemoveDataObjectJobTest extends SapphireTest
     {
         $this->mockConfig(true);
 
-        $job = RemoveDataObjectJob::create();
+        $job = RemoveDataObjectJob::create('index1');
 
         $this->assertNull($job->getDocument());
         $this->assertNotNull($job->getTimestamp());
         // Should be the lowest define batch_size across our index configuration
         $this->assertEquals(5, $job->getBatchSize());
 
-        $job = RemoveDataObjectJob::create(null, [], null, 33);
+        $job = RemoveDataObjectJob::create('index1', null, null, 33);
 
+        $this->assertEquals('index1', $job->getIndexSuffix());
         $this->assertNull($job->getDocument());
         $this->assertNotNull($job->getTimestamp());
         // Should be the batch_size that was explicitly set

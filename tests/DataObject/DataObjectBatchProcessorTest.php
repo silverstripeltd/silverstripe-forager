@@ -23,7 +23,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
 
     public function testRemoveDocuments(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         Config::modify()->set(
@@ -58,11 +58,11 @@ class DataObjectBatchProcessorTest extends SapphireTest
         $processor = new DataObjectBatchProcessor(IndexConfiguration::singleton());
 
         $processor->removeDocuments(
+            'index1',
             [
                 DataObjectDocumentFake::create(DataObjectFake::create()),
                 DataObjectDocumentFake::create(DataObjectFake::create()),
-            ],
-            ['index1']
+            ]
         );
     }
 

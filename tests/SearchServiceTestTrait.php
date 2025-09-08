@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\Tests;
 
-use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
@@ -12,7 +11,6 @@ use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
 use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
-use SilverStripe\Security\Member;
 
 trait SearchServiceTestTrait
 {
@@ -47,13 +45,6 @@ trait SearchServiceTestTrait
                                     'field2' => true,
                                 ],
                             ],
-                            Member::class => [
-                                'batch_size' => 50,
-                                'fields' => [
-                                    'field3' => true,
-                                    'field4' => false,
-                                ],
-                            ],
                         ],
                     ],
                     'index2' => [
@@ -62,11 +53,6 @@ trait SearchServiceTestTrait
                                 'batch_size' => 25,
                                 'fields' => [
                                     'field5' => true,
-                                ],
-                            ],
-                            Controller::class => [
-                                'fields' => [
-                                    'field6' => true,
                                 ],
                             ],
                         ],
@@ -99,7 +85,7 @@ trait SearchServiceTestTrait
 
             $dataObject->write();
             $doc = DataObjectDocument::create($dataObject);
-            $service->addDocument($doc, ['index1', 'index2']);
+            $service->addDocument('index1', $doc);
         }
 
         return $service;
@@ -116,7 +102,7 @@ trait SearchServiceTestTrait
 
             $dataObject->write();
             $doc = DataObjectDocument::create($dataObject);
-            $service->addDocument($doc, ['index1', 'index2']);
+            $service->addDocument('index1', $doc);
         }
 
         return $service;
