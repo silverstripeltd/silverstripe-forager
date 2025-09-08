@@ -40,6 +40,7 @@ use SilverStripe\ORM\RelationList;
 use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
+use TypeError;
 
 class DataObjectDocument implements
     DocumentInterface,
@@ -503,10 +504,16 @@ class DataObjectDocument implements
         $this->dataObject = $dataObject;
 
         foreach (static::config()->get('dependencies') as $name => $service) {
+            // re-instate dependencies after job hydration
+
             $getter = 'get' . $name;
 
-            if ($this->$getter() !== null) {
-                continue;
+            try {
+                if ($this->$getter() !== null) {
+                    continue;
+                }
+            } catch (TypeError) {
+                // noop - occurs when class hydrated from job and dependencies are null
             }
 
             $method = 'set' . $name;
