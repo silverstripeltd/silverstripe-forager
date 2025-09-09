@@ -79,8 +79,14 @@ class DataObjectDocument implements
      */
     private ?DataObject $dataObject = null;
 
+    /**
+     * The classname of the data object
+     */
     private ?string $className = null;
 
+    /**
+     * The ID of the data object being indexed.
+     */
     private ?int $id = null;
 
     /**
@@ -101,20 +107,32 @@ class DataObjectDocument implements
         $this->setDataObject($dataObject);
     }
 
+    /**
+     * The identifier (id) used in the search engine, based on the class and object id.
+     *
+     * @return string
+     */
     public function getIdentifier(): string
     {
-        $type = str_replace('\\', '_', $this->getDataObject()->baseClass());
-        $id = $this->getDataObject()->ID;
+        $type = str_replace('\\', '_', $this->getSourceClass());
+        $id = $this->id;
 
         return strtolower(sprintf('%s_%s', $type, $id));
     }
 
     /**
+     * Get the source class for the data object.
      * @return string
      */
     public function getSourceClass(): string
     {
-        return $this->getDataObject()->ClassName;
+        if ($this->className) {
+            return $this->className;
+        }
+
+        $this->className = $this->getDataObject()->ClassName;
+
+        return $this->className;
     }
 
     public function setShouldFallbackToLatestVersion(bool $fallback = true): static
@@ -642,9 +660,23 @@ class DataObjectDocument implements
 
     public function __serialize(): array
     {
+        $id = $this->id;
+
+        // attempt to get data object (this won't be available for deleted non versioned objects)
+        try {
+            $dataObject = $this->getDataObject();
+            $id = $dataObject->ID ?: $dataObject->OldID;
+        } catch (Throwable $e) {
+            // if a Versioned object then throw an error, but we will let non-versioned objects to
+            // continue since it may have been deleted
+            if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                throw $e;
+            }
+        }
+
         return [
-            'className' => $this->getDataObject()->baseClass(),
-            'id' => $this->getDataObject()->ID ?: $this->getDataObject()->OldID,
+            'className' => $this->getSourceClass(),
+            'id' => $id,
             'fallback' => $this->shouldFallbackToLatestVersion,
         ];
     }
@@ -665,11 +697,16 @@ class DataObjectDocument implements
     public function onAddToSearchIndexes(string $event): void
     {
         if ($event === DocumentAddHandler::BEFORE_ADD) {
-            // make sure DataObject is always live on adding to the index
-            Versioned::withVersionedMode(function (): void {
-                Versioned::set_stage(Versioned::LIVE);
+            $currentDataObject = $this->getDataObject();
 
-                $currentDataObject = $this->getDataObject();
+            // if this is a non versioned object we don't need to update to the 'live' version
+            if (!$currentDataObject->hasExtension(Versioned::class)) {
+                return;
+            }
+
+            // make sure DataObject is always live on adding to the index
+            Versioned::withVersionedMode(function () use ($currentDataObject): void {
+                Versioned::set_stage(Versioned::LIVE);
 
                 $liveDataObject = DataObject::get($currentDataObject->ClassName)->byID($currentDataObject->ID);
 
