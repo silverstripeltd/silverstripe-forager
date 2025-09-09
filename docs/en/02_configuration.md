@@ -1,6 +1,6 @@
 # Configuration
 
-Most of the configuration surface of this module lies in the appropriately titled `IndexConfiguration` class. This namespace is used primarily for specifying the indexing behaviour of content types, but it is also used to store platform agnostic settings.
+Most of the configuration surface of this module lies in the appropriately titled `IndexConfiguration` class. This namespace is used primarily for specifying the indexing behaviour of content types, but it is also used to store provider agnostic settings.
 
 <!-- TOC -->
 * [Configuration](#configuration)
@@ -17,6 +17,7 @@ Most of the configuration surface of this module lies in the appropriately title
   * [Per environment indexing](#per-environment-indexing)
   * [Full page indexing](#full-page-indexing)
   * [Configuring search exclusion for files](#configuring-search-exclusion-for-files)
+  * [Index contexts](#index-contexts)
   * [More information](#more-information)
 <!-- TOC -->
 
@@ -38,7 +39,7 @@ For example, below we have 2 different environments that we want to support (`ua
 | prod-main      | prod         | main         |
 | prod-secondary | prod         | secondary    |
 
-This module inclues a lot of code that refers to `indexName`, `indexPrefix`, and `indexSuffix`; it's important to understand what is being requested, or provided.
+This module includes a lot of code that refers to `indexName`, `indexPrefix`, and `indexSuffix`; it's important to understand what is being requested, or provided.
 
 ### Configuration examples
 
@@ -51,7 +52,7 @@ SilverStripe\Forager\Service\IndexConfiguration:
           fields:
             title:
               property: Title
-            content: true # Shorthand. This is equavalent to the title example above
+            content: true # Shorthand. This is equivalent to the title example above
             term_ids:
               property: Terms.ID # An array of IDs
               options:
@@ -61,8 +62,8 @@ SilverStripe\Forager\Service\IndexConfiguration:
 
 Let's start with a few relevant nodes:
 
-* `<indexSuffix>`: See [Understanding your index prefix and index suffix](#understanding-your-index-prefix-and-index-suffix). From the previous example, this value might be `main`, or `secondary`
-* `includedClasses`: A list of content classes to index. Versioned DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./07_customising_add_document_type.md)
+* `<indexSuffix>`: See [Understanding your index prefix and index suffix](#understanding-your-index-prefix-and-index-suffix). From the previous example, this value might be `main` or `secondary`
+* `includedClasses`: A list of content classes to index. DataObjects are supported by default ([see Indexing DataObjects below](#indexing-dataobjects)). To add other kinds of objects you need to add a [Document Type](./07_customising_add_document_type.md)
 
 Here is an example of us indexing our pages for an index with the suffix of `main`.
 
@@ -79,7 +80,7 @@ SilverStripe\Forager\Service\IndexConfiguration:
 
 ## Indexing DataObjects
 
-To put a DataObject in the index it needs to be added to the index configuration and it needs to have the the `SearchServiceExtension` added:
+To put a DataObject in the index it needs to be added to the index configuration **and** it needs to have the the `SearchServiceExtension` added:
 
 ```yaml
 SilverStripe\Forager\Service\IndexConfiguration:
@@ -96,7 +97,7 @@ MyProject\MyApp\Product:
     - SilverStripe\Forager\Extensions\SearchServiceExtension
 ```
 
-DataObjects also require the `SilverStripe\Versioned\Versioned` extension. Non-versioned content is not yet supported. By default a versioned object will be added to the index when it is published and removed when it is unpublished.
+Most DataObjects you use will also have `SilverStripe\Versioned\Versioned` extension (e.g. SiteTree). By default a versioned object will be added to the index when it is published and removed when it is unpublished. The [SearchServiceExtension](../../src/Extensions/SearchServiceExtension.php) class is responsible for listing to these events.
 
 ### DataObject Fields
 
@@ -201,7 +202,7 @@ DNADesign\ElementalUserForms\Model\ElementForm:
 ```
 
 ## Batch size
-Documents are sent to the search provider to be indexed. These requests are batched together to allow provider modules to reduce API calls. You can control the batch size gobally and at a per class level.
+Documents are sent to the search provider to be indexed. These requests are batched together to allow provider modules to reduce API calls. You can control the batch size globally and at a per class level.
 
 The global batch size is set on the Index configuration class. The default is `100`; below is an example of reducing it to `75`.
 
@@ -322,6 +323,46 @@ Let's look at all the settings on the `IndexConfiguration` class:
     </tbody>
 </table>
 
+### Index suffix configuration
+The following settings are available at the 'indexSuffix' level:
+
+<table>
+    <thead>
+        <tr>
+            <th>Setting</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Default value</th>
+         </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>includeClasses</td>
+            <td>map</td>
+            <td>A map where the keys are the classes to include in indexing and the value contains class specific options</td>
+            <td>null</td>
+        </tr>
+        <tr>
+            <td>includeClasses.[class_name].batch_size</td>
+            <td>int</td>
+            <td>The batch sized used when bulk indexing this class</td>
+            <td>100 (inherited from the global setting)</td>
+        </tr>
+        <tr>
+            <td>includeClasses.[class_name].fields</td>
+            <td>map</td>
+            <td>A map of field names to index for this class and any <a href="#dataobject-fields">field specific options</a></td>
+            <td>null</td>
+        </tr>
+        <tr>
+            <td>context</td>
+            <td>string</td>
+            <td>A string identifying the index context to apply when carrying out operations on this index. See <a href="#index-contexts">Index Contexts</a></td>
+            <td>default</td>
+        </tr>
+    </tbody>
+</table>
+
 ## Per environment indexing
 
 As mentioned previously, by default, index names are decorated with the environment they were created in, for instance `dev-myindex`, `prod-myindex` This ensures that production indexes don't get polluted with sensitive or test content. This decoration is known as the `indexPrefix`, and the environment variable it uses can be configured. By default, as described above, the environment variable is `SS_ENVIRONMENT_TYPE`.
@@ -372,6 +413,46 @@ SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
     - svg
     - mp4
 ```
+
+## Index Contexts
+
+Index contexts allow you to control the operational context in which indexing occurs for each index. This is useful for scenarios such as ensuring that only published (Live) content is indexed, or for supporting multi-language (Fluent) setups.
+
+### Default Context
+
+If you do not specify a `context` for an index, the `default` context is used. By default, this will use the live Silverstripe reading mode for published versioned content. More information on contexts can be found in the [usage documentation](./03_usage.md#index-contexts)
+
+### Example Configuration
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    main:
+      context: custom
+      includeClasses:
+        SilverStripe\CMS\Model\SiteTree:
+          fields:
+            title: true
+    secondary:
+      includeClasses:
+        MyProject\MyApp\Product:
+          fields:
+            name: true
+```
+
+In this example, the `main` index uses the `custom` context, while the `secondary` index uses the default context.
+
+The default context defined in the [module config](../../_config/config.yml) and only contains the `LiveIndexDataContext` (see below for an example)
+
+```yaml
+SilverStripe\Forager\Service\IndexData:
+    properties:
+      contexts:
+        default:
+          SilverstripeForagerLiveIndexDataContext: '%$SilverStripe\Forager\Service\LiveIndexDataContext'
+```
+
+you can add [custom contexts](./03_usage.md#creating-custom-contexts) by adding keys to the `context` array.
 
 ## More information
 
