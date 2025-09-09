@@ -10,6 +10,7 @@ use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Service\BatchProcessor;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Versioned\Versioned;
 
 class DataObjectBatchProcessor extends BatchProcessor
 {
@@ -30,7 +31,36 @@ class DataObjectBatchProcessor extends BatchProcessor
         $job = IndexJob::create($indexSuffix, $documents, Indexer::METHOD_DELETE, null, false);
         $this->run($job);
 
+        $shouldTrackDependencies = $this->getConfiguration()->shouldTrackDependencies();
+
+        // if dependency tracking is disabled then we don't need to do anything else
+        if (!$shouldTrackDependencies) {
+            return [];
+        }
+
         foreach ($documents as $doc) {
+            $dataObject = $doc->getDataObject();
+
+            // for non versioned data objects, once this object is deleted there will be no history to
+            // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
+            if (!$dataObject->hasExtension(Versioned::class)) {
+                $dataObjectDocument = DataObjectDocument::create($dataObject);
+
+                // get the dependencies - note, it is only considered a dependency if the data object being
+                // removed is indexed by another object
+                $dependencies = $dataObjectDocument->getDependentDocuments();
+
+                if (count($dependencies) === 0) {
+                    continue;
+                }
+
+                // set up the separate job to update these dependencies
+                $job = IndexJob::create($dependencies, Indexer::METHOD_ADD, null, false);
+                $this->run($job);
+
+                continue;
+            }
+
             // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
             // and decide whether we should delete or update them automatically.
             $childJob = RemoveDataObjectJob::create($indexSuffix, $doc, $timestamp);
