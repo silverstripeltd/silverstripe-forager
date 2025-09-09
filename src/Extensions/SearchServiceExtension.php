@@ -4,8 +4,10 @@ namespace SilverStripe\Forager\Extensions;
 
 use Exception;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexingServiceException;
@@ -47,6 +49,8 @@ class SearchServiceExtension extends DataExtension
     ];
 
     private bool $hasConfigured = false;
+
+    protected bool $excludeClass = false;
 
     public function __construct(
         IndexingInterface $searchService,
@@ -188,6 +192,38 @@ class SearchServiceExtension extends DataExtension
         }
 
         $this->owner->removeFromIndexes();
+    }
+
+    /**
+     * Review if this document is an excluded subclass
+     */
+    public function canIndexInSearch(): bool
+    {
+        $owner = $this->getOwner();
+        // Get the configuration for the indexes we are processing.
+        $config = $this->getConfiguration()->getIndexes();
+
+        // Legacy configuration. Depreciated and Will change in CMS6
+        $legacyExcludedClasses = Config::inst()->get(self::class, 'exclude_classes') ?? [];
+
+        if ($legacyExcludedClasses) {
+            Deprecation::notice(
+                '5.4.0',
+                'exclude_classes will be removed in the CMS 6 implementation.
+                Use excludeClasses on the IndexConfiguration instead.',
+                Deprecation::SCOPE_CLASS
+            );
+        }
+
+        foreach ($config as $data) {
+            $excludedClasses = array_merge($data['excludeClasses'] ?? [], $legacyExcludedClasses);
+
+            if ($excludedClasses && in_array($owner->ClassName, $excludedClasses)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }
