@@ -6,6 +6,7 @@ on:
       - "main"
       - "1"
       - "release/**"
+      - "feature/**"
   push:
     branches:
       - "main"
