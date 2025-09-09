@@ -2,7 +2,7 @@
 
 This module provides a set of abstraction layers that integrate the Silverstripe CMS content 
 with a search-as-a-service provider, such as [Elastic](https://elastic.co) or [Algolia](https://algolia.com). The focus
-of this module is on getting content in your your service (indexing) only and does not provide any frontend tooling for UI nor [APIs for querying data](https://github.com/silverstripeltd/silverstripe-discoverer).
+of this module is on getting content into your service (indexing) only and does not provide any frontend tooling for UI nor [APIs for querying data](https://github.com/silverstripeltd/silverstripe-discoverer).
 
 ## Indexing workflow
 

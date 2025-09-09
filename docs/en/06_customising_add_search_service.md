@@ -50,9 +50,7 @@ All methods that rely on API calls should throw `IndexingServiceException` on er
 
 ### addDocument(string $indexSuffix, DocumentInterface $document): ?string
 
-This method is responsible for adding a single document to the indexes. Keep in mind, the
-`DocumentInterface` object that is passed to this function is self-aware of the indexes
-it is assigned to. Be sure to check each item's `shouldIndex()` method, as well.
+This method is responsible for adding a single document to an index. Be sure to check each item's `shouldIndex()` method, as well.
 
 Return value should be the unique ID of the document.
 
@@ -97,22 +95,18 @@ that the `addDocument()` method works as a proxy for `addDocuments()`, e.g.
 
 ### removeDocument(string $indexSuffix, DocumentInterface $document): ?string
 
-Removes a document from its indexes.
+Removes a document from an index.
 
 Return value should be the unique ID of the document.
 
 ```php
 public function removeDocument(string $indexSuffix, DocumentInterface $document): ?string
 {
-    $indexes = IndexConfiguration::singleton()->getIndexConfigurationsForDocument($document);
-    
-    foreach (array_keys($indexes) as $indexSuffix) {
-        // your custom API call here
-        $myAPI->removeDocumentFromIndex(
-            IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
-            $document->getIdentifier()
-        );
-    }
+    // your custom API call here
+    $myAPI->removeDocumentFromIndex(
+        IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
+        $document->getIdentifier()
+    );
 
     return $document->getIdentifier();
 }
@@ -135,25 +129,22 @@ Return value should be an array of the Document IDs that were removed
 ]
 ```
 
-### getDocument(string $id): ?DocumentInterface
+### getDocument(string $indexSuffix, string $id): ?DocumentInterface
 
 Gets a single document from an index. Should check each index and get the first one to match it.
 
 ```php
-public function getDocument(string $id): ?array
+public function getDocument(string $indexSuffix, string $id): ?array
 {
-    $indexes = IndexConfiguration::singleton()->getIndexes();
-
-    foreach (array_keys($indexes) as $indexSuffix) {
-        // Your API call here
-        $result = $myAPI->retrieveDocumentFromIndex(        
-            IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
-            $id
-        );
+   
+    // Your API call here
+    $result = $myAPI->retrieveDocumentFromIndex(        
+        IndexConfiguration::singleton()->environmentizeIndex($indexSuffix),
+        $id
+    );
         
-        if ($result) {
-            return DocumentBuilder::singleton()->fromArray($result);
-        }       
+    if ($result) {
+        return DocumentBuilder::singleton()->fromArray($result);
     }
     
     return null;
@@ -165,11 +156,11 @@ public function getDocument(string $id): ?array
  to your indexing service. (See the `ConfigurationAware` trait).
 
 
-### getDocuments(array $ids): array
+### getDocuments(string $indexSuffix, array $ids): array
 
 Same as `getDocument()`, but accepts an array of identifiers. It is recommended
 that the `getDocument()` method works as a proxy for `getDocuments()`, e.g. 
-`$this->getDocuments([$id])`.
+`$this->getDocuments($indexSuffix, [$id])`.
 
 return type should be an array of `DocumentInterface`.
 

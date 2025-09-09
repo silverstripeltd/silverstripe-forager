@@ -226,6 +226,9 @@ The following is a list of all public API changes from version 1.
     *   `public function removeDocument(DocumentInterface $document): ?string;`: Signature changed to `public function removeDocument(string $indexSuffix, DocumentInterface $document): ?string;`. Added new required parameter `$indexSuffix`.
     *   `public function listDocuments(string $indexName, ?int $pageSize = null, int $currentPage = 0): array;`: Signature changed to `public function listDocuments(string $indexSuffix, ?int $pageSize = null, int $currentPage = 0): array;`. Parameter `$indexName` renamed to `$indexSuffix`.
     *   `public function getDocumentTotal(string $indexName): int;`: Signature changed to `public function getDocumentTotal(string $indexSuffix): int;`. Parameter `$indexName` renamed to `$indexSuffix`.
+    *   `public function getMaxDocumentSize(): int;`: Signature changed to `public function getMaxDocumentSize(string $indexSuffix): int;`. Added new required parameter `$indexSuffix`.
+    *   `public function getDocument(string $id): ?DocumentInterface;`: Signature changed to `public function getDocument(string $indexSuffix, string $id): ?DocumentInterface;`. Added new required parameter `$indexSuffix`.
+    *   `public function getDocuments(array $ids): array;`: Signature changed to `public function getDocuments(string $indexSuffix, array $ids): array;`. Added new required parameter `$indexSuffix`.
 *   **Added Public Methods:**
     *   `public function clearIndexDocuments(string $indexSuffix, int $batchSize): int;`
 

@@ -62,7 +62,7 @@ during the `db:build` process, as well as in the `tasks:SearchConfigure` task, f
 approach.
 
 ## Extension points
-There are multiple extension points in this module but some are only relevant to provider implementaion or deeper [customisations](./05_customising.md). The following are the more commonly used extension points provided by the module's DataObject implementation
+There are multiple extension points in this module but some are only relevant to provider implementation or deeper [customisations](./05_customising.md). The following are the more commonly used extension points provided by the module's DataObject implementation
 
 ### DataObject extension points
 
@@ -70,9 +70,18 @@ There are multiple extension points in this module but some are only relevant to
 
 A DataObject or extension implementing this method can add supplementary logic to the [shouldIndex()](../../src/DataObject/DataObjectDocument.php#L128) method for determining whether a record should be indexed. More control can be had via the [IndexableHandler interface](./08_customising_more.md#indexablehandler-interface)
 
-### updateSearchDependentDocuments(&$dependentDocs): void
+#### updateSearchDependentDocuments(&$dependentDocs): void
 
-A DataObject extension implementing this method can add dependent documents to its dependency list. This is particularly relevant if you're not using `auto_dependency_tracking`. It is important to remember that `$dependentDocs` in this context should be first-class `DocumentInterface` instances, not DataObjects.
+A DataObject extension implementing this method can add dependent documents to its dependency list. This is particularly relevant if you're not using `auto_dependency_tracking`. It is important to remember that `$dependentDocs` in this context should be first-class `DocumentInterface` instances, not DataObjects. For example:
+
+```php
+public function updateSearchDependentDocuments($dependentDocs): void
+{
+    $extraDependency = DataObject::get_by_id($this->dependencyID);
+    $doc = DataObjectDocument::create($doc);
+    $dependentDocs[] = $doc;
+}
+```
 
 ### DataObjectDocument extension points
 
@@ -80,7 +89,7 @@ A DataObject extension implementing this method can add dependent documents to i
 
 You can use this method to arbitrarily update all DataObject documents before they are handed off to the indexer. This method is called after the `DocumentBuilder` has applied its own metadata.
 
-You can also add this method on any DataObject. I this case it is used to update the document for just that class.
+You can also add this method on any DataObject. In this case it is used to update the document for just that class.
 
 ### Job extension points
 
