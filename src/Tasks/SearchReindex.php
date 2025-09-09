@@ -43,13 +43,13 @@ class SearchReindex extends BuildTask
     {
         $indexConfiguration = $this->getConfiguration();
 
-        if ($onlyIndex) {
-            // If we've requested to only reindex a specific index, then set this limitation on our IndexConfiguration
-            $indexConfiguration->restrictToIndexes([$onlyIndex]);
-        }
-
-        // Loop through all available indexes (with the above filter applied, if relevant)
+        // Loop through all available indexes
         foreach (array_keys($indexConfiguration->getIndexConfigurations()) as $indexSuffix) {
+            // limit to requested index only
+            if ($onlyIndex && ($indexSuffix !== $onlyIndex)) {
+                continue;
+            }
+
             // If a specific class has been requested, then we'll limit ourselves to that, otherwise get all classes
             // for the index
             $classes = $onlyClass

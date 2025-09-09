@@ -42,8 +42,6 @@ class IndexConfiguration
 
     private ?string $indexPrefix;
 
-    private array $restrictToIndexes = [];
-
     private array $indexesForClassName = [];
 
     /**
@@ -117,19 +115,8 @@ class IndexConfiguration
         return $indexSuffix;
     }
 
-    public function restrictToIndexes(array $indexSuffixes): static
-    {
-        $this->restrictToIndexes = $indexSuffixes;
-
-        return $this;
-    }
-
     public function getIndexSuffixes(): array
     {
-        if ($this->restrictToIndexes) {
-            return $this->restrictToIndexes;
-        }
-
         return array_keys($this->config()->get('indexes'));
     }
 
@@ -141,16 +128,6 @@ class IndexConfiguration
         array_walk($indexConfigurations, function (array &$configuration): void {
             $configuration = $this->environmentVariableToValue($configuration);
         });
-
-        if (!$this->restrictToIndexes) {
-            return $indexConfigurations;
-        }
-
-        foreach (array_keys($indexConfigurations) as $indexSuffix) {
-            if (!in_array($indexSuffix, $this->restrictToIndexes)) {
-                unset($indexConfigurations[$indexSuffix]);
-            }
-        }
 
         return $indexConfigurations;
     }

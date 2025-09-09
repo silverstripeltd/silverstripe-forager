@@ -65,8 +65,7 @@ class ReindexJob extends BatchJob
             throw new InvalidArgumentException('An index suffix must be specified');
         }
 
-        // Restrict this job to only processing the one index that we specified
-        $config = $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
+        $config = $this->getConfiguration();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
 
         $indexData->withIndexContext(function (IndexData $indexData): void {
@@ -110,7 +109,7 @@ class ReindexJob extends BatchJob
     {
         $this->currentStep++;
         $this->extend('onBeforeProcess');
-        $config = $this->getConfiguration()->restrictToIndexes([$this->getIndexSuffix()]);
+        $config = $this->getConfiguration();
         $indexData = $config->getIndexDataForSuffix($this->getIndexSuffix());
 
         $indexData->withIndexContext(function (): void {
