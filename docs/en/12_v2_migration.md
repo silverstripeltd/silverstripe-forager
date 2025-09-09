@@ -20,7 +20,8 @@ For most users who are following the instructions in [03_usage.md](03_usage.md) 
 - **Search Admin has been renamed to Search Indexing**
     - this is to avoid confusion with other search modules and focus the scope of this module. Permission codes remain the same so users/groups should not need updating
 
-If you have custom PHP code that interacts with the search service directly or you have advanced use-cases like subsites, see the API changes below.
+> [!IMPORTANT]
+> If you have custom PHP code that interacts with the search service directly or you have advanced use-cases like **subsites**, see the API changes below.
 ---
 
 ## Major API Changes in Version 2
@@ -112,6 +113,21 @@ A new IndexData class has been added to represent the configuration for a single
 - `getIndexesForClassName(string $class): array (Functionality replaced by getIndexConfigurationsForClassName())`
 - `getIndexesForDocument(DocumentInterface $doc): array (Functionality replaced by getIndexConfigurationsForDocument())`
 - `getClassesForIndex(string $index): array` use `IndexConfiguration::getIndexDataForSuffix($suffix)->getClasses()` instead
+
+### 8. Subsites has become a separate module
+
+Support for [subsites](https://github.com/silverstripe/silverstripe-subsites) has moved to a separate [forager subsites](https://github.com/silverstripeltd/silverstripe-forager-subsites) module. This is to separate concerns more and reduce complexity of the main module.
+
+**How to update:**
+
+- Install the [forager subsites](https://github.com/silverstripeltd/silverstripe-forager-subsites) and update configuration - refer to the module's documentation.
+
+### 9. New Fluent support module
+
+Support for [Fluent](https://github.com/tractorcow-farm/silverstripe-fluent/) is now available via the [Forager Fluent](https://github.com/silverstripeltd/silverstripe-forager-fluent) module.
+
+---
+
 
 ## List of all API changes
 
