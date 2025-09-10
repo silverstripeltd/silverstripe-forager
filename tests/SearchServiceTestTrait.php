@@ -15,11 +15,13 @@ use SilverStripe\Forager\Tests\Fake\ServiceFake;
 trait SearchServiceTestTrait
 {
 
-    protected function mockConfig(bool $setConfig = false): IndexConfigurationFake
+    protected function mockConfig(bool $setConfig = false): IndexConfiguration
     {
-        $config = new IndexConfigurationFake();
+        $fake = new IndexConfigurationFake();
 
-        Injector::inst()->registerService($config, IndexConfiguration::class);
+        Injector::inst()->registerService($fake, IndexConfiguration::class);
+
+        $config = IndexConfiguration::singleton();
 
         // Make sure we have our usual default batch_size set (mostly only relevant for devs working on this module who
         // might have their own local config set up with a different default batch_size)
@@ -61,7 +63,7 @@ trait SearchServiceTestTrait
             );
         }
 
-        SearchServiceExtension::singleton()->setConfiguration(IndexConfiguration::singleton());
+        SearchServiceExtension::singleton()->setConfiguration($config);
 
         return $config;
     }

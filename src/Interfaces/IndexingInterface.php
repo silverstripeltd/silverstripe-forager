@@ -28,13 +28,13 @@ interface IndexingInterface extends BatchDocumentInterface
     /**
      * @throws IndexingServiceException
      */
-    public function getDocument(string $id): ?DocumentInterface;
+    public function getDocument(string $indexSuffix, string $id): ?DocumentInterface;
 
     /**
      * @return DocumentInterface[]
      * @throws IndexingServiceException
      */
-    public function getDocuments(array $ids): array;
+    public function getDocuments(string $indexSuffix, array $ids): array;
 
     /**
      * @return DocumentInterface[]

@@ -359,41 +359,12 @@ class IndexConfigurationTest extends SapphireTest
         $this->assertEquals(100, $config->getLowestBatchSizeForClass(Controller::class));
     }
 
-    public function testGetBatchSizeForClassRestrictToIndexes(): void
-    {
-        $this->bootstrapIndexes();
-        $config = IndexConfiguration::singleton();
-        $config->restrictToIndexes(['index1']);
-
-        $this->assertEquals(50, $config->getLowestBatchSizeForClass(Member::class));
-        // Should be exactly the same as above, because we have filtered restrictToIndexes() to 'index1'
-        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectFake::class));
-        // Should use batch_size for DataObjectFake, since DataObjectSubclassFake doesn't have an explicit definition
-        // in index1
-        $this->assertEquals(75, $config->getLowestBatchSizeForClass(DataObjectSubclassFake::class));
-        // Should use the default batch_size of 100, since there is no definition of this class in index
-        $this->assertEquals(100, $config->getLowestBatchSizeForClass(Controller::class));
-    }
-
     public function testGetLowestBatchSize(): void
     {
         $this->bootstrapIndexes();
         $config = IndexConfiguration::singleton();
 
         $this->assertEquals(25, $config->getLowestBatchSize());
-    }
-
-    public function testGetLowestBatchSizeRestrictToIndexes(): void
-    {
-        $this->bootstrapIndexes();
-        $config = IndexConfiguration::singleton();
-        $config->restrictToIndexes(['index1']);
-
-        $this->assertEquals(50, $config->getLowestBatchSize());
-
-        $config->restrictToIndexes(['index4']);
-
-        $this->assertEquals(100, $config->getLowestBatchSize());
     }
 
     public function testIndexConfigurationValidation(): void

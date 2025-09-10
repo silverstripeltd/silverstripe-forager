@@ -48,20 +48,6 @@ class FileDocument implements DocumentInterface, DocumentMetaProvider
 For DataObject implementations, there are several extension hooks you can use to
 customise your results.
 
-### updateSearchAttributes(&$attributes)
-
-This method can be added to multiple extensions.
-
-When an extension to `DataObjectDocument` can add this method to arbitrarily update all
-DataObject documents before they are handed off to the indexer. This method is called after the `DocumentBuilder` has applied its own metadata.
-
-When an extension to a DataObject has this method, it is used to update the document for
-just that record.
-
-### canIndexInSearch(): bool
-
-An extension point that allows you to add supplementary logic to the `shouldIndex()`
-method for determining whether a record should be indexed.
 
 ### IndexableHandler interface
 
@@ -78,12 +64,9 @@ A DataObject extension implementing this method can carry out any side effects t
 happen as a result of a DataObject being ready to go into the index. It is invoked before
 `DocumentBuilder` has processed the document.
 
-### updateSearchDependentDocuments(&$dependentDocs): void
+### updateIndexesForDocument(DataObjectDocument $doc, string[] $indexes): void
 
-A DataObject extension implementing this method can add dependent documents to the given list.
-This is particularly relevant if you're not using `auto_dependency_tracking`. It is important 
-to remember that `$dependentDocs` in this context should be first-class `DocumentInterface`
-instances, not DataObjects.
+This is an extension point on the IndexConfiguration class that allows updating what indexes a document is configured for
  
 ## More information
 

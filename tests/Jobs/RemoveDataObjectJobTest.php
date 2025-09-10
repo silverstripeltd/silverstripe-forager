@@ -68,6 +68,8 @@ class RemoveDataObjectJobTest extends SapphireTest
             ],
         ];
 
+        $config->config()->merge('indexes', $index);
+
         $config->set(
             'getIndexConfigurationsForClassName',
             [
