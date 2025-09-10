@@ -111,7 +111,7 @@ class SearchServiceExtension extends Extension
     public function addToIndexes(): void
     {
         $document = DataObjectDocument::create($this->owner);
-        $indexConfigurations = IndexConfiguration::singleton()
+        $indexConfigurations = $this->getConfiguration()
             ->getIndexConfigurationsForClassName($document->getSourceClass());
         $indexSuffixes = array_keys($indexConfigurations);
 
@@ -129,7 +129,7 @@ class SearchServiceExtension extends Extension
     public function removeFromIndexes(): void
     {
         $document = DataObjectDocument::create($this->owner)->setShouldFallbackToLatestVersion();
-        $indexConfigurations = IndexConfiguration::singleton()
+        $indexConfigurations = $this->getConfiguration()
             ->getIndexConfigurationsForClassName($document->getSourceClass());
         $indexSuffixes = array_keys($indexConfigurations);
 

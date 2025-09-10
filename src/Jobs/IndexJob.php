@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Jobs;
 
 use Exception;
 use InvalidArgumentException;
+use LogicException;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
@@ -41,8 +42,14 @@ class IndexJob extends BatchJob
         if ($indexSuffix) {
             // only run with a value on initial creation
             $config = IndexConfiguration::singleton();
+            $indexData = $config->getIndexDataForSuffix($indexSuffix);
+
+            if (!$indexData) {
+                throw new LogicException(sprintf('no index data found for suffix "%s"', $indexSuffix));
+            }
+
             // Use the provided batch size, or determine batch size from our IndexConfiguration
-            $batchSize = $batchSize ?: $config->getIndexDataForSuffix($indexSuffix)->getLowestBatchSize();
+            $batchSize = $batchSize ?: $indexData->getLowestBatchSize();
             $this->setBatchSize($batchSize);
         }
 

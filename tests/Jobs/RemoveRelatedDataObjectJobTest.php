@@ -8,6 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
@@ -48,21 +49,6 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
     public function setUp(): void
     {
         parent::setUp();
-
-        // Publish all pages in fixtures since the internal dependency checks looks for live version
-        $this->objFromFixture(Page::class, 'page1')->publishRecursive();
-        $this->objFromFixture(Page::class, 'page2')->publishRecursive();
-        $this->objFromFixture(Page::class, 'page3')->publishRecursive();
-        $this->objFromFixture(Page::class, 'page4')->publishRecursive();
-        $this->objFromFixture(Page::class, 'page5')->publishRecursive();
-        $this->objFromFixture(Page::class, 'page6')->publishRecursive();
-        $this->objFromFixture(Page::class, 'page7')->publishRecursive();
-        $this->objFromFixture(PageFake::class, 'page8')->publishRecursive();
-        $this->objFromFixture(PageFake::class, 'page9')->publishRecursive();
-        $this->objFromFixture(PageFake::class, 'page10')->publishRecursive();
-        $this->objFromFixture(TagFake::class, 'four')->publishRecursive();
-        $this->objFromFixture(TagFake::class, 'five')->publishRecursive();
-        $this->objFromFixture(TagFake::class, 'six')->publishRecursive();
 
         $config = $this->mockConfig(true);
 
@@ -109,6 +95,8 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
             ],
         ];
 
+        $config->config()->merge('indexes', $index);
+
         $config->set(
             'getIndexConfigurationsForClassName',
             [
@@ -119,6 +107,21 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
                 Page::class => $index,
             ]
         );
+
+        // Publish all pages in fixtures since the internal dependency checks looks for live version
+        $this->objFromFixture(Page::class, 'page1')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page2')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page3')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page4')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page5')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page6')->publishRecursive();
+        $this->objFromFixture(Page::class, 'page7')->publishRecursive();
+        $this->objFromFixture(PageFake::class, 'page8')->publishRecursive();
+        $this->objFromFixture(PageFake::class, 'page9')->publishRecursive();
+        $this->objFromFixture(PageFake::class, 'page10')->publishRecursive();
+        $this->objFromFixture(TagFake::class, 'four')->publishRecursive();
+        $this->objFromFixture(TagFake::class, 'five')->publishRecursive();
+        $this->objFromFixture(TagFake::class, 'six')->publishRecursive();
     }
 
     public function testUnpublishParentPage(): void
