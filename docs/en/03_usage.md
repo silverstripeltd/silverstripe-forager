@@ -91,6 +91,15 @@ You can use this method to arbitrarily update all DataObject documents before th
 
 You can also add this method on any DataObject. In this case it is used to update the document for just that class.
 
+### SearchServiceExtension extension points
+
+#### updateAddToIndexes(array $indexSuffixes, DataObjectDocumentInterface $doc)
+
+This method allows updating the list of indexes a document will be sent to on publish (or write for unverisoned content). Useful for other modules like [silverstripe-forager-fluent](https://github.com/silverstripeltd/silverstripe-forager-fluent) where the editing context might determine what updates to make.
+
+#### updateRemoveFromIndexes(array $indexSuffixes, DataObjectDocumentInterface $doc)
+The same as [updateAddToIndexes](#update-add-to-indexes) but for unpublishing or deletion
+
 ### Job extension points
 
 Indexing jobs have the following extension points:

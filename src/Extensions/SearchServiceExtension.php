@@ -5,6 +5,7 @@ namespace SilverStripe\Forager\Extensions;
 use Exception;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
@@ -34,6 +35,7 @@ class SearchServiceExtension extends Extension
     use ServiceAware;
     use ConfigurationAware;
     use BatchProcessorAware;
+    use Extensible;
 
     private static array $db = [
         'ShowInSearch' => 'Boolean(1)',
@@ -109,7 +111,12 @@ class SearchServiceExtension extends Extension
     public function addToIndexes(): void
     {
         $document = DataObjectDocument::create($this->owner);
-        $indexSuffixes = IndexConfiguration::singleton()->getIndexSuffixes();
+        $indexConfigurations = IndexConfiguration::singleton()
+            ->getIndexConfigurationsForClassName($document->getSourceClass());
+        $indexSuffixes = array_keys($indexConfigurations);
+
+        // let extensions augment the list of indexes to send to
+        $this->extend('updateAddToIndexes', $indexSuffixes, $document);
 
         foreach ($indexSuffixes as $indexSuffix) {
             $this->getBatchProcessor()->addDocuments($indexSuffix, [$document]);
@@ -122,7 +129,12 @@ class SearchServiceExtension extends Extension
     public function removeFromIndexes(): void
     {
         $document = DataObjectDocument::create($this->owner)->setShouldFallbackToLatestVersion();
-        $indexSuffixes = IndexConfiguration::singleton()->getIndexSuffixes();
+        $indexConfigurations = IndexConfiguration::singleton()
+            ->getIndexConfigurationsForClassName($document->getSourceClass());
+        $indexSuffixes = array_keys($indexConfigurations);
+
+        // let extensions augment the list of indexes to send to
+        $this->extend('updateRemoveFromIndexes', $indexSuffixes, $document);
 
         foreach ($indexSuffixes as $indexSuffix) {
             $this->getBatchProcessor()->removeDocuments($indexSuffix, [$document]);
