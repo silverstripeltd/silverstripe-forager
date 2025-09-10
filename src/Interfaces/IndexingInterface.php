@@ -23,7 +23,7 @@ interface IndexingInterface extends BatchDocumentInterface
     /**
      * @throws IndexingServiceException
      */
-    public function getMaxDocumentSize(string $indexSuffix): int;
+    public function getMaxDocumentSize(): int;
 
     /**
      * @throws IndexingServiceException

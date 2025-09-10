@@ -63,7 +63,7 @@ class ServiceFake implements IndexingInterface
         return $numDocs;
     }
 
-    public function getDocument(string $id): ?DocumentInterface
+    public function getDocument(string $indexSuffix, string $id): ?DocumentInterface
     {
         $doc = $this->documents[$id] ?? null;
 
@@ -74,12 +74,12 @@ class ServiceFake implements IndexingInterface
         return DocumentBuilder::singleton()->fromArray($doc);
     }
 
-    public function getDocuments(array $ids): array
+    public function getDocuments(string $indexSuffix, array $ids): array
     {
         $results = [];
 
         foreach ($ids as $id) {
-            $doc = $this->getDocument($id);
+            $doc = $this->getDocument($indexSuffix, $id);
 
             if (!$doc) {
                 continue;
