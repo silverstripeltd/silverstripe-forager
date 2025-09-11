@@ -22,6 +22,8 @@ class IndexData
     public const string CONTEXT_KEY = 'context';
     public const string CONTEXT_KEY_DEFAULT = 'default';
 
+    public static ?self $current = null;
+
     public function __construct(private array $data, private string $suffix)
     {
     }
@@ -46,6 +48,11 @@ class IndexData
     public function getClassData(): array
     {
         return $this->data['includeClasses'] ?? [];
+    }
+
+    public function getExcludeClasses(): array
+    {
+        return $this->data['excludeClasses'] ?? [];
     }
 
     public function getClassConfig(string $class): ?array
@@ -108,10 +115,14 @@ class IndexData
      */
     public function withIndexContext(callable $callback): void
     {
+        static::$current = $this;
+
         $contextKey = $this->getContextKey();
         $contexts = $this->contexts;
 
         if (!array_key_exists($contextKey, $contexts)) {
+            static::$current = null;
+
             throw new InvalidArgumentException(sprintf('No context configured for key: "%s"', $contextKey));
         }
 
@@ -134,7 +145,16 @@ class IndexData
             };
         }
 
-        $next();
+        try {
+            $next();
+        } finally {
+            static::$current = null;
+        }
+    }
+
+    public static function current(): ?self
+    {
+        return static::$current ?? null;
     }
 
     public function getFields(): array

@@ -137,6 +137,25 @@ class IndexDataTest extends SapphireTest
         $this->assertTrue($called, 'Callback was not executed');
     }
 
+    public function testWithIndexContextCurrent(): void
+    {
+        $indexData = new IndexData([IndexData::CONTEXT_KEY => 'bar'], 'foo');
+
+        $indexData->contexts = [
+            'bar' => [],
+        ];
+
+        $this->assertNull(IndexData::current());
+
+        $indexData->withIndexContext(function () {
+            $current = IndexData::current();
+            $this->assertNotNull($current);
+            $this->assertEquals('foo', $current->getSuffix());
+        });
+
+        $this->assertNull(IndexData::current());
+    }
+
     public function testGetFields(): void
     {
         $config = [

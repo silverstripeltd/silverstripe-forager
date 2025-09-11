@@ -3,12 +3,11 @@
 namespace SilverStripe\Forager\Extensions;
 
 use SilverStripe\Control\RequestHandler;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Extension;
-use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\DatetimeField;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormFactory;
+use SilverStripe\Forms\LiteralField;
 
 class SearchFormFactoryExtension extends Extension
 {
@@ -22,31 +21,26 @@ class SearchFormFactoryExtension extends Extension
         $fields = $form->Fields()->findOrMakeTab('Editor.Details');
         $file = $context['Record'] ?? null;
 
-        $excludedClasses = Config::inst()->get(self::class, 'exclude_classes') ?? [];
-        $excludeFileTypes = Config::inst()->get(self::class, 'exclude_file_extensions') ?? [];
-
         if (!$fields || !$file) {
             return;
         }
 
-        if (in_array($file->ClassName, $excludedClasses) || in_array($file->getExtension(), $excludeFileTypes)) {
-            if ($file->ShowInSearch) {
-                $file->ShowInSearch = false;
-                $file->write();
-            }
-
-            return;
-        }
-
-        $fields->push(
-            CheckboxField::create(
+        // Display a banner if this file is an excluded class or extension
+        if (in_array(false, $file->invokeWithExtensions('canIndexInSearch'), true)) {
+            $fields->insertAfter(
                 'ShowInSearch',
-                _t(
-                    'SilverStripe\\AssetAdmin\\Controller\\AssetAdmin.SHOWINSEARRCH',
-                    'Show in search?'
-                )
-            )
-        );
+                LiteralField::create(
+                    'FileIndexInfo',
+                    sprintf(
+                        '<div class="alert alert-info">%s</div>',
+                        _t(
+                            self::class . '.FILE_IN_EXCLUDED_LIST',
+                            'This file is excluded from one or more search indexes.',
+                        )
+                    )
+                ),
+            );
+        }
 
         $fields->push(
             DatetimeField::create(

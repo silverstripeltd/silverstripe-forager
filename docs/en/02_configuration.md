@@ -180,6 +180,30 @@ This will roughly get indexed as a structure like this:
 For more information on EnterpriseSearch specific configuration, see the [Search- Service - Elastic](https://github.com/silverstripe/silverstripe-search-service-elastic)
 module.
 
+## Excluding subclasses
+
+In some cases, we do not want to include certain subclasses. A good example of this is File indexing
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+  indexes:
+    main:
+      includeClasses:
+        Page:
+        # refer to per-class options    
+        SilverStripe\Assets\File:
+        # refer to per-class options
+      excludeClasses:
+        - SilverStripe\Assets\Folder
+        - SilverStripe\Assets\Image
+```
+
+This will result in Images and Folders not being included while indexing files. This occurs in the `canIndexInSearch` extension hook.
+
+More information can be found in the [Customising More](08_customising_more.md)
+
+# see below for per-class options
+
 ### Elemental
 
 If you're using [Elemental](https://github.com/silverstripe/silverstripe-elemental) to serve page content, then you're likely going to want to include this content in your search index.
@@ -397,27 +421,18 @@ SilverStripe\Forager\Service\PageCrawler:
     content_xpath_selector: "//body"
 ```
 
-## Configuring search exclusion for files
+## Configuring search exclusions for files
 
-By default, `SilverStripe\Assets\Image` is excluded from the search. To change this default
-setting, use the code snippet below.
+In most cases, when we index the Files class, we would also like to exclude Folders and possibly other subclasses. 
+To configure File classes to be excluded, refer to [Excluding subclasses](#excluding-subclasses)
 
+To also exclude certain file extensions from be included in the search index including an exclude 
+file extensions array is available on the Files class
 ```yaml
----
-After: silverstripe-forager-form-extension
----
-SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
-    exclude_classes: null
-```
-
-If you want to exclude certain file extensions from being added to the search index, add
-the following configuration to your code base:
-
-```yaml
-SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
-    exclude_file_extensions:
-        - svg
-        - mp4
+SilverStripe\Assets\File:
+  exclude_file_extensions: 
+    - svg
+    - mp4
 ```
 
 ## Index Contexts

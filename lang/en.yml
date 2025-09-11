@@ -1,0 +1,3 @@
+en:
+  SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
+    FILE_IN_EXCLUDED_LIST: "This file is excluded from one or more search indexes."

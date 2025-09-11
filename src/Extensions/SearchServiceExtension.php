@@ -12,6 +12,7 @@ use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
@@ -47,6 +48,8 @@ class SearchServiceExtension extends Extension
     ];
 
     private bool $hasConfigured = false;
+
+    protected bool $excludeClass = false;
 
     public function __construct(
         IndexingInterface $searchService,
@@ -172,6 +175,31 @@ class SearchServiceExtension extends Extension
         }
 
         $this->owner->removeFromIndexes();
+    }
+
+    /**
+     * Review if this document is an excluded subclass
+     */
+    public function canIndexInSearch(): bool
+    {
+        $owner = $this->getOwner();
+        // Get the configuration for the indexes we are processing.
+        $config = $this->getConfiguration()->getIndexConfigurations();
+        $data = IndexData::current();
+
+        $indexData = $data?->getSuffix()
+            ? [$config[$data->getSuffix()]]
+            : $config;
+
+        foreach ($indexData as $data) {
+            $excludedClasses = $data['excludeClasses'] ?? [];
+
+            if ($excludedClasses && in_array($owner->ClassName, $excludedClasses)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }
