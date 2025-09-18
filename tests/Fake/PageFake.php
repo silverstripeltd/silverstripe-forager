@@ -15,11 +15,13 @@ class PageFake extends Page implements TestOnly
 
     private static array $has_many = [
         'Images' => ImageFake::class,
+        'DataObjects' => DataObjectFake::class,
     ];
 
     private static array $owns = [
         'Tags',
         'Images',
+        'DataObjects',
     ];
 
     private static string $table_name = 'PageFake';
