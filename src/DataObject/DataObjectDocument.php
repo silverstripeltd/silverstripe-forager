@@ -107,6 +107,8 @@ class DataObjectDocument implements
     public function __construct(DataObject $dataObject)
     {
         $this->setDataObject($dataObject);
+        $this->id = $dataObject->ID;
+        $this->className = $dataObject->ClassName;
     }
 
     /**

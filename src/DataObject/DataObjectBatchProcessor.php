@@ -55,7 +55,7 @@ class DataObjectBatchProcessor extends BatchProcessor
                 }
 
                 // set up the separate job to update these dependencies
-                $job = IndexJob::create($dependencies, Indexer::METHOD_ADD, null, false);
+                $job = IndexJob::create($indexSuffix, $dependencies, Indexer::METHOD_ADD, null, false);
                 $this->run($job);
 
                 continue;
