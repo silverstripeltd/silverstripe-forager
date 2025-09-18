@@ -40,6 +40,7 @@ use SilverStripe\ORM\RelationList;
 use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
+use Throwable;
 use TypeError;
 
 class DataObjectDocument implements
