@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Tests\Extensions;
 
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
@@ -11,10 +12,12 @@ use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
-use SilverStripe\Forager\Tests\SearchServiceTest;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
-class SearchServiceExtensionTest extends SearchServiceTest
+class SearchServiceExtensionTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = [ // phpcs:ignore
         '../fixtures.yml',
