@@ -126,6 +126,7 @@ class DataObjectDocument implements
 
     /**
      * Get the source class for the data object.
+     *
      * @return string
      */
     public function getSourceClass(): string
