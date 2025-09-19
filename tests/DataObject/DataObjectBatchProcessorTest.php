@@ -91,7 +91,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
      */
     public function testRemoveDocumentsNonVersioned(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         Config::modify()->set(
@@ -107,23 +107,18 @@ class DataObjectBatchProcessorTest extends SapphireTest
 
         $syncRunnerMock->expects($this->exactly(1))
             ->method('runJob')
-            ->withConsecutive(
-                [
-                    $this->callback(function (IndexJob $arg) {
-                        $this->assertInstanceOf(IndexJob::class, $arg);
-                        $this->assertCount(2, $arg->getDocuments());
-                        $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
-
-                        return true;
-                    }),
-                ],
-            );
+            ->willReturnCallback(function ($arg) {
+                $this->assertInstanceOf(IndexJob::class, $arg);
+                $this->assertCount(2, $arg->getDocuments());
+                $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
+            });
 
         Injector::inst()->registerService($syncRunnerMock, SyncJobRunner::class);
 
         $processor = new DataObjectBatchProcessor(IndexConfiguration::singleton());
 
         $processor->removeDocuments(
+            'index1',
             [
                 DataObjectDocumentFake::create(DataObjectFake::create()),
                 DataObjectDocumentFake::create(DataObjectFake::create()),
@@ -140,7 +135,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
      */
     public function testRemoveDocumentsNonVersionedWithDependencies(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         $config->set('getSearchableClasses', [
@@ -165,30 +160,20 @@ class DataObjectBatchProcessorTest extends SapphireTest
             ->onlyMethods(['runJob'])
             ->getMock();
 
-        $syncRunnerMock->expects($this->exactly(2))
+        $invokedCount = $this->exactly(2);
+        $syncRunnerMock->expects($invokedCount)
             ->method('runJob')
-            ->withConsecutive(
-                [
-                    // first job to delete both documents
-                    $this->callback(function (IndexJob $arg) {
-                        $this->assertInstanceOf(IndexJob::class, $arg);
-                        $this->assertCount(2, $arg->getDocuments());
-                        $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
-
-                        return true;
-                    }),
-                ],
-                [
-                    // second job to update dependencies of data object one
-                    $this->callback(function (IndexJob $arg) {
-                        $this->assertInstanceOf(IndexJob::class, $arg);
-                        $this->assertCount(1, $arg->getDocuments());
-                        $this->assertEquals(Indexer::METHOD_ADD, $arg->getMethod());
-
-                        return true;
-                    }),
-                ]
-            );
+            ->willReturnCallback(function ($arg) use ($invokedCount) {
+                if ($invokedCount->numberOfInvocations() === 1) {
+                    $this->assertInstanceOf(IndexJob::class, $arg);
+                    $this->assertCount(2, $arg->getDocuments());
+                    $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
+                } else {
+                    $this->assertInstanceOf(IndexJob::class, $arg);
+                    $this->assertCount(1, $arg->getDocuments());
+                    $this->assertEquals(Indexer::METHOD_ADD, $arg->getMethod());
+                }
+            });
 
         Injector::inst()->registerService($syncRunnerMock, SyncJobRunner::class);
 
@@ -204,6 +189,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
         $page->publishSingle();
 
         $processor->removeDocuments(
+            'index1',
             [
                 DataObjectDocumentFake::create($dataObjectOne),
                 DataObjectDocumentFake::create(DataObjectFake::create()),
@@ -217,7 +203,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
      */
     public function testRemoveDocumentsNonVersionedDependencyTrackingDisabled(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
 
         $config->set('getSearchableClasses', [
@@ -249,18 +235,11 @@ class DataObjectBatchProcessorTest extends SapphireTest
         // of the document, and nothing else will get updated
         $syncRunnerMock->expects($this->exactly(1))
             ->method('runJob')
-            ->withConsecutive(
-                [
-                    // first job to delete both documents
-                    $this->callback(function (IndexJob $arg) {
-                        $this->assertInstanceOf(IndexJob::class, $arg);
-                        $this->assertCount(2, $arg->getDocuments());
-                        $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
-
-                        return true;
-                    }),
-                ]
-            );
+            ->willReturnCallback(function ($arg) {
+                $this->assertInstanceOf(IndexJob::class, $arg);
+                $this->assertCount(2, $arg->getDocuments());
+                $this->assertEquals(Indexer::METHOD_DELETE, $arg->getMethod());
+            });
 
         Injector::inst()->registerService($syncRunnerMock, SyncJobRunner::class);
 
@@ -276,6 +255,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
         $page->publishSingle();
 
         $processor->removeDocuments(
+            'index1',
             [
                 DataObjectDocumentFake::create($dataObjectOne),
                 DataObjectDocumentFake::create(DataObjectFake::create()),
