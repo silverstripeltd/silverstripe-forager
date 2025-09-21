@@ -5,6 +5,7 @@ namespace SilverStripe\Forager\DataObject;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Core\ArrayLib;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
@@ -417,7 +418,28 @@ class DataObjectDocument implements
         $dataObjectClasses = array_filter($searchableClasses, function ($class) {
             return is_subclass_of($class, DataObject::class);
         });
-        $ownedDataObject = $this->getDataObject();
+
+        try {
+            $ownedDataObject = $this->getDataObject();
+        } catch (Throwable $e) {
+            // If there is no data object available, it might have been a deleted non-versioned object.
+            // In this case, return empty dependency documents with the assumption that any dependencies
+            // will be handled separately.
+            if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                Injector::inst()->get(LoggerInterface::class)->info(sprintf(
+                    'Unable to get document for checking dependencies. '
+                    .'Non versioned %s data object with ID %s cannot be found.',
+                    $this->getSourceClass(),
+                    $this->id,
+                ));
+
+                return [];
+            }
+
+            // otherwise, throw the exception for versioned objects
+            throw $e;
+        }
+
         $docs = [];
 
         foreach ($dataObjectClasses as $class) {
@@ -524,23 +546,6 @@ class DataObjectDocument implements
         }
 
         $this->dataObject = $dataObject;
-
-        foreach (static::config()->get('dependencies') as $name => $service) {
-            // re-instate dependencies after job hydration
-
-            $getter = 'get' . $name;
-
-            try {
-                if ($this->$getter() !== null) {
-                    continue;
-                }
-            } catch (TypeError) {
-                // noop - occurs when class hydrated from job and dependencies are null
-            }
-
-            $method = 'set' . $name;
-            $this->$method(Injector::inst()->get($service));
-        }
 
         return $this->dataObject;
     }
@@ -694,6 +699,23 @@ class DataObjectDocument implements
 
     public function __unserialize(array $data): void
     {
+        foreach (static::config()->get('dependencies') as $name => $service) {
+            // re-instate dependencies after job hydration
+
+            $getter = 'get' . $name;
+
+            try {
+                if ($this->$getter() !== null) {
+                    continue;
+                }
+            } catch (TypeError) {
+                // noop - occurs when class hydrated from job and dependencies are null
+            }
+
+            $method = 'set' . $name;
+            $this->$method(Injector::inst()->get($service));
+        }
+
         $this->className = $data['className'];
         $this->id = $data['id'];
         $this->shouldFallbackToLatestVersion = $data['fallback'];
