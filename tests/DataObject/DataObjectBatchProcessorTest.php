@@ -39,7 +39,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
      * IndexJob (DELETE) to be called for removing the page from the index
      * RemoveDataObjectJob to be called for each of the documents being removed
      */
-    public function testRemoveDocuments(): void
+    public function testRemoveDocumentsVersionedObjects(): void
     {
         $config = $this->mockConfig(true);
         $config->set('use_sync_jobs', true);
@@ -78,8 +78,8 @@ class DataObjectBatchProcessorTest extends SapphireTest
         $processor->removeDocuments(
             'index1',
             [
-                DataObjectDocumentFake::create(DataObjectFake::create()),
-                DataObjectDocumentFake::create(DataObjectFake::create()),
+                DataObjectDocumentFake::create(PageFake::create()),
+                DataObjectDocumentFake::create(PageFake::create()),
             ]
         );
     }

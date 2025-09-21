@@ -42,7 +42,7 @@ class SearchServiceExtensionTest extends SapphireTest
     public function testOnBeforeDeleteForNonVersionedDataObject(): void
     {
         // configure the classes to search
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set('getSearchableClasses', [
             DataObjectFake::class,
             PageFake::class,
@@ -62,10 +62,14 @@ class SearchServiceExtensionTest extends SapphireTest
         $dataObject->setBatchProcessor($mockBatchProcessor);
 
         // set up expectation
+        $invokedCount = $this->exactly(2);
         $mockBatchProcessor
-            ->expects($this->once())
+            ->expects($invokedCount)
             ->method('removeDocuments')
-            ->with($this->callback(function (array $documents) use ($dataObjectID): bool {
+            ->willReturnCallback(function (string $index, array $documents) use ($dataObjectID, $invokedCount) {
+                $expectedIndex = $invokedCount->numberOfInvocations() === 1 ? 'index1' : 'index2';
+                $this->assertEquals($expectedIndex, $index);
+
                 $this->assertCount(1, $documents);
 
                 // check that the non versioned data object is marked for removal
@@ -77,8 +81,8 @@ class SearchServiceExtensionTest extends SapphireTest
                     )
                 );
 
-                return true;
-            }));
+                return $documents;
+            });
 
         // delete the data object
         $dataObject->delete();
