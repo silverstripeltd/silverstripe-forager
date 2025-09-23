@@ -16,6 +16,7 @@ use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Jobs\ReindexJob;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -198,28 +199,43 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
         foreach ($configuration->getIndexConfigurations() as $indexSuffix => $data) {
             $indexData = $configuration->getIndexDataForSuffix($indexSuffix);
-            $indexData->withIndexContext(function () use ($configuration, $indexSuffix, $indexer, $list): void {
-                $localCount = 0;
-
-                foreach ($configuration->getIndexDataForSuffix($indexSuffix)->getClasses() as $class) {
-                    $query = new DataQuery($class);
-                    $query->where('SearchIndexed IS NOT NULL');
-
-                    if (property_exists($class, 'ShowInSearch')) {
-                        $query->where('ShowInSearch = 1');
+            $indexData->withIndexContext(
+                function (IndexData $index) use ($indexSuffix, $indexer, $list): void {
+                    $localCount = 0;
+    
+                    // Get the excluded classes for this index
+                    $excludeClasses = $index->getExcludeClasses();
+    
+                    foreach ($index->getClasses() as $class) {
+                        $query = new DataQuery($class);
+                        $query->where('SearchIndexed IS NOT NULL');
+    
+                        if (property_exists($class, 'ShowInSearch')) {
+                            $query->where('ShowInSearch = 1');
+                        }
+    
+                        if ($excludeClasses) {
+                            foreach ($excludeClasses as $excludeClass) {
+                                if (is_subclass_of($excludeClass, $class)) {
+                                    $query->where(
+                                        ['ClassName != ?' => $excludeClass]
+                                    );
+                                }
+                            }
+                        }
+    
+                        $this->extend('updateQuery', $query, $data);
+                        $localCount += $query->count();
                     }
-
-                    $this->extend('updateQuery', $query, $data);
-                    $localCount += $query->count();
+    
+                    $result = new IndexedDocumentsResult();
+                    $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
+                    $result->IndexSuffix = $indexSuffix;
+                    $result->DBDocs = $localCount;
+                    $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
+                    $list->push($result);
                 }
-
-                $result = new IndexedDocumentsResult();
-                $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
-                $result->IndexSuffix = $indexSuffix;
-                $result->DBDocs = $localCount;
-                $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
-                $list->push($result);
-            });
+            );
         }
 
         $this->extend('updateDocumentList', $list);
