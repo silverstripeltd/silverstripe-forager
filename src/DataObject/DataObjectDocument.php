@@ -88,6 +88,11 @@ class DataObjectDocument implements
     private ?string $className = null;
 
     /**
+     * The base class of the data object (used for forming search identifier)
+     */
+    private ?string $baseClass = null;
+
+    /**
      * The ID of the data object being indexed.
      */
     private ?int $id = null;
@@ -110,6 +115,7 @@ class DataObjectDocument implements
         $this->setDataObject($dataObject);
         $this->id = $dataObject->ID;
         $this->className = $dataObject->ClassName;
+        $this->baseClass = $dataObject->baseClass();
     }
 
     /**
@@ -140,6 +146,17 @@ class DataObjectDocument implements
         $this->className = $this->getDataObject()->ClassName;
 
         return $this->className;
+    }
+
+    public function getBaseClass(): string
+    {
+        if ($this->baseClass) {
+            return $this->baseClass;
+        }
+
+        $this->baseClass = $this->getDataObject()->baseClass();
+
+        return $this->baseClass;
     }
 
     public function setShouldFallbackToLatestVersion(bool $fallback = true): self
@@ -687,6 +704,7 @@ class DataObjectDocument implements
         }
 
         return [
+            'baseClass' => $this->getBaseClass(),
             'className' => $this->getSourceClass(),
             'id' => $id,
             'fallback' => $this->shouldFallbackToLatestVersion,
@@ -695,6 +713,7 @@ class DataObjectDocument implements
 
     public function __unserialize(array $data): void
     {
+        $this->baseClass = $data['baseClass'];
         $this->className = $data['className'];
         $this->id = $data['id'];
         $this->shouldFallbackToLatestVersion = $data['fallback'];
