@@ -88,6 +88,11 @@ class DataObjectDocument implements
     private ?string $className = null;
 
     /**
+     * The base class of the data object
+     */
+    private ?string $baseClass = null;
+
+    /**
      * The ID of the data object being indexed.
      */
     private ?int $id = null;
@@ -110,6 +115,7 @@ class DataObjectDocument implements
         $this->setDataObject($dataObject);
         $this->id = $dataObject->ID;
         $this->className = $dataObject->ClassName;
+        $this->baseClass = $dataObject->baseClass();
     }
 
     /**
@@ -119,10 +125,24 @@ class DataObjectDocument implements
      */
     public function getIdentifier(): string
     {
-        $type = str_replace('\\', '_', $this->getSourceClass());
+        $type = str_replace('\\', '_', $this->getBaseClass());
         $id = $this->id;
 
         return strtolower(sprintf('%s_%s', $type, $id));
+    }
+
+    /**
+     * Get the base class for the data object
+     */
+    public function getBaseClass(): string
+    {
+        if ($this->baseClass) {
+            return $this->baseClass;
+        }
+
+        $this->baseClass = $this->getDataObject()->baseClass();
+
+        return $this->baseClass;
     }
 
     /**
@@ -691,6 +711,7 @@ class DataObjectDocument implements
         }
 
         return [
+            'baseClass' => $this->getBaseClass(),
             'className' => $this->getSourceClass(),
             'id' => $id,
             'fallback' => $this->shouldFallbackToLatestVersion,
@@ -717,6 +738,7 @@ class DataObjectDocument implements
         }
 
         $this->className = $data['className'];
+        $this->baseClass = $data['baseClass'];
         $this->id = $data['id'];
         $this->shouldFallbackToLatestVersion = $data['fallback'];
     }
