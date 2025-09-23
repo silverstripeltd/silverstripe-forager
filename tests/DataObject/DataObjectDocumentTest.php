@@ -66,6 +66,13 @@ class DataObjectDocumentTest extends SapphireTest
         $this->assertEquals('silverstripe_forager_tests_fake_dataobjectfake_5', $doc->getIdentifier());
     }
 
+    public function testGetIdentifierSubClass(): void
+    {
+        $dataobject = new PageFake(['ID' => 5]);
+        $doc = DataObjectDocument::create($dataobject);
+        $this->assertEquals('silverstripe_cms_model_sitetree_5', $doc->getIdentifier());
+    }
+
     public function testGetSourceClass(): void
     {
         $dataobject = new DataObjectFake(['ID' => 5]);
