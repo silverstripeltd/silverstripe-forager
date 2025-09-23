@@ -97,7 +97,11 @@ MyProject\MyApp\Product:
         - SilverStripe\Forager\Extensions\SearchServiceExtension
 ```
 
-Most DataObjects you use will also have `SilverStripe\Versioned\Versioned` extension (e.g. SiteTree). By default a versioned object will be added to the index when it is published and removed when it is unpublished. The [SearchServiceExtension](../../src/Extensions/SearchServiceExtension.php) class is responsible for listing to these events.
+Both versioned DataObjects (that is, having the `SilverStripe\Versioned\Versioned` extension) and non versioned DataObjects are now supported.
+
+By default a **versioned** object will be added to the index when it is published and removed when it is unpublished.
+
+For a **non versioned** object, it will be added to the index when it is written, and removed when it is deleted.
 
 ### DataObject Fields
 

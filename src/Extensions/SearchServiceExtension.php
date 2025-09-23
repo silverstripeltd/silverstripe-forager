@@ -142,6 +142,20 @@ class SearchServiceExtension extends Extension
     }
 
     /**
+     * After writing the record, check if it should be added to the index.
+     */
+    public function onAfterWrite(): void
+    {
+        // if a versioned object, then don't add to index here as it will be
+        // added on publish.
+        if ($this->owner->hasExtension(Versioned::class)) {
+            return;
+        }
+
+        $this->owner->addToIndexes();
+    }
+
+    /**
      * When publishing the page, push this data to Indexer. The data which is sent to search is the rendered template
      * from the front end
      *
@@ -163,9 +177,13 @@ class SearchServiceExtension extends Extension
     /**
      * Before deleting this record ensure that it is removed from search
      *
+     * This needs to be done before the data object is deleted, otherwise
+     * the batch processor won't be able to get dependencies for non-versioned
+     * objects.
+     *
      * @throws Exception
      */
-    public function onAfterDelete(): void
+    public function onBeforeDelete(): void
     {
         if ($this->owner->hasExtension(Versioned::class)) {
             return;

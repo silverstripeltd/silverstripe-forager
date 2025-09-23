@@ -12,8 +12,8 @@ use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\Versioned\Versioned;
 
 /**
- *  By virture of the default parameter, Index::METHOD_ADD, this does not remove the documents straight away.
- *  It checks first the status of the underlaying DataObjects and decides whether to remove or add them to the index.
+ *  By virtue of the default parameter, Index::METHOD_ADD, this does not remove the documents straight away.
+ *  It checks first the status of the underlying DataObjects and decides whether to remove or add them to the index.
  *  Then pass on to the parent's process() method to handle the job.
  *
  * @property DataObjectDocument|null $document

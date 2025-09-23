@@ -2,7 +2,10 @@
 
 namespace SilverStripe\Forager\Tests\DataObject;
 
+use Monolog\Logger;
 use Page;
+use Psr\Log\LoggerInterface;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
@@ -61,6 +64,13 @@ class DataObjectDocumentTest extends SapphireTest
         $dataobject = new DataObjectFake(['ID' => 5]);
         $doc = DataObjectDocument::create($dataobject);
         $this->assertEquals('silverstripe_forager_tests_fake_dataobjectfake_5', $doc->getIdentifier());
+    }
+
+    public function testGetIdentifierSubClass(): void
+    {
+        $dataobject = new PageFake(['ID' => 5]);
+        $doc = DataObjectDocument::create($dataobject);
+        $this->assertEquals('silverstripe_cms_model_sitetree_5', $doc->getIdentifier());
     }
 
     public function testGetSourceClass(): void
@@ -568,6 +578,10 @@ class DataObjectDocumentTest extends SapphireTest
         });
     }
 
+    /**
+     * Test that when a versioned data object is archived, the data object can still be
+     * obtained from the serialized data.
+     */
     public function testDeletedDataObject(): void
     {
         $dataObject = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
@@ -586,6 +600,54 @@ class DataObjectDocumentTest extends SapphireTest
         /** @var DataObjectDocument $newDocument */
         $newDocument = unserialize(serialize($doc));
         $newDocument->getDataObject();
+    }
+
+    /**
+     * Test that when a non versioned data object is deleted relevant data can be
+     * obtained from the serialized data.
+     */
+    public function testDeletedNonVersionedDataObject(): void
+    {
+        $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
+        $dataObject->Title = 'NonVersioned Data Object';
+        $dataObject->write();
+        $id = $dataObject->ID;
+
+        $doc = DataObjectDocument::create($dataObject)->setShouldFallbackToLatestVersion(true);
+        $dataObject->delete();
+
+        /** @var DataObjectDocument $serialDoc */
+        $serialDoc = unserialize(serialize($doc));
+
+        // in this case the object has already been deleted so expect an error to be thrown
+        $this->expectExceptionMessage(
+            sprintf('DataObject SilverStripe\Forager\Tests\Fake\DataObjectFake : %s does not exist', $id)
+        );
+
+        $serialDoc->getDataObject();
+
+        // check that the identifier can be retrieved
+        $this->assertEquals(
+            sprintf('silverstripe_forager_tests_fake_dataobjectfake_%s', $id),
+            $serialDoc->getIdentifier()
+        );
+
+        // check that the classname can be retrieved
+        $this->assertEquals(
+            DataObjectFake::class,
+            $serialDoc->getSourceClass()
+        );
+
+        $doc->setShouldFallbackToLatestVersion(false);
+
+        $serialDoc = unserialize(serialize($doc));
+
+        // the data object does not exist (it has been deleted), but we should still return some basic details
+        // for attempting a delete from elastic
+        $this->assertEquals(
+            sprintf('silverstripe_forager_tests_fake_dataobjectfake_%s', $id),
+            $serialDoc->getIdentifier()
+        );
     }
 
     public function testIndexDataObjectDocument(): void
@@ -671,6 +733,31 @@ class DataObjectDocumentTest extends SapphireTest
         $doc = DataObjectDocument::create($dataObject);
 
         $this->assertTrue($doc->shouldIndex());
+    }
+
+    /**
+     * Test that for deleted non versioned data objects, the getDependencyDocuments function returns
+     * an empty array, but adds a log.
+     */
+    public function testGetDependentDocumentsForDeletedNonVersionedDataObject(): void
+    {
+        $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
+        $doc = DataObjectDocument::create($dataObject);
+
+        $mockLogger = $this->getMockBuilder(Logger::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['info'])
+            ->getMock();
+
+        Injector::inst()->registerService($mockLogger, LoggerInterface::class);
+        $mockLogger->expects($this->once())->method('info');
+
+        $dataObject->delete();
+        /** @var DataObjectDocument $serialDoc */
+        $serialDoc = unserialize(serialize($doc));
+
+        $dependentDocuments = $serialDoc->getDependentDocuments();
+        $this->assertEmpty($dependentDocuments);
     }
 
 }

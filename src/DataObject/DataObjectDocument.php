@@ -5,6 +5,7 @@ namespace SilverStripe\Forager\DataObject;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Core\ArrayLib;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
@@ -40,6 +41,7 @@ use SilverStripe\ORM\RelationList;
 use SilverStripe\ORM\UnsavedRelationList;
 use SilverStripe\Security\Member;
 use SilverStripe\Versioned\Versioned;
+use Throwable;
 use TypeError;
 
 class DataObjectDocument implements
@@ -80,8 +82,19 @@ class DataObjectDocument implements
      */
     private ?DataObject $dataObject = null;
 
+    /**
+     * The classname of the data object
+     */
     private ?string $className = null;
 
+    /**
+     * The base class of the data object
+     */
+    private ?string $baseClass = null;
+
+    /**
+     * The ID of the data object being indexed.
+     */
     private ?int $id = null;
 
     /**
@@ -100,22 +113,52 @@ class DataObjectDocument implements
     public function __construct(DataObject $dataObject)
     {
         $this->setDataObject($dataObject);
+        $this->id = $dataObject->ID;
+        $this->className = $dataObject->ClassName;
+        $this->baseClass = $dataObject->baseClass();
     }
 
+    /**
+     * The identifier (id) used in the search engine, based on the class and object id.
+     *
+     * @return string
+     */
     public function getIdentifier(): string
     {
-        $type = str_replace('\\', '_', $this->getDataObject()->baseClass());
-        $id = $this->getDataObject()->ID;
+        $type = str_replace('\\', '_', $this->getBaseClass());
+        $id = $this->id;
 
         return strtolower(sprintf('%s_%s', $type, $id));
     }
 
     /**
+     * Get the base class for the data object
+     */
+    public function getBaseClass(): string
+    {
+        if ($this->baseClass) {
+            return $this->baseClass;
+        }
+
+        $this->baseClass = $this->getDataObject()->baseClass();
+
+        return $this->baseClass;
+    }
+
+    /**
+     * Get the source class for the data object.
+     *
      * @return string
      */
     public function getSourceClass(): string
     {
-        return $this->getDataObject()->ClassName;
+        if ($this->className) {
+            return $this->className;
+        }
+
+        $this->className = $this->getDataObject()->ClassName;
+
+        return $this->className;
     }
 
     public function setShouldFallbackToLatestVersion(bool $fallback = true): static
@@ -395,7 +438,28 @@ class DataObjectDocument implements
         $dataObjectClasses = array_filter($searchableClasses, function ($class) {
             return is_subclass_of($class, DataObject::class);
         });
-        $ownedDataObject = $this->getDataObject();
+
+        try {
+            $ownedDataObject = $this->getDataObject();
+        } catch (Throwable $e) {
+            // If there is no data object available, it might have been a deleted non-versioned object.
+            // In this case, return empty dependency documents with the assumption that any dependencies
+            // will be handled separately.
+            if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                Injector::inst()->get(LoggerInterface::class)->info(sprintf(
+                    'Unable to get document for checking dependencies. '
+                    .'Non versioned %s data object with ID %s cannot be found.',
+                    $this->getSourceClass(),
+                    $this->id,
+                ));
+
+                return [];
+            }
+
+            // otherwise, throw the exception for versioned objects
+            throw $e;
+        }
+
         $docs = [];
 
         foreach ($dataObjectClasses as $class) {
@@ -502,23 +566,6 @@ class DataObjectDocument implements
         }
 
         $this->dataObject = $dataObject;
-
-        foreach (static::config()->get('dependencies') as $name => $service) {
-            // re-instate dependencies after job hydration
-
-            $getter = 'get' . $name;
-
-            try {
-                if ($this->$getter() !== null) {
-                    continue;
-                }
-            } catch (TypeError) {
-                // noop - occurs when class hydrated from job and dependencies are null
-            }
-
-            $method = 'set' . $name;
-            $this->$method(Injector::inst()->get($service));
-        }
 
         return $this->dataObject;
     }
@@ -649,16 +696,49 @@ class DataObjectDocument implements
 
     public function __serialize(): array
     {
+        $id = $this->id;
+
+        // attempt to get data object (this won't be available for deleted non versioned objects)
+        try {
+            $dataObject = $this->getDataObject();
+            $id = $dataObject->ID ?: $dataObject->OldID;
+        } catch (Throwable $e) {
+            // if a Versioned object then throw an error, but we will let non-versioned objects to
+            // continue since it may have been deleted
+            if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                throw $e;
+            }
+        }
+
         return [
-            'className' => $this->getDataObject()->baseClass(),
-            'id' => $this->getDataObject()->ID ?: $this->getDataObject()->OldID,
+            'baseClass' => $this->getBaseClass(),
+            'className' => $this->getSourceClass(),
+            'id' => $id,
             'fallback' => $this->shouldFallbackToLatestVersion,
         ];
     }
 
     public function __unserialize(array $data): void
     {
+        foreach (static::config()->get('dependencies') as $name => $service) {
+            // re-instate dependencies after job hydration
+
+            $getter = 'get' . $name;
+
+            try {
+                if ($this->$getter() !== null) {
+                    continue;
+                }
+            } catch (TypeError) {
+                // noop - occurs when class hydrated from job and dependencies are null
+            }
+
+            $method = 'set' . $name;
+            $this->$method(Injector::inst()->get($service));
+        }
+
         $this->className = $data['className'];
+        $this->baseClass = $data['baseClass'];
         $this->id = $data['id'];
         $this->shouldFallbackToLatestVersion = $data['fallback'];
     }
@@ -672,11 +752,16 @@ class DataObjectDocument implements
     public function onAddToSearchIndexes(string $event): void
     {
         if ($event === DocumentAddHandler::BEFORE_ADD) {
-            // make sure DataObject is always live on adding to the index
-            Versioned::withVersionedMode(function (): void {
-                Versioned::set_stage(Versioned::LIVE);
+            $currentDataObject = $this->getDataObject();
 
-                $currentDataObject = $this->getDataObject();
+            // if this is a non versioned object we don't need to update to the 'live' version
+            if (!$currentDataObject->hasExtension(Versioned::class)) {
+                return;
+            }
+
+            // make sure DataObject is always live on adding to the index
+            Versioned::withVersionedMode(function () use ($currentDataObject): void {
+                Versioned::set_stage(Versioned::LIVE);
 
                 $liveDataObject = DataObject::get($currentDataObject->ClassName)->byID($currentDataObject->ID);
 
