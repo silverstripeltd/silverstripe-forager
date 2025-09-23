@@ -126,7 +126,7 @@ class DataObjectDocument implements
     public function getIdentifier(): string
     {
         // generate the identifier from the base class and ID
-        $type = str_replace('\\', '_', $this->getSourceClass());
+        $type = str_replace('\\', '_', $this->getBaseClass());
         $id = $this->id;
 
         return strtolower(sprintf('%s_%s', $type, $id));
