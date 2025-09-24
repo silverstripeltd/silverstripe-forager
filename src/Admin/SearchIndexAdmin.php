@@ -199,21 +199,22 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
         foreach ($configuration->getIndexConfigurations() as $indexSuffix => $data) {
             $indexData = $configuration->getIndexDataForSuffix($indexSuffix);
+
             $indexData->withIndexContext(
                 function (IndexData $index) use ($indexSuffix, $indexer, $list): void {
                     $localCount = 0;
-    
+
                     // Get the excluded classes for this index
                     $excludeClasses = $index->getExcludeClasses();
-    
+
                     foreach ($index->getClasses() as $class) {
                         $query = new DataQuery($class);
                         $query->where('SearchIndexed IS NOT NULL');
-    
+
                         if (property_exists($class, 'ShowInSearch')) {
                             $query->where('ShowInSearch = 1');
                         }
-    
+
                         if ($excludeClasses) {
                             foreach ($excludeClasses as $excludeClass) {
                                 if (is_subclass_of($excludeClass, $class)) {
@@ -223,11 +224,11 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
                                 }
                             }
                         }
-    
-                        $this->extend('updateQuery', $query, $data);
+
+                        $this->extend('updateQuery', $query, $index, $class);
                         $localCount += $query->count();
                     }
-    
+
                     $result = new IndexedDocumentsResult();
                     $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
                     $result->IndexSuffix = $indexSuffix;
