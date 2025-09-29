@@ -63,6 +63,14 @@ SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned:
     Title: Dataobject two Versioned
     ShowInSearch: 0
 
+SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake:
+  one:
+    Title: Dataobject subclass one
+
+SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex:
+  one:
+    Title: Dataobject subclass one
+
 SilverStripe\Assets\Image:
   image:
     Name: 'Image'

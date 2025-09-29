@@ -10,6 +10,7 @@ use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\IndexData;
@@ -179,27 +180,23 @@ class SearchServiceExtension extends Extension
 
     /**
      * Review if this document is an excluded subclass
+     *
+     * @throws IndexConfigurationException
      */
     public function canIndexInSearch(): bool
     {
         $owner = $this->getOwner();
-        // Get the configuration for the indexes we are processing.
-        $config = $this->getConfiguration()->getIndexConfigurations();
-        $data = IndexData::current();
 
-        $indexData = $data?->getSuffix()
-            ? [$config[$data->getSuffix()]]
-            : $config;
-
-        foreach ($indexData as $data) {
-            $excludedClasses = $data['excludeClasses'] ?? [];
-
-            if ($excludedClasses && in_array($owner->ClassName, $excludedClasses)) {
-                return false;
-            }
+        // We should only process if we have a current index context
+        if (!IndexData::current()) {
+            throw new IndexConfigurationException('IndexData context is not set');
         }
 
-        return true;
+        // Get the configuration for the indexes we are processing.
+        $config = IndexData::current();
+        $excludedClasses = $config->getExcludeClasses();
+
+        return !$excludedClasses || !in_array($owner->ClassName, $excludedClasses);
     }
 
 }

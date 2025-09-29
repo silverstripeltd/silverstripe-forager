@@ -8,6 +8,7 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex;
 use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Injector\Injector;
@@ -97,6 +98,19 @@ class IndexDataTest extends SapphireTest
         $indexData = new IndexData($config, 'foo');
 
         $this->assertEquals([DataObjectFake::class], $indexData->getClasses());
+    }
+
+    public function testGetExcludedClasses(): void
+    {
+        $config = [
+            'excludeClasses' => [
+                DataObjectSubclassFakeShouldNotIndex::class,
+            ],
+        ];
+
+        $indexData = new IndexData($config, 'foo');
+
+        $this->assertEquals([DataObjectSubclassFakeShouldNotIndex::class], $indexData->getExcludeClasses());
     }
 
     public function testGetContextKey(): void

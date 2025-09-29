@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Extensions;
 
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Core\Extension;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forms\DatetimeField;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormFactory;
@@ -25,20 +26,29 @@ class SearchFormFactoryExtension extends Extension
             return;
         }
 
-        // Display a banner if this file is an excluded class or extension
-        if (in_array(false, $file->invokeWithExtensions('canIndexInSearch'), true)) {
-            $fields->insertAfter(
-                'ShowInSearch',
-                LiteralField::create(
-                    'FileIndexInfo',
-                    sprintf(
-                        '<div class="alert alert-info">%s</div>',
-                        _t(
-                            self::class . '.FILE_IN_EXCLUDED_LIST',
-                            'This file is excluded from one or more search indexes.',
-                        )
-                    )
-                ),
+        $configuration = SearchServiceExtension::singleton()->getConfiguration();
+
+        foreach ($configuration->getIndexConfigurations() as $indexSuffix => $data) {
+            $indexData = $configuration->getIndexDataForSuffix($indexSuffix);
+            $indexData->withIndexContext(
+                function (IndexData $index) use ($file, $fields): void {
+                    // Display a banner if this file is an excluded class or extension
+                    if (in_array(false, $file->invokeWithExtensions('canIndexInSearch'), true)) {
+                        $fields->insertAfter(
+                            'ShowInSearch',
+                            LiteralField::create(
+                                'FileIndexInfo',
+                                sprintf(
+                                    '<div class="alert alert-info">%s</div>',
+                                    _t(
+                                        self::class . '.FILE_IN_EXCLUDED_LIST',
+                                        'This file is excluded from one or more search indexes.',
+                                    )
+                                )
+                            ),
+                        );
+                    }
+                }
             );
         }
 

@@ -2,16 +2,21 @@
 
 namespace SilverStripe\Forager\Tests\Extensions;
 
+use SilverStripe\Assets\File;
 use SilverStripe\Assets\Image;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Extensions\SearchFormFactoryExtension;
+use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Forms\DatetimeField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
+use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\TabSet;
 
 class SearchFormFactoryExtensionTest extends SapphireTest
 {
+
+    use SearchServiceTestTrait;
 
     protected static $fixture_file = [ // phpcs:ignore
         '../fixtures.yml',
@@ -36,6 +41,7 @@ class SearchFormFactoryExtensionTest extends SapphireTest
 
         $fields = $form->Fields()->findOrMakeTab('Editor.Details');
         $this->assertInstanceOf(DatetimeField::class, $fields->fieldByName('SearchIndexed'));
+        $this->assertNull($fields->fieldByName('FileIndexInfo'));
     }
 
 }

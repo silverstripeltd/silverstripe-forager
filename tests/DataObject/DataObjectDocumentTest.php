@@ -9,12 +9,14 @@ use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
 use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivateShouldIndex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex;
 use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
@@ -72,18 +74,20 @@ class DataObjectDocumentTest extends SapphireTest
 
     public function testShouldIndex(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
 
         $dataObjectOne = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
         $dataObjectTwo = $this->objFromFixture(DataObjectFakeVersioned::class, 'two');
         $dataObjectThree = $this->objFromFixture(DataObjectFakePrivate::class, 'one');
         $dataObjectFour = $this->objFromFixture(DataObjectFakePrivateShouldIndex::class, 'one');
+        $dataObjectFive = $this->objFromFixture(DataObjectSubclassFakeShouldNotIndex::class, 'one');
 
         // DocOne and Two represent DOs that have not yet been published
         $docOne = DataObjectDocument::create($dataObjectOne);
         $docTwo = DataObjectDocument::create($dataObjectTwo);
         $docThree = DataObjectDocument::create($dataObjectThree);
         $docFour = DataObjectDocument::create($dataObjectFour);
+        $docFive = DataObjectDocument::create($dataObjectFive);
 
         // Add all four documents to our indexes, as this isn't the functionality we're testing here
         $config->set(
@@ -101,16 +105,24 @@ class DataObjectDocumentTest extends SapphireTest
                 $docFour->getIdentifier() => [
                     'index' => 'data',
                 ],
+                $docFive->getIdentifier() => [
+                    'index' => 'data',
+                ],
             ]
         );
 
-        // Most should be unavailable to index initially
-        $this->assertFalse($docOne->shouldIndex());
-        $this->assertFalse($docTwo->shouldIndex());
-        $this->assertFalse($docThree->shouldIndex());
-
-        // Doc four has a custom shouldIndex() method that always allows indexing
-        $this->assertTrue($docFour->shouldIndex());
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function () use ($docOne, $docTwo, $docThree, $docFour, $docFive) {
+                // Most should be unavailable to index initially
+                $this->assertFalse($docOne->shouldIndex());
+                $this->assertFalse($docTwo->shouldIndex());
+                $this->assertFalse($docThree->shouldIndex());
+                $this->assertFalse($docFive->shouldIndex());
+                // Doc four has a custom shouldIndex() method that always allows indexing
+                $this->assertTrue($docFour->shouldIndex());
+            }
+        );
 
         // Make sure both Versioned DOs are now published
         $dataObjectOne->publishRecursive();
@@ -124,17 +136,41 @@ class DataObjectDocumentTest extends SapphireTest
         $docOne = DataObjectDocument::create($dataObjectOne);
         $docTwo = DataObjectDocument::create($dataObjectTwo);
 
-        // Document one should be indexable (as it's published and has ShowInSearch: 1)
-        $this->assertTrue($docOne->shouldIndex());
-        // Document two should NOT be indexable (it's published but has ShowInSearch: 0)
-        $this->assertFalse($docTwo->shouldIndex());
-        // Document three should NOT be indexable (canView(): false)
-        $this->assertFalse($docThree->shouldIndex());
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function () use ($docOne, $docTwo, $docThree, $docFive) {
+                // Document one should be indexable (as it's published and has ShowInSearch: 1)
+                $this->assertTrue($docOne->shouldIndex());
+                // Document two should NOT be indexable (it's published but has ShowInSearch: 0)
+                $this->assertFalse($docTwo->shouldIndex());
+                // Document three should NOT be indexable (canView(): false)
+                $this->assertFalse($docThree->shouldIndex());
+                // Document five should NOT be indexable (it's an excluded class via subclass)
+                $this->assertFalse($docFive->shouldIndex());
+            });
+    }
+
+    public function testShouldNotIndexExcludedClass(): void
+    {
+        $config = $this->mockConfig(true);
+
+        $dataObject = $this->objFromFixture(DataObjectSubclassFake::class, 'one');
+        $dataObjectTwo = $this->objFromFixture(DataObjectSubclassFakeShouldNotIndex::class, 'one');
+        $doc = DataObjectDocument::create($dataObject);
+        $doc2 = DataObjectDocument::create($dataObjectTwo);
+
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function (IndexData $index) use ($doc, $doc2) {
+                $this->assertTrue($doc->shouldIndex());
+                $this->assertFalse($doc2->shouldIndex());
+            }
+        );
     }
 
     public function testShouldIndexChild(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
 
         $parent = $this->objFromFixture(Page::class, 'page1');
         // Make sure our Parent is published before we fetch our child pages
@@ -175,12 +211,16 @@ class DataObjectDocumentTest extends SapphireTest
             ]
         );
 
-        // Our parent page has been published, and so has our child page, so this should be indexable
-        $this->assertTrue($docOne->shouldIndex());
-        // Our parent page has been published, but the child has not
-        $this->assertFalse($docTwo->shouldIndex());
-        // Our parent page is not published, even though the child is
-        $this->assertFalse($docThree->shouldIndex());
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function () use ($docOne, $docTwo, $docThree) {
+                // Our parent page has been published, and so has our child page, so this should be indexable
+                $this->assertTrue($docOne->shouldIndex());
+                // Our parent page has been published, but the child has not
+                $this->assertFalse($docTwo->shouldIndex());
+                // Our parent page is not published, even though the child is
+                $this->assertFalse($docThree->shouldIndex());
+            });
 
         // Now trigger a change on our parent page (so that the draft and live versions no longer match)
         $parent->Title = 'Parent Page Changed';
@@ -190,8 +230,12 @@ class DataObjectDocumentTest extends SapphireTest
         $childOne = $this->objFromFixture(Page::class, 'page2');
         // Recreate the Document with our new child page
         $docOne = DataObjectDocument::create($childOne);
-        // Check that our child page is still indexable, even after our parent page was given a different draft version
-        $this->assertTrue($docOne->shouldIndex());
+
+        $indexData->withIndexContext(
+            function () use ($docOne) {
+                // Check that our child page is still indexable, even after our parent page was given a different draft version
+                $this->assertTrue($docOne->shouldIndex());
+            });
     }
 
     public function testMarkIndexed(): void
@@ -590,7 +634,8 @@ class DataObjectDocumentTest extends SapphireTest
 
     public function testIndexDataObjectDocument(): void
     {
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
+
         $config->set('getSearchableClasses', [
             PageFake::class,
         ]);
@@ -600,6 +645,10 @@ class DataObjectDocumentTest extends SapphireTest
                 new Field('page_link', 'Link'),
             ],
         ]);
+
+        $indexData = $config->getIndexDataForSuffix('index1');
+        // Temporarily set the current IndexData so that our shouldIndex() calls work as expected
+        IndexData::$current = $indexData;
 
         Versioned::withVersionedMode(function () use ($config): void {
             // Reading mode as if run by job - development Admin sets Draft reading mode
@@ -643,6 +692,9 @@ class DataObjectDocumentTest extends SapphireTest
 
             $this->assertCount(1, $service->documents, 'Published documents should be indexed');
         });
+
+        // reset current IndexData
+        IndexData::$current = null;
     }
 
     public function testIndexDataObjectDocumentShowInSearch(): void
@@ -650,7 +702,7 @@ class DataObjectDocumentTest extends SapphireTest
         $dataObject = $this->objFromFixture(DataObjectFakeVersioned::class, 'two');
         $doc = DataObjectDocument::create($dataObject);
 
-        $config = $this->mockConfig();
+        $config = $this->mockConfig(true);
         $config->set(
             'getIndexConfigurationsForDocument',
             [
@@ -660,17 +712,22 @@ class DataObjectDocumentTest extends SapphireTest
             ]
         );
 
-        // Should not index as ShowInSearch is false for this DataObject
-        $dataObject->publishRecursive();
-        $this->assertFalse($doc->shouldIndex());
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function () use ($dataObject, $doc) {
 
-        // Should index as ShowInSearch is now set to true
-        $dataObject->ShowInSearch = true;
-        $dataObject->publishRecursive();
+                // Should not index as ShowInSearch is false for this DataObject
+                $dataObject->publishRecursive();
+                $this->assertFalse($doc->shouldIndex());
 
-        $doc = DataObjectDocument::create($dataObject);
+                // Should index as ShowInSearch is now set to true
+                $dataObject->ShowInSearch = true;
+                $dataObject->publishRecursive();
 
-        $this->assertTrue($doc->shouldIndex());
+                $doc = DataObjectDocument::create($dataObject);
+
+                $this->assertTrue($doc->shouldIndex());
+            });
     }
 
 }
