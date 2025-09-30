@@ -28,6 +28,24 @@ class SearchFormFactoryExtensionTest extends SapphireTest
      */
     public function testUpdateForm(): void
     {
+        // Set the config to one that excludes Images
+        $config = $this->mockConfig();
+        $config->set('indexes', [
+            'index1' => [
+                'includeClasses' => [
+                    File::class => [
+                        'fields' => [
+                            'Title' => true,
+                            'Caption' => true,
+                        ],
+                    ],
+                ],
+                'excludeClasses' => [
+                    Image::class,
+                ],
+            ],
+        ]);
+
         $form = Form::create();
         $fieldsList = new FieldList(new TabSet('Editor'));
         $form->setFields($fieldsList);
@@ -41,7 +59,7 @@ class SearchFormFactoryExtensionTest extends SapphireTest
 
         $fields = $form->Fields()->findOrMakeTab('Editor.Details');
         $this->assertInstanceOf(DatetimeField::class, $fields->fieldByName('SearchIndexed'));
-        $this->assertNull($fields->fieldByName('FileIndexInfo'));
+        $this->assertInstanceOf(LiteralField::class, $fields->fieldByName('FileIndexInfo'));
     }
 
 }
