@@ -50,8 +50,6 @@ class SearchServiceExtension extends Extension
 
     private bool $hasConfigured = false;
 
-    protected bool $excludeClass = false;
-
     public function __construct(
         IndexingInterface $searchService,
         IndexConfiguration $config,

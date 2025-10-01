@@ -6,6 +6,7 @@ use SilverStripe\Assets\File;
 use SilverStripe\Assets\Image;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Extensions\SearchFormFactoryExtension;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\Forms\DatetimeField;
 use SilverStripe\Forms\FieldList;
@@ -45,6 +46,8 @@ class SearchFormFactoryExtensionTest extends SapphireTest
                 ],
             ],
         ]);
+
+        File::add_extension(SearchServiceExtension::class);
 
         $form = Form::create();
         $fieldsList = new FieldList(new TabSet('Editor'));

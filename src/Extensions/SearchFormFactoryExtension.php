@@ -19,10 +19,16 @@ class SearchFormFactoryExtension extends Extension
         string $name = FormFactory::DEFAULT_NAME,
         array $context = []
     ): void {
-        $fields = $form->Fields()->findOrMakeTab('Editor.Details');
         $file = $context['Record'] ?? null;
 
-        if (!$fields || !$file) {
+        // Exit out if the extension isn't applied to this object
+        if (!$file || !$file->hasExtension(SearchServiceExtension::class)) {
+            return;
+        }
+
+        $fields = $form->Fields()->findOrMakeTab('Editor.Details');
+
+        if (!$fields) {
             return;
         }
 

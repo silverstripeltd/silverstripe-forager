@@ -17,6 +17,10 @@ class SearchServiceFileExclusionExtension extends Extension
     {
         $owner = $this->getOwner();
 
+        if (!$owner->hasExtension(SearchServiceExtension::class)) {
+            return false;
+        }
+
         $excludeFileTypes = $owner->config()->get('exclude_file_extensions') ?? [];
 
         return !$excludeFileTypes || !in_array($owner->getExtension(), $excludeFileTypes);

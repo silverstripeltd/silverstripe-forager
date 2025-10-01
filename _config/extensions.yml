@@ -40,12 +40,9 @@ SilverStripe\CMS\Model\SiteTree:
     SiteTreeHierarchyExtension: SilverStripe\Forager\Extensions\SiteTreeHierarchyExtension
 ---
 Name: forager-extensions-file
-Only:
-  envvarset: SEARCH_INDEX_FILES
 ---
 SilverStripe\Assets\File:
   extensions:
-    ForagerFileExtension: SilverStripe\Forager\Extensions\SearchServiceExtension
     ForagerFileExclusionExtension: SilverStripe\Forager\Extensions\SearchServiceFileExclusionExtension
 SilverStripe\AssetAdmin\Forms\FileFormFactory:
   extensions:
