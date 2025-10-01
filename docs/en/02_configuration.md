@@ -17,7 +17,8 @@ Most of the configuration surface of this module lies in the appropriately title
     -   [Advanced configuration](#advanced-configuration)
     -   [Per environment indexing](#per-environment-indexing)
     -   [Full page indexing](#full-page-indexing)
-    -   [Configuring search exclusion for files](#configuring-search-exclusion-for-files)
+    -   [Configuring search for files](#configuring-search-for-files)
+    -   [Configuring search exclusion for files](#configuring-search-exclusions-for-files)
     -   [Index contexts](#index-contexts)
     -   [More information](#more-information)
     <!-- TOC -->
@@ -420,6 +421,14 @@ can be configured.
 SilverStripe\Forager\Service\PageCrawler:
     content_xpath_selector: "//body"
 ```
+
+## Configuring search for files
+
+To allow for file indexing, we use the same method as with any other DataObject type [Indexing dataobjects](#indexing-dataObjects). 
+
+This module applies two extensions to the File class by default with their functionality only applying when File objects have the `SearchServiceExtension` extension.
+
+The additional functionality includes support for the `exclude_file_extensions` below. It also updates the file's detail form to display a banner, which alerts users when a specific file type is excluded from any indexes.
 
 ## Configuring search exclusions for files
 
