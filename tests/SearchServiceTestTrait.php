@@ -9,6 +9,7 @@ use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex;
 use SilverStripe\Forager\Tests\Fake\IndexConfigurationFake;
 use SilverStripe\Forager\Tests\Fake\ServiceFake;
 
@@ -47,6 +48,9 @@ trait SearchServiceTestTrait
                                     'field2' => true,
                                 ],
                             ],
+                        ],
+                        'excludeClasses' => [
+                            DataObjectSubclassFakeShouldNotIndex::class,
                         ],
                     ],
                     'index2' => [

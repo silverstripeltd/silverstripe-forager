@@ -9,6 +9,7 @@ use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Schema\Field;
 use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
@@ -151,6 +152,8 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         $job = RemoveDataObjectJob::create('index1', $pageDoc);
         $job->setup();
 
+        $config = IndexConfiguration::singleton();
+
         // Creating this job does not necessarily mean to delete documents from index
         $this->assertEquals(Indexer::METHOD_ADD, $job->getMethod());
 
@@ -169,14 +172,18 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         ];
 
         $resultTitles = [];
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function () use ($documents, &$resultTitles) {
+                // This determines whether the document should be added or removed from the index
+                foreach ($documents as $document) {
+                    $resultTitles[] = $document->getDataObject()?->Title;
 
-        // This determines whether the document should be added or removed from the index
-        foreach ($documents as $document) {
-            $resultTitles[] = $document->getDataObject()?->Title;
-
-            // The document should be removed from index
-            $this->assertFalse($document->shouldIndex());
-        }
+                    // The document should be removed from index
+                    $this->assertFalse($document->shouldIndex());
+                }
+            }
+        );
 
         $this->assertEqualsCanonicalizing($expectedTitles, $resultTitles);
     }
@@ -218,13 +225,19 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
 
         $resultTitles = [];
 
-        // This determines whether the document should be added or removed from from the index
-        foreach ($documents as $document) {
-            $resultTitles[] = $document->getDataObject()?->Title;
+        $config = IndexConfiguration::singleton();
+        $indexData = $config->getIndexDataForSuffix('index1');
+        $indexData->withIndexContext(
+            function () use ($documents, &$resultTitles) {
+                // This determines whether the document should be added or removed from the index
+                foreach ($documents as $document) {
+                    $resultTitles[] = $document->getDataObject()?->Title;
 
-            // The document should be added to index
-            $this->assertTrue($document->shouldIndex());
-        }
+                    // The document should be added to index
+                    $this->assertTrue($document->shouldIndex());
+                }
+            }
+        );
 
         $this->assertEqualsCanonicalizing(
             $expectedTitles,
@@ -271,12 +284,16 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
 
         $resultTitles = [];
 
-        foreach ($documents as $document) {
-            $resultTitles[] = $document->getDataObject()?->Title;
+        $indexData->withIndexContext(
+            function () use ($documents, &$resultTitles) {
+                foreach ($documents as $document) {
+                    $resultTitles[] = $document->getDataObject()?->Title;
 
-            // The document should be added to index
-            $this->assertTrue($document->shouldIndex());
-        }
+                    // The document should be added to index
+                    $this->assertTrue($document->shouldIndex());
+                }
+            }
+        );
 
         // There should be two Pages with this Tag assigned
         $this->assertCount(4, $documents);
@@ -324,12 +341,15 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         $documents = $job2->getDocuments();
         $resultTitles = [];
 
-        foreach ($documents as $document) {
-            $resultTitles[] = $document->getDataObject()?->Title;
+        $indexData->withIndexContext(
+            function () use ($documents, &$resultTitles) {
+                foreach ($documents as $document) {
+                    $resultTitles[] = $document->getDataObject()?->Title;
 
-            // The document should be removed from index
-            $this->assertFalse($document->shouldIndex());
-        }
+                    // The document should be removed from index
+                    $this->assertFalse($document->shouldIndex());
+                }
+            });
 
         // There should be two Pages with this Tag assigned
         $this->assertCount(4, $documents);
@@ -367,6 +387,9 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
         );
         $job->setup();
 
+        $config = IndexConfiguration::singleton();
+        $indexData = $config->getIndexDataForSuffix('index1');
+
         // Creating this job does not necessarily mean to delete documents from index
         $this->assertEquals(Indexer::METHOD_ADD, $job->getMethod());
 
@@ -383,13 +406,16 @@ class RemoveRelatedDataObjectJobTest extends SapphireTest
 
         $resultTitles = [];
 
-        // This determines whether the document should be added or removed from from the index
-        foreach ($documents as $document) {
-            $resultTitles[] = $document->getDataObject()?->Title;
+        $indexData->withIndexContext(
+            function () use ($documents, &$resultTitles) {
+                // This determines whether the document should be added or removed from the index
+                foreach ($documents as $document) {
+                    $resultTitles[] = $document->getDataObject()?->Title;
 
-            // The document should be added to index
-            $this->assertTrue($document->shouldIndex());
-        }
+                    // The document should be added to index
+                    $this->assertTrue($document->shouldIndex());
+                }
+            });
 
         $this->assertEqualsCanonicalizing(
             $expectedTitles,

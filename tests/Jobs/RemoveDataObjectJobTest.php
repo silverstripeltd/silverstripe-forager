@@ -6,6 +6,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
 use SilverStripe\Forager\Schema\Field;
+use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakePrivate;
@@ -105,13 +106,19 @@ class RemoveDataObjectJobTest extends SapphireTest
 
         $resultTitles = [];
 
-        // This determines whether the document should be added or removed from the index
-        foreach ($documents as $document) {
-            $resultTitles[] = $document->getDataObject()?->Title;
+        $indexData = $config->getIndexDataForSuffix('main');
+        // Temporarily set the current IndexData so that our shouldIndex() calls work as expected
+        $indexData->withIndexContext(
+            function () use ($documents, &$resultTitles) {
+                // This determines whether the document should be added or removed from the index
+                foreach ($documents as $document) {
+                    $resultTitles[] = $document->getDataObject()?->Title;
 
-            // The document should be added to index
-            $this->assertTrue($document->shouldIndex());
-        }
+                    // The document should be added to index
+                    $this->assertTrue($document->shouldIndex());
+                }
+            }
+        );
 
         $this->assertEqualsCanonicalizing($expectedTitles, $resultTitles);
 
@@ -124,11 +131,15 @@ class RemoveDataObjectJobTest extends SapphireTest
         $objectOne->delete();
         $objectTwo->delete();
 
-        // This determines whether the document should be added or removed from the index
-        foreach ($documents as $document) {
-            // The document should be removed from index
-            $this->assertFalse($document->shouldIndex());
-        }
+        // Temporarily set the current IndexData so that our shouldIndex() calls work as expected
+        $indexData->withIndexContext(
+            function () use ($documents) {
+                // This determines whether the document should be added or removed from the index
+                foreach ($documents as $document) {
+                    // The document should be removed from index
+                    $this->assertFalse($document->shouldIndex());
+                }
+            });
     }
 
     public function testConstruct(): void

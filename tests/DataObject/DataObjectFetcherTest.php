@@ -6,6 +6,8 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
 class DataObjectFetcherTest extends SapphireTest
@@ -30,7 +32,7 @@ class DataObjectFetcherTest extends SapphireTest
         $documents = $fetcher->fetch();
 
         // Quick sanity check to make sure we have the correct number of documents
-        $this->assertCount(3, $documents);
+        $this->assertCount(5, $documents);
 
         // Now start building out a basic $expectedDocuments, which is just going to be a combination of the ClassName
         // and Title
@@ -38,6 +40,8 @@ class DataObjectFetcherTest extends SapphireTest
             sprintf('%s-Dataobject one', DataObjectFake::class),
             sprintf('%s-Dataobject two', DataObjectFake::class),
             sprintf('%s-Dataobject three', DataObjectFake::class),
+            sprintf('%s-Dataobject subclass one', DataObjectSubclassFake::class),
+            sprintf('%s-Dataobject subclass one', DataObjectSubclassFakeShouldNotIndex::class),
         ];
 
         $resultDocuments = [];
@@ -62,7 +66,7 @@ class DataObjectFetcherTest extends SapphireTest
     public function testTotalDocuments(): void
     {
         $fetcher = DataObjectFetcher::create(DataObjectFake::class);
-        $this->assertEquals(3, $fetcher->getTotalDocuments());
+        $this->assertEquals(5, $fetcher->getTotalDocuments());
     }
 
     public function testCreateDocument(): void

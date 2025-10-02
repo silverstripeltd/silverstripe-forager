@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Tests\Fake;
 
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
+use SilverStripe\Forager\Service\IndexData;
 
 class IndexConfigurationFake extends IndexConfiguration
 {
@@ -40,6 +41,17 @@ class IndexConfigurationFake extends IndexConfiguration
     public function getIndexConfigurations(): array
     {
         return $this->override['indexes'] ?? parent::getIndexConfigurations();
+    }
+
+    public function getIndexDataForSuffix(string $indexSuffix): ?IndexData
+    {
+        $configurations = $this->getIndexConfigurations();
+
+        if (!array_key_exists($indexSuffix, $configurations)) {
+            return null;
+        }
+
+        return IndexData::create($configurations[$indexSuffix], $indexSuffix);
     }
 
     public function shouldUseSyncJobs(): bool
