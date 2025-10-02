@@ -46,7 +46,7 @@ SilverStripe\Assets\File:
     ForagerFileExclusionExtension: SilverStripe\Forager\Extensions\SearchServiceFileExclusionExtension
 SilverStripe\AssetAdmin\Forms\FileFormFactory:
   extensions:
-    - SilverStripe\Forager\Extensions\SearchFormFactoryExtension
+    SearchFormFactoryExtension: SilverStripe\Forager\Extensions\SearchFormFactoryExtension
 
 ---
 Name: silverstripe-forager-dbbuild-extension
