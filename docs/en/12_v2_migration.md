@@ -138,6 +138,11 @@ The following is a list of all public API changes from version 1.
 *   **Class Renamed:** From `SilverStripe\Forager\Admin\SearchAdmin` to `SilverStripe\Forager\Admin\SearchIndexAdmin`.
 *   **Removed Public Methods:**
     *   The method `public function doReindex(HTTPRequest $request): void` was effectively removed as its call was replaced by `SearchReindex::singleton()->processTaskExecution()`.
+*   **Extension Hook Signature Change:**
+    *   The extension hook for updating queries has changed:
+        *   **Before:** `$this->extend('updateQuery', $query, $data);`
+        *   **After:** `$this->extend('updateQuery', $query, $index, $class);`
+    *   Update your extension methods to accept the new parameters: `public function updateQuery(DataQuery $query, IndexData $index, string $class)`
 
 ### [`SilverStripe\Forager\DataObject\DataObjectBatchProcessor`](src/DataObject/DataObjectBatchProcessor.php)
 
