@@ -10,7 +10,7 @@ For most users who are following the instructions in [03_usage.md](03_usage.md) 
 
 - **Recommended:**
 	- Review your YAML config and ensure your index keys (the names under `indexes:`) are unique and meaningful, as these are now called "index suffixes" in the codebase.
-	- If you use any custom BuildTasks (e.g., `SearchReindex`, `SearchClearIndex`), you now run them as Symfony Console commands (e.g., `vendor/bin/sake tasks:SearchReindex`).
+	- If you use any custom BuildTasks on the CLI (e.g., `SearchReindex`, `SearchClearIndex`), you now run them as Symfony Console commands (e.g., `vendor/bin/sake tasks:SearchReindex`).
 
 - **No changes are needed to:**
 	- How you publish/unpublish content
@@ -73,9 +73,10 @@ If you access index configuration directly, use the new methods and pass the suf
 
 ### 5. Task Classes (SearchReindex, SearchClearIndex, SearchConfigure)
 
-- **Now use Symfony Console commands instead of BuildTask.**
-- **Options are passed as command-line options, not HTTP request variables.**
+- **Now use the Symfony Console command version BuildTask.**
+- **When using on the command line options are passed as options, not HTTP request variables.**
 	- E.g., use `--index=main` instead of `?index=main`.
+    - Note the HTTP style commands are still available in the browser `dev/tasks/SearchClearIndex?index=whatever`
 
 **How to update:**  
 Update any custom scripts or documentation to use the new command-line options.
