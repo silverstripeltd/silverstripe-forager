@@ -215,4 +215,20 @@ class SearchServiceExtension extends Extension
         return !$excludedClasses || !in_array($owner->ClassName, $excludedClasses);
     }
 
+    /**
+     * For some data objects, being "published" may have additional criteria beyond just being published.
+     *
+     * @return bool
+     */
+    public function isPublishedForSearch(): bool
+    {
+        $dataObject = $this->getOwner();
+        $isPublished = $dataObject->isPublished();
+
+        // let extensions augment check if this object should be considered published
+        $this->extend('updateIsPublishedForSearch', $dataObject, $isPublished);
+
+        return $isPublished;
+    }
+
 }
