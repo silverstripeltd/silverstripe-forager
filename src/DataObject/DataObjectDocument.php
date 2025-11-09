@@ -448,7 +448,7 @@ class DataObjectDocument implements
             if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
                 Injector::inst()->get(LoggerInterface::class)->info(sprintf(
                     'Unable to get document for checking dependencies. '
-                    .'Non versioned %s data object with ID %s cannot be found.',
+                    . 'Non versioned %s data object with ID %s cannot be found.',
                     $this->getSourceClass(),
                     $this->id,
                 ));
@@ -558,6 +558,19 @@ class DataObjectDocument implements
             $dataObject = Versioned::get_latest_version(
                 $this->className,
                 $this->id
+            );
+        }
+
+        // Allow extensions to provide a fallback for retrieving the DataObject
+        // This is useful for modules that need special handling (e.g., Fluent with locale-specific content)
+        if (!$dataObject) {
+            $this->extend(
+                'updateGetDataObject',
+                $dataObject,
+                $this->className,
+                $this->id,
+                $isVersioned,
+                $this->shouldFallbackToLatestVersion,
             );
         }
 

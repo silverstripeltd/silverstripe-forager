@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\DataObject;
 
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Jobs\IndexJob;
@@ -16,6 +17,7 @@ class DataObjectBatchProcessor extends BatchProcessor
 {
 
     use Configurable;
+    use Extensible;
 
     private static int $buffer_seconds = 5;
 
@@ -54,9 +56,26 @@ class DataObjectBatchProcessor extends BatchProcessor
                     continue;
                 }
 
-                // set up the separate job to update these dependencies
+                // set up the separate index job to update these dependencies
                 $job = IndexJob::create($indexSuffix, $dependencies, Indexer::METHOD_ADD, null, false);
                 $this->run($job);
+
+                continue;
+            }
+
+            // Allow extensions to handle dependency resolution for versioned objects
+            // This is useful for modules that need special handling (e.g., Fluent)
+            // Extensions can set $handled to true and optionally provide $dependencies to process
+            $handled = false;
+            $dependencies = [];
+            $this->invokeWithExtensions('updateRemoveVersionedDocument', $indexSuffix, $doc, $handled, $dependencies);
+
+            if ($handled) {
+                // Extension handled the removal, process any dependencies if provided
+                if (count($dependencies) > 0) {
+                    $job = IndexJob::create($indexSuffix, $dependencies, Indexer::METHOD_ADD, null, false);
+                    $this->run($job);
+                }
 
                 continue;
             }
