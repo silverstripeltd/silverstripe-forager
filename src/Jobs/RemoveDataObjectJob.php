@@ -16,6 +16,7 @@ use SilverStripe\Versioned\Versioned;
  *  It checks first the status of the underlying DataObjects and decides whether to remove or add them to the index.
  *  Then pass on to the parent's process() method to handle the job.
  *
+ * @deprecated In favor of using a non-versioned approach to dependency tracking in DataObjectBatchProcessor
  * @property DataObjectDocument|null $document
  * @property int|null $timestamp
  */

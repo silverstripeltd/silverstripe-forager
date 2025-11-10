@@ -55,7 +55,7 @@ class DataObjectBatchProcessorTest extends SapphireTest
             ->onlyMethods(['runJob'])
             ->getMock();
 
-        $invokedCount = $this->exactly(3);
+        $invokedCount = $this->exactly(1);
         $syncRunnerMock->expects($invokedCount)
             ->method('runJob')
             ->willReturnCallback(function ($arg) use ($invokedCount) {

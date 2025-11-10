@@ -203,7 +203,7 @@ class DataObjectDocument implements
         }
 
         // DataObject has no published version (or draft changes could cause a doc to be removed)
-        if ($dataObject->hasExtension(Versioned::class) && !$dataObject->isPublishedForSearch()) {
+        if ($dataObject->hasExtension(Versioned::class) && !$dataObject->isPublished()) {
             // note even if we pass a draft object to the indexer onAddToSearchIndexes will
             // set the version to live before adding
             return false;

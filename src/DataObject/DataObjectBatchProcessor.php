@@ -22,6 +22,12 @@ class DataObjectBatchProcessor extends BatchProcessor
     private static int $buffer_seconds = 5;
 
     /**
+     * When enabled, dependencies are resolved synchronously using extensions instead of queued jobs.
+     * This provides a unified approach for both versioned and non-versioned DataObjects.
+     */
+    private static bool $use_synchronous_dependencies = true;
+
+    /**
      * @param DocumentInterface[] $documents
      * @throws ValidationException
      */
@@ -40,13 +46,21 @@ class DataObjectBatchProcessor extends BatchProcessor
             return [];
         }
 
+        $useSynchronousDependencies = $this->getConfiguration()->shouldUseSynchronousDependencies();
+
         foreach ($documents as $doc) {
             $dataObject = $doc->getDataObject();
 
-            // for non versioned data objects, once this object is deleted there will be no history to
+            // for non-versioned data objects, once this object is deleted, there will be no history to
             // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
-            if (!$dataObject->hasExtension(Versioned::class)) {
+            if ($useSynchronousDependencies) {
                 $dataObjectDocument = DataObjectDocument::create($dataObject);
+
+                $isVersioned = $dataObject->hasExtension(Versioned::class);
+
+                if ($isVersioned) {
+                    $doc->setShouldFallbackToLatestVersion();
+                }
 
                 // get the dependencies - note, it is only considered a dependency if the data object being
                 // removed is indexed by another object
@@ -59,23 +73,6 @@ class DataObjectBatchProcessor extends BatchProcessor
                 // set up the separate index job to update these dependencies
                 $job = IndexJob::create($indexSuffix, $dependencies, Indexer::METHOD_ADD, null, false);
                 $this->run($job);
-
-                continue;
-            }
-
-            // Allow extensions to handle dependency resolution for versioned objects
-            // This is useful for modules that need special handling (e.g., Fluent)
-            // Extensions can set $handled to true and optionally provide $dependencies to process
-            $handled = false;
-            $dependencies = [];
-            $this->invokeWithExtensions('updateRemoveVersionedDocument', $indexSuffix, $doc, $handled, $dependencies);
-
-            if ($handled) {
-                // Extension handled the removal, process any dependencies if provided
-                if (count($dependencies) > 0) {
-                    $job = IndexJob::create($indexSuffix, $dependencies, Indexer::METHOD_ADD, null, false);
-                    $this->run($job);
-                }
 
                 continue;
             }
