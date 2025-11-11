@@ -3,7 +3,6 @@
 namespace SilverStripe\Forager\DataObject;
 
 use SilverStripe\Core\Config\Configurable;
-use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Validation\ValidationException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Jobs\IndexJob;
@@ -17,15 +16,8 @@ class DataObjectBatchProcessor extends BatchProcessor
 {
 
     use Configurable;
-    use Extensible;
 
     private static int $buffer_seconds = 5;
-
-    /**
-     * When enabled, dependencies are resolved synchronously using extensions instead of queued jobs.
-     * This provides a unified approach for both versioned and non-versioned DataObjects.
-     */
-    private static bool $use_synchronous_dependencies = true;
 
     /**
      * @param DocumentInterface[] $documents
@@ -51,7 +43,7 @@ class DataObjectBatchProcessor extends BatchProcessor
         foreach ($documents as $doc) {
             $dataObject = $doc->getDataObject();
 
-            // for non-versioned data objects, once this object is deleted, there will be no history to
+            // for non-versioned and other data objects, once this object is deleted, there will be no history to
             // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
             if ($useSynchronousDependencies) {
                 $dataObjectDocument = DataObjectDocument::create($dataObject);

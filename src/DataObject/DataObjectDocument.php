@@ -203,10 +203,18 @@ class DataObjectDocument implements
         }
 
         // DataObject has no published version (or draft changes could cause a doc to be removed)
-        if ($dataObject->hasExtension(Versioned::class) && !$dataObject->isPublished()) {
-            // note even if we pass a draft object to the indexer onAddToSearchIndexes will
-            // set the version to live before adding
-            return false;
+        if ($dataObject->hasExtension(Versioned::class)) {
+            $isPublished = $dataObject->isPublished();
+
+            // Allow extensions to override the publication check (e.g., for Fluent fallback locales)
+            // This invokes extension hooks like updateIsPublishedForSearch on DataObjectDocument extensions
+            $this->extend('updateIsPublishedForSearch', $dataObject, $isPublished);
+
+            if (!$isPublished) {
+                // note even if we pass a draft object to the indexer onAddToSearchIndexes will
+                // set the version to live before adding
+                return false;
+            }
         }
 
         // Indexing is globally disabled
