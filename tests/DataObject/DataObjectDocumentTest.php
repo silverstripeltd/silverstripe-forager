@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Exception\DataObjectMissingException;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
@@ -637,6 +638,7 @@ class DataObjectDocumentTest extends SapphireTest
         $dataObject->doArchive();
 
         $doc->setShouldFallbackToLatestVersion(false);
+        $this->expectException(DataObjectMissingException::class);
         $this->expectExceptionMessage(
             sprintf('DataObject %s : %s does not exist', DataObjectFakeVersioned::class, $id)
         );
@@ -644,6 +646,35 @@ class DataObjectDocumentTest extends SapphireTest
         /** @var DataObjectDocument $newDocument */
         $newDocument = unserialize(serialize($doc));
         $newDocument->getDataObject();
+    }
+
+    /**
+     * Test that when a versioned data object cannot be found, the shouldIndex method
+     * behaves as expected with configurable return types.
+     */
+    public function testShouldIndexDeletedDataObject()
+    {
+        $dataObject = $this->objFromFixture(DataObjectFakeVersioned::class, 'one');
+        $dataObject->Title = 'Published';
+        $dataObject->publishRecursive();
+        $id = $dataObject->ID;
+
+        $doc = DataObjectDocument::create($dataObject)->setShouldFallbackToLatestVersion(true);
+        $dataObject->doArchive();
+
+        $doc->setShouldFallbackToLatestVersion(false);
+        $this->expectException(DataObjectMissingException::class);
+        $this->expectExceptionMessage(
+            sprintf('DataObject %s : %s does not exist', DataObjectFakeVersioned::class, $id)
+        );
+
+        /** @var DataObjectDocument $newDocument */
+        $newDocument = unserialize(serialize($doc));
+        $newDocument->shouldIndex();
+
+        // Set config to allow DataObject to be empty
+        $doc::config()->set('require_data_object', false);
+        $this->assertFalse($newDocument->shouldIndex());
     }
 
     /**
