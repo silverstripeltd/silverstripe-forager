@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\Jobs;
 
 use Exception;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
@@ -16,7 +17,8 @@ use SilverStripe\Versioned\Versioned;
  *  It checks first the status of the underlying DataObjects and decides whether to remove or add them to the index.
  *  Then pass on to the parent's process() method to handle the job.
  *
- * @deprecated In favor of using a non-versioned approach to dependency tracking in DataObjectBatchProcessor
+ * @deprecated 2.1.0 In favor of using a non-versioned approach to dependency tracking in DataObjectBatchProcessor.
+ * See the `use_synchronous_dependencies` config option on DataObjectDocument.
  * @property DataObjectDocument|null $document
  * @property int|null $timestamp
  */
@@ -29,6 +31,12 @@ class RemoveDataObjectJob extends IndexJob
         ?int $timestamp = null,
         ?int $batchSize = null
     ) {
+        Deprecation::notice(
+            '2.1.0',
+            'RemoveDataObjectJob is deprecated. In version 3 the module will use the IndexJob instead and synchronous dependency detection. @see DataObjectDocument::use_synchronous_dependencies.',
+            Deprecation::SCOPE_GLOBAL
+        );
+
         // Indexer::METHOD_ADD as default parameter make sure we check first its related documents
         // whether we should delete or update them automatically.
         parent::__construct($indexSuffix, [], Indexer::METHOD_ADD, $batchSize);

@@ -10,6 +10,7 @@ use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\Forager\Exception\DataObjectMissingException;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Exception\IndexingServiceException;
@@ -197,6 +198,12 @@ class DataObjectDocument implements
                 return false;
             }
 
+            Deprecation::notice(
+                '2.1.0',
+                'In version 3 the DataObjectMissingException exception from getDataObject will cause shouldIndex to return `false` instead of breaking a job.',
+                Deprecation::SCOPE_GLOBAL
+            );
+
             throw $e;
         }
 
@@ -280,6 +287,12 @@ class DataObjectDocument implements
                 // If we can't get the DataObject, we can't mark it as indexed
                 return;
             }
+
+            Deprecation::notice(
+                '2.1.0',
+                'In version 3 the DataObjectMissingException exception from getDataObject will not cause markIndexed throw.',
+                Deprecation::SCOPE_GLOBAL
+            );
 
             throw $e;
         }
@@ -750,6 +763,21 @@ class DataObjectDocument implements
     public function __serialize(): array
     {
         $id = $this->id;
+
+        // attempt to get data object (this won't be available for deleted non versioned objects)
+        try {
+            $dataObject = $this->getDataObject();
+            $id = $dataObject->ID ?: $dataObject->OldID;
+        } catch (DataObjectMissingException $e) {
+            if ($this->config()->get('require_data_object')) {
+                // if a Versioned object then throw an error, but we will let non-versioned objects to
+                // continue since it may have been deleted
+                if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                    throw $e;
+                }
+            }
+            // If we opt in for the new behaviour, rely on existing ID values and continue
+        }
 
         return [
             'baseClass' => $this->getBaseClass(),
