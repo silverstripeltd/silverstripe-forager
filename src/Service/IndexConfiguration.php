@@ -35,8 +35,6 @@ class IndexConfiguration
 
     private static bool $auto_dependency_tracking = true;
 
-    private static bool $use_synchronous_dependencies = true;
-
     /**
      * @link IndexParentPageExtension
      */
@@ -92,11 +90,6 @@ class IndexConfiguration
     public function shouldTrackDependencies(): bool
     {
         return $this->config()->get('auto_dependency_tracking');
-    }
-
-    public function shouldUseSynchronousDependencies(): bool
-    {
-        return $this->config()->get('use_synchronous_dependencies');
     }
 
     public function getIndexPrefix(): ?string

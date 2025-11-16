@@ -86,6 +86,13 @@ class DataObjectDocument implements
     private static bool $require_data_object = true;
 
     /**
+     * When enabled, dependency tracking will be performed synchronously.
+     *
+     * @var bool
+     */
+    private static bool $use_synchronous_dependencies = false;
+
+    /**
      * @var DataObject|SearchServiceExtension|null
      */
     private ?DataObject $dataObject = null;
@@ -253,6 +260,9 @@ class DataObjectDocument implements
         return !in_array(false, $results, true);
     }
 
+    /**
+     * @throws DataObjectMissingException
+     */
     public function markIndexed(bool $isDeleted = false): void
     {
         $schema = DataObject::getSchema();
@@ -264,9 +274,14 @@ class DataObjectDocument implements
 
         try {
             $dataObject = $this->getDataObject();
-        } catch (DataObjectMissingException) {
-            // If we can't get the DataObject, we can't mark it as indexed
-            return;
+        } catch (DataObjectMissingException $e) {
+            // If we opt in for the new behaviour, return instead of throwing
+            if (!$this->config()->get('require_data_object')) {
+                // If we can't get the DataObject, we can't mark it as indexed
+                return;
+            }
+
+            throw $e;
         }
 
         $newValue = $isDeleted ? 'null' : "'" . DBDatetime::now()->Rfc2822() . "'";

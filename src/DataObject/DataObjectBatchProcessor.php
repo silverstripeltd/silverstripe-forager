@@ -38,14 +38,15 @@ class DataObjectBatchProcessor extends BatchProcessor
             return [];
         }
 
-        $useSynchronousDependencies = $this->getConfiguration()->shouldUseSynchronousDependencies();
-
         foreach ($documents as $doc) {
             $dataObject = $doc->getDataObject();
 
-            // for non-versioned and other data objects, once this object is deleted, there will be no history to
-            // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
-            if ($useSynchronousDependencies) {
+            $useSynchronousDependencies = $dataObject->config()->get('use_synchronous_dependencies');
+
+            // Handle dependencies uniformly for both Non-versioned and DataObjects that have opted in. Once this
+            // object is deleted, there will be no history to get dependencies from so check these now.
+            // The RemoveDataObjectJob will be removed in future versions in favour of this approach.
+            if (!$dataObject->hasExtension(Versioned::class) || $useSynchronousDependencies) {
                 $dataObjectDocument = DataObjectDocument::create($dataObject);
 
                 $isVersioned = $dataObject->hasExtension(Versioned::class);
