@@ -34,7 +34,7 @@ class RemoveDataObjectJob extends IndexJob
         Deprecation::notice(
             '2.1.0',
             'RemoveDataObjectJob is deprecated. In version 3 the module will use the IndexJob instead and synchronous '
-            + 'dependency detection. @see DataObjectDocument::use_synchronous_dependencies.',
+            . 'dependency detection. @see DataObjectDocument::use_synchronous_dependencies.',
             Deprecation::SCOPE_GLOBAL
         );
 
