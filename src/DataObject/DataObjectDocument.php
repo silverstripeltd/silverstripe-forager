@@ -200,7 +200,8 @@ class DataObjectDocument implements
 
             Deprecation::notice(
                 '2.1.0',
-                'In version 3 the DataObjectMissingException exception from getDataObject will cause shouldIndex to return `false` instead of breaking a job.',
+                'In version 3 the DataObjectMissingException exception from getDataObject will cause'
+                + ' shouldIndex to return `false` instead of breaking a job.',
                 Deprecation::SCOPE_GLOBAL
             );
 
@@ -290,7 +291,8 @@ class DataObjectDocument implements
 
             Deprecation::notice(
                 '2.1.0',
-                'In version 3 the DataObjectMissingException exception from getDataObject will not cause markIndexed throw.',
+                'In version 3 the DataObjectMissingException exception from'
+                + ' getDataObject will not cause markIndexed throw.',
                 Deprecation::SCOPE_GLOBAL
             );
 
