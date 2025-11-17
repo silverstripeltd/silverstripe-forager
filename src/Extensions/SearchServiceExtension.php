@@ -50,6 +50,13 @@ class SearchServiceExtension extends Extension
 
     private bool $hasConfigured = false;
 
+    private static array $scaffold_cms_fields_settings = [
+        'ignoreFields' => [
+            'SearchIndexed',
+            'ShowInSearch',
+        ],
+    ];
+
     public function __construct(
         IndexingInterface $searchService,
         IndexConfiguration $config,
