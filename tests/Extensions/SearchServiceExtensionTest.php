@@ -13,6 +13,8 @@ use SilverStripe\Forager\Tests\Fake\ImageFake;
 use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\TagFake;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\ReadonlyField;
 
 class SearchServiceExtensionTest extends SapphireTest
 {
@@ -116,4 +118,32 @@ class SearchServiceExtensionTest extends SapphireTest
         $page->delete();
     }
 
+    public function testPageUpdateCMSFields(): void
+    {
+        $fields = PageFake::create(['Title' => 'Foo'])
+            ->getCMSFields();
+
+        // These fields should not be in the main tab
+        $this->assertNull($fields->dataFieldByName('SearchIndexed'));
+        $this->assertNull($fields->dataFieldByName('ShowInSearch'));
+    }
+
+    public function testPageUpdateSettingsFields(): void
+    {
+        $fields = PageFake::create(['Title' => 'Foo'])
+            ->getSettingsFields();
+
+        // These fields should be in the settings tab
+        $this->assertInstanceOf(ReadonlyField::class, $fields->dataFieldByName('SearchIndexed'));
+        $this->assertInstanceOf(CheckboxField::class, $fields->dataFieldByName('ShowInSearch'));
+    }
+
+    public function testDataObjectUpdateCMSFields(): void
+    {
+        $fields = DataObjectFake::create(['Title' => 'Foo'])
+            ->getCMSFields();
+
+        $this->assertInstanceOf(ReadonlyField::class, $fields->dataFieldByName('SearchIndexed'));
+        $this->assertInstanceOf(CheckboxField::class, $fields->dataFieldByName('ShowInSearch'));
+    }
 }
