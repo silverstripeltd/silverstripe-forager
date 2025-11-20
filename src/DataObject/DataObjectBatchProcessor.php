@@ -41,10 +41,18 @@ class DataObjectBatchProcessor extends BatchProcessor
         foreach ($documents as $doc) {
             $dataObject = $doc->getDataObject();
 
-            // for non versioned data objects, once this object is deleted there will be no history to
-            // get dependencies from so check these now, and set up a new IndexJob for anything that needs updating
-            if (!$dataObject->hasExtension(Versioned::class)) {
+            $useSynchronousDependencies = DataObjectDocument::config()->get('use_synchronous_dependencies');
+            $isVersioned = $dataObject->hasExtension(Versioned::class);
+
+            // Handle dependencies uniformly for both Non-versioned and DataObjects that have opted in. Once this
+            // object is deleted, there will be no history to get dependencies from so check these now.
+            // The RemoveDataObjectJob will be removed in future versions in favour of this approach.
+            if (!$isVersioned || $useSynchronousDependencies) {
                 $dataObjectDocument = DataObjectDocument::create($dataObject);
+
+                if ($isVersioned) {
+                    $doc->setShouldFallbackToLatestVersion();
+                }
 
                 // get the dependencies - note, it is only considered a dependency if the data object being
                 // removed is indexed by another object
@@ -54,7 +62,7 @@ class DataObjectBatchProcessor extends BatchProcessor
                     continue;
                 }
 
-                // set up the separate job to update these dependencies
+                // set up the separate index job to update these dependencies
                 $job = IndexJob::create($indexSuffix, $dependencies, Indexer::METHOD_ADD, null, false);
                 $this->run($job);
 

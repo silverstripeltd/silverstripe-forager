@@ -70,6 +70,10 @@ There are multiple extension points in this module but some are only relevant to
 
 A DataObject or extension implementing this method can add supplementary logic to the [shouldIndex()](../../src/DataObject/DataObjectDocument.php#L128) method for determining whether a record should be indexed. More control can be had via the [IndexableHandler interface](./08_customising_more.md#indexablehandler-interface)
 
+#### updateIsPublishedForSearch(DataObject \$dataObject, bool \&$isPublished): void
+
+A DataObject or extension implementing this method can modify the `isPublished` property of the document before it is indexed. This is useful for custom publication logic including fallback logic.
+
 #### updateSearchDependentDocuments(&$dependentDocs): void
 
 A DataObject extension implementing this method can add dependent documents to its dependency list. This is particularly relevant if you're not using `auto_dependency_tracking`. It is important to remember that `$dependentDocs` in this context should be first-class `DocumentInterface` instances, not DataObjects. For example:

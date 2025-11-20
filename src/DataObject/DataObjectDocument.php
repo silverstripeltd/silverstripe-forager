@@ -2,7 +2,6 @@
 
 namespace SilverStripe\Forager\DataObject;
 
-use Exception;
 use InvalidArgumentException;
 use LogicException;
 use Psr\Log\LoggerInterface;
@@ -11,6 +10,8 @@ use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\Deprecation;
+use SilverStripe\Forager\Exception\DataObjectMissingException;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Extensions\DBFieldExtension;
@@ -76,6 +77,21 @@ class DataObjectDocument implements
      * @config
      */
     private static string $page_content_field = 'page_content';
+
+    /**
+     * When enabled, shouldIndex() will throw an exception when a DataObject is missing.
+     * Setting to false will allow shouldIndex to return false instead of throwing an exception.
+     *
+     * @var bool
+     */
+    private static bool $require_data_object = true;
+
+    /**
+     * When enabled, dependency tracking will be performed synchronously.
+     *
+     * @var bool
+     */
+    private static bool $use_synchronous_dependencies = false;
 
     /**
      * @var DataObject|SearchServiceExtension|null
@@ -168,9 +184,29 @@ class DataObjectDocument implements
         return $this;
     }
 
+    /**
+     * @throws DataObjectMissingException
+     */
     public function shouldIndex(): bool
     {
-        $dataObject = $this->getDataObject();
+        try {
+            $dataObject = $this->getDataObject();
+        } catch (DataObjectMissingException $e) {
+            // If we opt in for the new behaviour, return false instead of throwing
+            if (!$this->config()->get('require_data_object')) {
+                // When no DataObject is found, we cannot index it so remove it from the index
+                return false;
+            }
+
+            Deprecation::notice(
+                '2.1.0',
+                'In version 3 the DataObjectMissingException exception from getDataObject will cause'
+                . ' shouldIndex to return `false` instead of breaking a job.',
+                Deprecation::SCOPE_GLOBAL
+            );
+
+            throw $e;
+        }
 
         // Allow DataObjects to completely override the indexing decision if necessary
         if ($dataObject instanceof IndexableHandler) {
@@ -203,10 +239,18 @@ class DataObjectDocument implements
         }
 
         // DataObject has no published version (or draft changes could cause a doc to be removed)
-        if ($dataObject->hasExtension(Versioned::class) && !$dataObject->isPublished()) {
-            // note even if we pass a draft object to the indexer onAddToSearchIndexes will
-            // set the version to live before adding
-            return false;
+        if ($dataObject->hasExtension(Versioned::class)) {
+            $isPublished = $dataObject->isPublished();
+
+            // Allow extensions to override the publication check (e.g., for Fluent fallback locales)
+            // This invokes extension hooks like updateIsPublishedForSearch on DataObjectDocument extensions
+            $this->extend('updateIsPublishedForSearch', $dataObject, $isPublished);
+
+            if (!$isPublished) {
+                // note even if we pass a draft object to the indexer onAddToSearchIndexes will
+                // set the version to live before adding
+                return false;
+            }
         }
 
         // Indexing is globally disabled
@@ -224,13 +268,35 @@ class DataObjectDocument implements
         return !in_array(false, $results, true);
     }
 
+    /**
+     * @throws DataObjectMissingException
+     */
     public function markIndexed(bool $isDeleted = false): void
     {
         $schema = DataObject::getSchema();
-        $table = $schema->tableForField($this->getDataObject()->ClassName, 'SearchIndexed');
+        $table = $schema->tableForField($this->className, 'SearchIndexed');
 
         if (!$table) {
             return;
+        }
+
+        try {
+            $dataObject = $this->getDataObject();
+        } catch (DataObjectMissingException $e) {
+            // If we opt in for the new behaviour, return instead of throwing
+            if (!$this->config()->get('require_data_object')) {
+                // If we can't get the DataObject, we can't mark it as indexed
+                return;
+            }
+
+            Deprecation::notice(
+                '2.1.0',
+                'In version 3 the DataObjectMissingException exception from'
+                . ' getDataObject will not cause markIndexed throw.',
+                Deprecation::SCOPE_GLOBAL
+            );
+
+            throw $e;
         }
 
         $newValue = $isDeleted ? 'null' : "'" . DBDatetime::now()->Rfc2822() . "'";
@@ -238,15 +304,15 @@ class DataObjectDocument implements
             'UPDATE %s SET SearchIndexed = %s WHERE ID = %s',
             $table,
             $newValue,
-            $this->getDataObject()->ID
+            $dataObject->ID
         ));
 
-        if ($this->getDataObject()->hasExtension(Versioned::class) && $this->getDataObject()->hasStages()) {
+        if ($dataObject->hasExtension(Versioned::class) && $dataObject->hasStages()) {
             DB::query(sprintf(
                 'UPDATE %s_Live SET SearchIndexed = %s WHERE ID = %s',
                 $table,
                 $newValue,
-                $this->getDataObject()->ID
+                $dataObject->ID
             ));
         }
     }
@@ -448,7 +514,7 @@ class DataObjectDocument implements
             if (!DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
                 Injector::inst()->get(LoggerInterface::class)->info(sprintf(
                     'Unable to get document for checking dependencies. '
-                    .'Non versioned %s data object with ID %s cannot be found.',
+                    . 'Non versioned %s data object with ID %s cannot be found.',
                     $this->getSourceClass(),
                     $this->id,
                 ));
@@ -562,7 +628,9 @@ class DataObjectDocument implements
         }
 
         if (!$dataObject) {
-            throw new Exception(sprintf('DataObject %s : %s does not exist', $this->className, $this->id));
+            throw new DataObjectMissingException(
+                sprintf('DataObject %s : %s does not exist', $this->className, $this->id)
+            );
         }
 
         $this->dataObject = $dataObject;
@@ -702,12 +770,15 @@ class DataObjectDocument implements
         try {
             $dataObject = $this->getDataObject();
             $id = $dataObject->ID ?: $dataObject->OldID;
-        } catch (Throwable $e) {
-            // if a Versioned object then throw an error, but we will let non-versioned objects to
-            // continue since it may have been deleted
-            if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
-                throw $e;
+        } catch (DataObjectMissingException $e) {
+            if ($this->config()->get('require_data_object')) {
+                // if a Versioned object then throw an error, but we will let non-versioned objects to
+                // continue since it may have been deleted
+                if (DataObject::has_extension($this->getSourceClass(), Versioned::class)) {
+                    throw $e;
+                }
             }
+            // If we opt in for the new behaviour, rely on existing ID values and continue
         }
 
         return [
