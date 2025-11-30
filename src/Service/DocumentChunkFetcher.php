@@ -2,8 +2,8 @@
 
 namespace SilverStripe\Forager\Service;
 
-use InvalidArgumentException;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\Forager\Interfaces\DocumentFetcherInterface;
 
 class DocumentChunkFetcher
@@ -21,28 +21,32 @@ class DocumentChunkFetcher
     /**
      * @see https://github.com/silverstripe/silverstripe-framework/pull/8940/files
      */
-    public function chunk(int $chunkSize = 100): iterable
+    public function chunk(?int $chunkSize = null): iterable
     {
-        if ($chunkSize < 1) {
-            throw new InvalidArgumentException(sprintf(
-                '%s::%s: chunkSize must be greater than or equal to 1',
-                self::class,
-                __METHOD__
-            ));
+        if ($chunkSize !== null) {
+            Deprecation::withSuppressedNotice(function (): void {
+                Deprecation::notice(
+                    '2.0.2',
+                    'chunkSize parameter is no longer used, use DocumentFetcherInterface::setBatchSize() instead.',
+                    Deprecation::SCOPE_METHOD
+                );
+            });
         }
 
-        $currentChunk = 0;
+        while ($chunks = $this->fetcher->fetch()) {
+            $count = 0;
 
-        while ($chunks = $this->fetcher->fetch($chunkSize, $chunkSize * $currentChunk)) {
             foreach ($chunks as $chunk) {
+                $count++;
+
                 yield $chunk;
             }
 
-            if (sizeof($chunks) < $chunkSize) {
+            if ($count < $this->fetcher->getBatchSize()) {
                 break;
             }
 
-            $currentChunk++;
+            $this->fetcher->incrementOffsetUp();
         }
     }
 
