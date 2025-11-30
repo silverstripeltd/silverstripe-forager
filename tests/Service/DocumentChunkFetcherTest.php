@@ -11,7 +11,7 @@ class DocumentChunkFetcherTest extends SapphireTest
 {
     public function testChunk(): void
     {
-        $fetcher = DocumentFetcherFake::singleton();
+        $fetcher = DocumentFetcherFake::create();
         $chunkFetcher = DocumentChunkFetcher::create($fetcher);
 
         foreach ($chunkFetcher->chunk() as $index => $doc) {
@@ -20,5 +20,8 @@ class DocumentChunkFetcherTest extends SapphireTest
             // Check that the offset is increased on each iteration
             $this->assertSame($fetcher->getOffset(), $index);
         }
+
+        // Check that we have reached the end of the iterations, i.e. there are no more documents to fetch
+        $this->assertSame([], $fetcher->fetch());
     }
 }
