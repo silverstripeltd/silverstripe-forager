@@ -182,7 +182,7 @@ This will roughly get indexed as a structure like this:
 }
 ```
 
-For more information on EnterpriseSearch specific configuration, see the [Search- Service - Elastic](https://github.com/silverstripe/silverstripe-search-service-elastic)
+For more information on EnterpriseSearch specific configuration, see the [Forager Elastic Enterprise](https://github.com/silverstripeltd/silverstripe-forager-elastic-enterprise)
 module.
 
 ## Excluding subclasses
