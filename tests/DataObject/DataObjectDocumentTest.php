@@ -293,6 +293,7 @@ class DataObjectDocumentTest extends SapphireTest
                 new Field('tagtitles', 'Tags.Title'),
                 new Field('imageurls', 'Images.URL'),
                 new Field('imagetags', 'Images.Tags.Title'),
+                new Field('methodtags', 'getMethodTags'),
             ],
         ]);
 
