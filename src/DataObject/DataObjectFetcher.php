@@ -90,7 +90,8 @@ class DataObjectFetcher implements DocumentFetcherInterface
 
     private function createDataList(?int $limit = null, ?int $offset = 0): DataList
     {
-        $list = DataList::create($this->dataObjectClass);
+        // sort records by id so that their order can be guaranteed across multiple fetches
+        $list = DataList::create($this->dataObjectClass)->sort('ID');
 
         return $list->limit($limit, $offset);
     }
