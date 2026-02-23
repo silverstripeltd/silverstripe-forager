@@ -8,6 +8,7 @@ use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex;
+use SilverStripe\Forager\Tests\Fake\PageFakeVersioned;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
 class DataObjectFetcherTest extends SapphireTest
