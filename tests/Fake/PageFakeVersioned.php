@@ -2,10 +2,10 @@
 
 namespace SilverStripe\Forager\Tests\Fake;
 
+use Page;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
 use SilverStripe\Versioned\Versioned;
-use Page;
 
 class PageFakeVersioned extends Page implements TestOnly
 {
