@@ -24,6 +24,7 @@ class DataObjectFetcherTest extends SapphireTest
      */
     protected static $extra_dataobjects = [
         DataObjectFake::class,
+        PageFakeVersioned::class,
     ];
 
     public function testFetch(): void
