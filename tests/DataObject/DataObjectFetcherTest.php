@@ -63,6 +63,52 @@ class DataObjectFetcherTest extends SapphireTest
         $this->assertCount(2, $documents);
     }
 
+    /**
+     * This tests that we fetch all documents when processed in batches.
+     */
+    public function testFetchBatch(): void
+    {
+        // create pages
+        $createPageCount = 100;
+
+        for ($i = 0; $i < $createPageCount; $i++) {
+            $dataobject = PageFakeVersioned::create();
+            $dataobject->Title = sprintf('FetchTestPage');
+            // added to verify that all pages are set regardless of the sort order
+            $dataobject->Sort = 1;
+            $dataobject->write();
+            $dataobject->publishSingle();
+        }
+
+        $batchSize = 10;
+        $fetcher = DataObjectFetcher::create(PageFakeVersioned::class);
+        $totalDocuments = $fetcher->getTotalDocuments();
+
+        $fetchedDocumentCount = 0;
+        $fetchedDocumentIDs = [];
+
+        // keep fetching until we've fetched all documents, using the batch size and offset to get the next batch of
+        // documents each time
+        while ($fetchedDocumentCount < $totalDocuments) {
+            $documents = $fetcher->fetch($batchSize, $fetchedDocumentCount);
+
+            $fetchedDocumentCount += count($documents);
+
+            // collect all ids so that we can check everything has been fetched at the end of the test
+            $batchIDs = array_map(function (DataObjectDocument $document) {
+                return $document->getDataObject()->ID;
+            }, $documents);
+
+            $fetchedDocumentIDs = array_merge($fetchedDocumentIDs, array_values($batchIDs));
+        }
+
+        // only get unique ids so that we can check that all expected documents have been fetched
+        $fetchedDocumentIDs = array_unique($fetchedDocumentIDs);
+
+        // make sure we fetched all the documents
+        $this->assertCount($totalDocuments, $fetchedDocumentIDs);
+    }
+
     public function testTotalDocuments(): void
     {
         $fetcher = DataObjectFetcher::create(DataObjectFake::class);

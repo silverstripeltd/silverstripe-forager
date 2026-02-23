@@ -74,7 +74,10 @@ class DataObjectFetcher implements DocumentFetcherInterface
      */
     public function fetch(): array
     {
-        $list = $this->createDataList($this->getBatchSize(), $this->getOffset());
+        // Sort by ID to ensure consistent ordering across batches
+        $list = $this->createDataList($this->getBatchSize(), $this->getOffset())
+            ->sort('ID');
+
         $docs = [];
 
         foreach ($list as $record) {
