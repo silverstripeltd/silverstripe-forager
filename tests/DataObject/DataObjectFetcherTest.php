@@ -13,9 +13,7 @@ use SilverStripe\Forager\Tests\Fake\PageFake;
 use SilverStripe\Forager\Tests\Fake\PageFakeVersioned;
 use SilverStripe\Forager\Tests\Fake\TagFake;
 use SilverStripe\Forager\Tests\SearchServiceTest;
-use SilverStripe\ORM\Queries\SQLUpdate;
 use SilverStripe\Subsites\Model\Subsite;
-use SilverStripe\Versioned\Versioned;
 
 class DataObjectFetcherTest extends SearchServiceTest
 {
@@ -105,7 +103,7 @@ class DataObjectFetcherTest extends SearchServiceTest
             $fetchedDocumentCount += count($documents);
 
             // collect all ids so that we can check everything has been fetched at the end of the test
-            $batchIDs = array_map(function (DataObjectDocument $document) {;
+            $batchIDs = array_map(function (DataObjectDocument $document) {
                 return $document->getDataObject()->ID;
             }, $documents);
 
@@ -117,7 +115,6 @@ class DataObjectFetcherTest extends SearchServiceTest
 
         // make sure we fetched all the documents
         $this->assertCount($totalDocuments, $fetchedDocumentIDs);
-
     }
 
     public function testTotalDocuments(): void
