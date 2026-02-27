@@ -24,6 +24,10 @@ class DataObjectFetcher implements DocumentFetcherInterface
 
     private ?string $dataObjectClass = null;
 
+    private static string $fetch_sort = 'ID';
+
+    private static string $fetch_sort_direction = 'ASC';
+
     public ?DocumentFetchCreatorRegistry $Registry = null;
 
     public ?IndexConfiguration $Configuration = null;
@@ -58,6 +62,10 @@ class DataObjectFetcher implements DocumentFetcherInterface
             $docs[] = DataObjectDocument::create($record);
         }
 
+        echo implode(',', array_map(function ($doc) {
+            return $doc->getDataObject()->ID;
+        }, $docs));
+
         return $docs;
     }
 
@@ -90,8 +98,12 @@ class DataObjectFetcher implements DocumentFetcherInterface
 
     private function createDataList(?int $limit = null, ?int $offset = 0): DataList
     {
-        // sort records by id so that their order can be guaranteed across multiple fetches
-        $list = DataList::create($this->dataObjectClass)->sort('ID');
+        // sort records (default by ID) so that their order can be guaranteed across multiple fetches
+        $sortBy = static::config()->get('fetch_sort') ?? 'ID';
+        $sortDirection = static::config()->get('fetch_sort_direction') ?? 'ASC';
+
+        $list = DataList::create($this->dataObjectClass)
+            ->sort($sortBy, $sortDirection);
 
         return $list->limit($limit, $offset);
     }
