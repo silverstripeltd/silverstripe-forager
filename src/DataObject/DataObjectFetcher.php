@@ -62,10 +62,6 @@ class DataObjectFetcher implements DocumentFetcherInterface
             $docs[] = DataObjectDocument::create($record);
         }
 
-        echo implode(',', array_map(function ($doc) {
-            return $doc->getDataObject()->ID;
-        }, $docs));
-
         return $docs;
     }
 
