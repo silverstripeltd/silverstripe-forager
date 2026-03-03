@@ -23,6 +23,10 @@ class DataObjectFetcher implements DocumentFetcherInterface
 
     private int $offset = 0;
 
+    private static string $fetch_sort = 'ID';
+
+    private static string $fetch_sort_direction = 'ASC';
+
     public function __construct(string $class)
     {
         if (!is_subclass_of($class, DataObject::class)) {
@@ -74,7 +78,14 @@ class DataObjectFetcher implements DocumentFetcherInterface
      */
     public function fetch(): array
     {
-        $list = $this->createDataList($this->getBatchSize(), $this->getOffset());
+        // get configurable sort options
+        $sortBy = static::config()->get('fetch_sort') ?? 'ID';
+        $sortDirection = static::config()->get('fetch_sort_direction') ?? 'ASC';
+
+        // sort (default by ID) to ensure consistent ordering across batches
+        $list = $this->createDataList($this->getBatchSize(), $this->getOffset())
+            ->sort($sortBy, $sortDirection);
+
         $docs = [];
 
         foreach ($list as $record) {

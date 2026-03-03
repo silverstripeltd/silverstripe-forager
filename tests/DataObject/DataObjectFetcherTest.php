@@ -8,6 +8,7 @@ use SilverStripe\Forager\DataObject\DataObjectFetcher;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFakeShouldNotIndex;
+use SilverStripe\Forager\Tests\Fake\PageFakeVersioned;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 
 class DataObjectFetcherTest extends SapphireTest
@@ -23,6 +24,7 @@ class DataObjectFetcherTest extends SapphireTest
      */
     protected static $extra_dataobjects = [
         DataObjectFake::class,
+        PageFakeVersioned::class,
     ];
 
     public function testFetch(): void
@@ -61,6 +63,54 @@ class DataObjectFetcherTest extends SapphireTest
         $documents = $fetcher->fetch();
 
         $this->assertCount(2, $documents);
+    }
+
+    /**
+     * This tests that we fetch all documents when processed in batches.
+     */
+    public function testFetchBatch(): void
+    {
+        // create pages
+        $createPageCount = 100;
+
+        for ($i = 0; $i < $createPageCount; $i++) {
+            $dataobject = PageFakeVersioned::create();
+            $dataobject->Title = sprintf('FetchTestPage');
+            // added to verify that all pages are set regardless of the sort order
+            $dataobject->Sort = 1;
+            $dataobject->write();
+            $dataobject->publishSingle();
+        }
+
+        $batchSize = 10;
+        $fetcher = DataObjectFetcher::create(PageFakeVersioned::class);
+        $fetcher->setBatchSize($batchSize);
+        $totalDocuments = $fetcher->getTotalDocuments();
+
+        $fetchedDocumentCount = 0;
+        $fetchedDocumentIDs = [];
+
+        // keep fetching until we've fetched all documents, using the batch size and offset to get the next batch of
+        // documents each time
+        while ($fetchedDocumentCount < $totalDocuments) {
+            $fetcher->setOffset($fetchedDocumentCount);
+            $documents = $fetcher->fetch();
+
+            $fetchedDocumentCount += count($documents);
+
+            // collect all ids so that we can check everything has been fetched at the end of the test
+            $batchIDs = array_map(function (DataObjectDocument $document) {
+                return $document->getDataObject()->ID;
+            }, $documents);
+
+            $fetchedDocumentIDs = array_merge($fetchedDocumentIDs, array_values($batchIDs));
+        }
+
+        // only get unique ids so that we can check that all expected documents have been fetched
+        $fetchedDocumentIDs = array_unique($fetchedDocumentIDs);
+
+        // make sure we fetched all the documents
+        $this->assertCount($totalDocuments, $fetchedDocumentIDs);
     }
 
     public function testTotalDocuments(): void
