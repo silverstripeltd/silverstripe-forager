@@ -84,6 +84,7 @@ class DataObjectFetcherTest extends SapphireTest
 
         $batchSize = 10;
         $fetcher = DataObjectFetcher::create(PageFakeVersioned::class);
+        $fetcher->setBatchSize($batchSize);
         $totalDocuments = $fetcher->getTotalDocuments();
 
         $fetchedDocumentCount = 0;
@@ -92,7 +93,8 @@ class DataObjectFetcherTest extends SapphireTest
         // keep fetching until we've fetched all documents, using the batch size and offset to get the next batch of
         // documents each time
         while ($fetchedDocumentCount < $totalDocuments) {
-            $documents = $fetcher->fetch($batchSize, $fetchedDocumentCount);
+            $fetcher->setOffset($fetchedDocumentCount);
+            $documents = $fetcher->fetch();
 
             $fetchedDocumentCount += count($documents);
 
