@@ -102,8 +102,9 @@ TXT;
         return $this->getDBHTMLText();
     }
 
-    public function getMethodTags(): array 
+    public function getMethodTags(): array
     {
         return ['Tag six', 'Tag seven'];
     }
+
 }
