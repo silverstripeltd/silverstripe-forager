@@ -31,6 +31,7 @@ use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\PageCrawler;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
+use SilverStripe\Model\List\SS_List;
 use SilverStripe\Model\ModelData;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
@@ -713,6 +714,13 @@ class DataObjectDocument implements
             if ($maybeList instanceof RelationList || $maybeList instanceof UnsavedRelationList) {
                 return $this->parsePath($path, $subject->relation($nextField));
             }
+        }
+
+        // A method/getter that returns a plain list array is cast to an SS_List (e.g. ArrayList). Only resolve it
+        // once the path is exhausted; a still-pending field means it could not be resolved against the list, so we
+        // fall through to the exception below to preserve the clearer diagnostic.
+        if ($subject instanceof SS_List && !$nextField) {
+            return [$subject, $subject->toArray()];
         }
 
         throw new LogicException(sprintf(

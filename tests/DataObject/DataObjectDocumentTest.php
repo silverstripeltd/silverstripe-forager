@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Tests\DataObject;
 
+use LogicException;
 use Monolog\Logger;
 use Page;
 use Psr\Log\LoggerInterface;
@@ -293,6 +294,7 @@ class DataObjectDocumentTest extends SapphireTest
                 new Field('tagtitles', 'Tags.Title'),
                 new Field('imageurls', 'Images.URL'),
                 new Field('imagetags', 'Images.Tags.Title'),
+                new Field('methodtags', 'getMethodTags'),
             ],
         ]);
 
@@ -303,12 +305,15 @@ class DataObjectDocumentTest extends SapphireTest
         $this->assertArrayHasKey('tagtitles', $arr);
         $this->assertArrayHasKey('imageurls', $arr);
         $this->assertArrayHasKey('imagetags', $arr);
+        $this->assertArrayHasKey('methodtags', $arr);
 
         $this->assertEquals('Dataobject one', $arr['title']);
         $this->assertEquals('member-one-first', $arr['memberfirst']);
         $this->assertEquals(['Tag one', 'Tag two'], $arr['tagtitles']);
         $this->assertEquals(['/image-one/'], $arr['imageurls']);
         $this->assertEquals(['Tag two', 'Tag three'], $arr['imagetags']);
+        // A method/getter returning a plain list array is cast to an SS_List and indexed as an array of scalars
+        $this->assertEquals(['Tag six', 'Tag seven'], $arr['methodtags']);
 
         // non existent fields
         $config->set('getFieldsForClass', [
@@ -349,6 +354,27 @@ class DataObjectDocumentTest extends SapphireTest
                 new Field('customgetterobj', 'CustomGetterObj'),
             ],
         ]);
+        $doc->toArray();
+    }
+
+    public function testToArrayThrowsWhenListFieldCannotBeResolved(): void
+    {
+        $config = $this->mockConfig();
+        $config->set('crawl_page_content', false);
+
+        $dataObject = $this->objFromFixture(DataObjectFake::class, 'one');
+        $doc = DataObjectDocument::create($dataObject);
+
+        // A dot-notation path whose trailing segment is neither a column nor a relation on the list's class
+        // must still surface the clear LogicException rather than being swallowed by the SS_List fallback.
+        $config->set('getFieldsForClass', [
+            DataObjectFake::class => [
+                new Field('bogus', 'Tags.DoesNotExist'),
+            ],
+        ]);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessageMatches('/Cannot resolve field DoesNotExist/');
         $doc->toArray();
     }
 
