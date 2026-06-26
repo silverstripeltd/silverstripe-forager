@@ -716,7 +716,10 @@ class DataObjectDocument implements
             }
         }
 
-        if ($subject instanceof SS_List) {
+        // A method/getter that returns a plain list array is cast to an SS_List (e.g. ArrayList). Only resolve it
+        // once the path is exhausted; a still-pending field means it could not be resolved against the list, so we
+        // fall through to the exception below to preserve the clearer diagnostic.
+        if ($subject instanceof SS_List && !$nextField) {
             return [$subject, $subject->toArray()];
         }
 
