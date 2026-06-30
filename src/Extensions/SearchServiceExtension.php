@@ -12,6 +12,7 @@ use SilverStripe\Forager\DataObject\DataObjectBatchProcessor;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\Exception\IndexConfigurationException;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Models\IndexingFailure;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\Traits\BatchProcessorAware;
@@ -199,6 +200,26 @@ class SearchServiceExtension extends Extension
         }
 
         $this->owner->removeFromIndexes();
+    }
+
+    /**
+     * Once the record is gone, any indexing-failure records that referenced it are moot, so remove
+     * them. Without this, orphaned open failures would never be pruned (age-based pruning only ever
+     * touches resolved records).
+     */
+    public function onAfterDelete(): void
+    {
+        $owner = $this->getOwner();
+        $id = (int) $owner->ID;
+
+        if (!$id) {
+            return;
+        }
+
+        IndexingFailure::get()->filter([
+            'SourceClass' => $owner->ClassName,
+            'SourceID' => $id,
+        ])->removeAll();
     }
 
     /**

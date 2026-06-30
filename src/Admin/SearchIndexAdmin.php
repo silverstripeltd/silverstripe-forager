@@ -9,24 +9,33 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
+use SilverStripe\Forager\GridField\IndexingFailureActions;
 use SilverStripe\Forager\GridField\SearchReindexFormAction;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
 use SilverStripe\Forager\Jobs\ClearIndexJob;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Jobs\ReindexJob;
 use SilverStripe\Forager\Jobs\RemoveDataObjectJob;
+use SilverStripe\Forager\Models\IndexingFailure;
+use SilverStripe\Forager\Models\IndexingFailureConfig;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\IndexData;
+use SilverStripe\Forager\Service\IndexingFailureService;
 use SilverStripe\Forager\Tasks\SearchReindex;
+use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldConfig_RecordViewer;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
+use SilverStripe\Forms\Tab;
+use SilverStripe\Forms\TabSet;
+use SilverStripe\Forms\ToggleCompositeField;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataQuery;
 use SilverStripe\Security\Permission;
@@ -41,6 +50,8 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
     private const string PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
 
+    private const string PERMISSION_RETRY = 'SearchAdmin_RetryFailedDocument';
+
     private static string $url_segment = 'search-indexing';
 
     private static string $menu_title = 'Search Indexing';
@@ -51,6 +62,9 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
     private static array $allowed_actions = [
         'reindexAll',
+        'saveFailureSettings',
+        'retryAllOpenFailures',
+        'clearAllResolvedFailures',
     ];
 
     /**
@@ -173,7 +187,22 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
             ->setReadonly(true)
             ->setRightTitle('i.e. status is one of: ' . implode(', ', $stoppedStatuses));
 
-        $fieldList = FieldList::create($fields);
+        $overviewTab = Tab::create('Overview', ...$fields);
+        $overviewTab->setTitle(_t(self::class . '.TAB_OVERVIEW', 'Overview'));
+
+        $failedTab = Tab::create('FailedDocuments', ...$this->buildFailedDocumentsFields($form));
+        $openCount = IndexingFailure::get()->filter('Status', IndexingFailure::STATUS_OPEN)->count();
+        $failedTab->setTitle(
+            $openCount
+                ? _t(
+                    self::class . '.TAB_FAILED_COUNT',
+                    'Failed Documents ({count})',
+                    ['count' => $openCount]
+                )
+                : _t(self::class . '.TAB_FAILED', 'Failed Documents')
+        );
+
+        $fieldList = FieldList::create(TabSet::create('Root', $overviewTab, $failedTab));
 
         $this->extend('updateEditFormFieldList', $fieldList);
 
@@ -269,6 +298,16 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
                     'Search Service'
                 ),
             ],
+            self::PERMISSION_RETRY => [
+                'name' => _t(
+                    self::class . '.RetryFailedLabel',
+                    'Retry and clear failed indexing documents'
+                ),
+                'category' => _t(
+                    self::class . '.Category',
+                    'Search Service'
+                ),
+            ],
         ];
     }
 
@@ -286,6 +325,149 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
             'X-Status',
             rawurlencode(_t(static::class . '.REINDEXED', 'Reindex triggered for on all indexes'))
         );
+    }
+
+    /**
+     * Persist the live failure-tracking settings (the only DB-backed toggle).
+     *
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
+     */
+    public function saveFailureSettings($data, Form $form): void
+    {
+        if (!Permission::check('ADMIN')) {
+            return;
+        }
+
+        $settings = IndexingFailureConfig::current();
+        $settings->TrackShouldNotIndex = (bool) ($data['TrackShouldNotIndex'] ?? false);
+        $settings->write();
+
+        Controller::curr()->getResponse()->addHeader(
+            'X-Status',
+            rawurlencode(_t(self::class . '.SETTINGS_SAVED', 'Failure tracking settings saved'))
+        );
+    }
+
+    /**
+     * Queue a re-index for every open failure.
+     *
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
+     */
+    public function retryAllOpenFailures($data, Form $form): void
+    {
+        if (!Permission::check(self::PERMISSION_RETRY)) {
+            return;
+        }
+
+        $service = IndexingFailureService::singleton();
+        $queued = 0;
+
+        foreach (IndexingFailure::get()->filter('Status', IndexingFailure::STATUS_OPEN) as $failure) {
+            if ($service->retry($failure)) {
+                $queued++;
+            }
+        }
+
+        Controller::curr()->getResponse()->addHeader(
+            'X-Status',
+            rawurlencode(_t(
+                self::class . '.RETRY_ALL_QUEUED',
+                'Queued re-index for {count} document(s)',
+                ['count' => $queued]
+            ))
+        );
+    }
+
+    /**
+     * Delete every resolved failure record.
+     *
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
+     */
+    public function clearAllResolvedFailures($data, Form $form): void
+    {
+        if (!Permission::check(self::PERMISSION_RETRY)) {
+            return;
+        }
+
+        $resolved = IndexingFailure::get()->filter('Status', IndexingFailure::STATUS_RESOLVED);
+        $count = $resolved->count();
+        $resolved->removeAll();
+
+        Controller::curr()->getResponse()->addHeader(
+            'X-Status',
+            rawurlencode(_t(
+                self::class . '.CLEARED_RESOLVED',
+                'Cleared {count} resolved failure(s)',
+                ['count' => $count]
+            ))
+        );
+    }
+
+    /**
+     * Build the fields for the "Failed Documents" tab: the live settings toggle and the failures grid.
+     *
+     * @return array<int, \SilverStripe\Forms\FormField>
+     */
+    private function buildFailedDocumentsFields(Form $form): array
+    {
+        $fields = [];
+        $canManage = Permission::check(self::PERMISSION_RETRY);
+
+        // Live settings panel (collapsed by default).
+        $settings = IndexingFailureConfig::current();
+        $trackField = CheckboxField::create(
+            'TrackShouldNotIndex',
+            _t(
+                self::class . '.TRACK_SHOULD_NOT_INDEX',
+                'Record documents skipped because shouldIndex() / permission checks returned false'
+            )
+        )->setValue($settings->TrackShouldNotIndex);
+
+        if (!Permission::check('ADMIN')) {
+            $trackField = $trackField->performReadonlyTransformation();
+        } else {
+            $form->Actions()->push(
+                FormAction::create(
+                    'saveFailureSettings',
+                    _t(self::class . '.SAVE_SETTINGS', 'Save failure settings')
+                )->addExtraClass('btn btn-primary')
+            );
+        }
+
+        $fields[] = ToggleCompositeField::create(
+            'FailureSettings',
+            _t(self::class . '.SETTINGS_HEADING', 'Settings'),
+            [$trackField]
+        );
+
+        // The failures grid: all records, newest failure first; the Status filter reveals resolved rows.
+        $gridConfig = GridFieldConfig_RecordViewer::create();
+        $gridConfig->getComponentByType(GridFieldPaginator::class)?->setItemsPerPage(20);
+        $gridConfig->addComponent(new IndexingFailureActions());
+
+        $fields[] = GridField::create(
+            'IndexingFailures',
+            _t(self::class . '.GRID_TITLE', 'Failed documents'),
+            IndexingFailure::get(),
+            $gridConfig
+        );
+
+        if ($canManage) {
+            $form->Actions()->push(
+                FormAction::create(
+                    'retryAllOpenFailures',
+                    _t(self::class . '.RETRY_ALL', 'Retry all open failures')
+                )->addExtraClass('btn btn-info')
+            );
+            $form->Actions()->push(
+                FormAction::create(
+                    'clearAllResolvedFailures',
+                    _t(self::class . '.CLEAR_RESOLVED', 'Clear all resolved failures')
+                )->addExtraClass('btn btn-outline-secondary')
+            );
+        }
+
+        return $fields;
     }
 
 }

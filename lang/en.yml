@@ -1,3 +1,23 @@
 en:
   SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
     FILE_IN_EXCLUDED_LIST: "This file is excluded from one or more search indexes."
+  SilverStripe\Forager\Admin\SearchIndexAdmin:
+    TAB_OVERVIEW: "Overview"
+    TAB_FAILED: "Failed Documents"
+    TAB_FAILED_COUNT: "Failed Documents ({count})"
+    SETTINGS_HEADING: "Settings"
+    TRACK_SHOULD_NOT_INDEX: "Record documents skipped because shouldIndex() / permission checks returned false"
+    SAVE_SETTINGS: "Save failure settings"
+    SETTINGS_SAVED: "Failure tracking settings saved"
+    GRID_TITLE: "Failed documents"
+    RETRY_ALL: "Retry all open failures"
+    CLEAR_RESOLVED: "Clear all resolved failures"
+    RETRY_ALL_QUEUED: "Queued re-index for {count} document(s)"
+    CLEARED_RESOLVED: "Cleared {count} resolved failure(s)"
+    RetryFailedLabel: "Retry and clear failed indexing documents"
+  SilverStripe\Forager\GridField\IndexingFailureActions:
+    RETRY_QUEUED: "Re-index queued."
+    RETRY_MISSING: "Could not retry: the source record no longer exists."
+    RETRY_DENIED: "You do not have permission to retry indexing."
+    CLEARED: "Failure cleared."
+    CLEAR_DENIED: "You do not have permission to clear failures."

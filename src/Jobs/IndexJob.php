@@ -7,9 +7,11 @@ use InvalidArgumentException;
 use LogicException;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Forager\Exception\IndexingFailureCapException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Service\Indexer;
+use SilverStripe\Forager\Service\IndexingFailureService;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
@@ -22,6 +24,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  * @property int $method
  * @property int|null $batchSize
  * @property bool $processDependencies
+ * @property int $failuresRecorded
  */
 class IndexJob extends BatchJob
 {
@@ -133,13 +136,22 @@ class IndexJob extends BatchJob
             );
             $indexer->setProcessDependencies($this->shouldProcessDependencies());
 
+            // Count the failures recorded while processing this batch so the per-job cap can be
+            // enforced across all of the job's batches.
+            $failureService = IndexingFailureService::singleton();
+            $failureService->resetSessionCount();
+
             $this->extend('onBeforeProcess');
             $indexer->processNode();
             $this->extend('onAfterProcess');
 
+            $this->failuresRecorded = (int) $this->failuresRecorded + $failureService->getSessionCount();
+
             // Save away whatever Documents are still remaining
             $this->setRemainingDocuments($remainingDocuments);
             $this->currentStep++;
+
+            $this->guardFailureCap();
 
             if ($this->currentStep >= $this->totalSteps) {
                 $this->isComplete = true;
@@ -150,6 +162,33 @@ class IndexJob extends BatchJob
 
 
         $this->cooldown();
+    }
+
+    /**
+     * Trip the circuit breaker if this job has recorded more indexing failures than the configured
+     * cap. Throwing here stops the job (preserving its remaining documents for a later resume) so a
+     * systemic problem surfaces instead of silently churning through a large index.
+     *
+     * @throws IndexingFailureCapException
+     */
+    private function guardFailureCap(): void
+    {
+        $cap = IndexConfiguration::singleton()->getMaxFailuresPerJob();
+
+        if ($cap <= 0 || (int) $this->failuresRecorded < $cap) {
+            return;
+        }
+
+        $message = sprintf(
+            'Indexing failure cap (%d) reached after %d failures; stopping job. '
+            . 'Resolve the underlying problem and resume to continue indexing the remaining documents.',
+            $cap,
+            (int) $this->failuresRecorded
+        );
+
+        $this->addMessage($message);
+
+        throw new IndexingFailureCapException($message);
     }
 
     public function getDocuments(): array

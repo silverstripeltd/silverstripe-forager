@@ -40,6 +40,18 @@ class IndexConfiguration
      */
     private static bool $index_parent_page_of_elements = true;
 
+    /**
+     * Maximum number of indexing failures a single job may record before it trips the circuit breaker
+     * and pauses (see IndexJob). 0 means unlimited (debug only).
+     */
+    private static int $max_failures_per_job = 100;
+
+    /**
+     * Number of days a resolved IndexingFailure is kept before PruneIndexingFailuresJob deletes it.
+     * 0 means resolved records are kept forever.
+     */
+    private static int $resolved_failure_retention_days = 30;
+
     private ?string $indexPrefix;
 
     private array $indexesForClassName = [];
@@ -90,6 +102,22 @@ class IndexConfiguration
     public function shouldTrackDependencies(): bool
     {
         return $this->config()->get('auto_dependency_tracking');
+    }
+
+    /**
+     * @return int The per-job indexing-failure cap, or 0 for unlimited.
+     */
+    public function getMaxFailuresPerJob(): int
+    {
+        return (int) $this->config()->get('max_failures_per_job');
+    }
+
+    /**
+     * @return int Days to keep resolved IndexingFailure records, or 0 to keep forever.
+     */
+    public function getResolvedFailureRetentionDays(): int
+    {
+        return (int) $this->config()->get('resolved_failure_retention_days');
     }
 
     public function getIndexPrefix(): ?string
