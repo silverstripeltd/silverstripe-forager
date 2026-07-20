@@ -100,17 +100,11 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         'clearAllResolvedFailures',
     ];
 
-    /**
-     * No CSV import; the search form is only meaningful on the failures grid.
-     *
-     * @var bool
-     */
-    public $showImportForm = false;
+    // No CSV import; the search form is only meaningful on the failures grid.
+    // Untyped to match ModelAdmin's own (untyped) property declarations.
+    public $showImportForm = false; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
-    /**
-     * @var array<class-string>
-     */
-    public $showSearchForm = [IndexingFailure::class];
+    public $showSearchForm = [IndexingFailure::class]; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
     /**
      * The overview tab is a dashboard, not a CRUD list, so it gets a bespoke edit form; every other tab
