@@ -100,9 +100,16 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         'clearAllResolvedFailures',
     ];
 
-    // No CSV import; the search form is only meaningful on the failures grid.
+    /**
+     * No CSV import; the search form is only meaningful on the failures grid.
+     *
+     * @var bool
+     */
     public $showImportForm = false;
 
+    /**
+     * @var array<class-string>
+     */
     public $showSearchForm = [IndexingFailure::class];
 
     /**

@@ -65,7 +65,7 @@ class IndexingFailureActions implements GridField_ColumnProvider, GridField_Acti
 
     /**
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
-     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingAnyTypeHint
      */
     public function getColumnAttributes($gridField, $record, $columnName)
     {

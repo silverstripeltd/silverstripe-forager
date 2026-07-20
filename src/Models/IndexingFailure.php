@@ -176,23 +176,23 @@ class IndexingFailure extends DataObject
         return DataObject::get($this->SourceClass)->byID($this->SourceID);
     }
 
-    public function canView($member = null): bool
+    public function canView($member = null): bool // phpcs:ignore SlevomatCodingStandard.TypeHints
     {
         return Permission::check('CMS_ACCESS_SearchAdmin', 'any', $member);
     }
 
-    public function canEdit($member = null): bool
+    public function canEdit($member = null): bool // phpcs:ignore SlevomatCodingStandard.TypeHints
     {
         // Failure rows are not hand-edited; they are managed via the service and the Retry/Clear actions.
         return false;
     }
 
-    public function canCreate($member = null, $context = []): bool
+    public function canCreate($member = null, $context = []): bool // phpcs:ignore SlevomatCodingStandard.TypeHints
     {
         return false;
     }
 
-    public function canDelete($member = null): bool
+    public function canDelete($member = null): bool // phpcs:ignore SlevomatCodingStandard.TypeHints
     {
         return Permission::check('SearchAdmin_RetryFailedDocument', 'any', $member);
     }

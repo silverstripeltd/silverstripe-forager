@@ -50,12 +50,12 @@ class IndexingFailureConfig extends DataObject
         return (bool) self::get()->first()?->TrackShouldNotIndex;
     }
 
-    public function canView($member = null): bool
+    public function canView($member = null): bool // phpcs:ignore SlevomatCodingStandard.TypeHints
     {
         return Permission::check('CMS_ACCESS_SearchAdmin', 'any', $member);
     }
 
-    public function canEdit($member = null): bool
+    public function canEdit($member = null): bool // phpcs:ignore SlevomatCodingStandard.TypeHints
     {
         return Permission::check('ADMIN', 'any', $member);
     }
