@@ -195,4 +195,44 @@ class IndexingFailureServiceTest extends SapphireTest
         $this->assertFalse(IndexingFailureService::singleton()->retry($failure));
     }
 
+    public function testRecordStoresStackTraceWhenProvided(): void
+    {
+        $service = IndexingFailureService::singleton();
+        $trace = "#0 /app/src/Thing.php(42): boom()\n#1 {main}";
+
+        $failure = $service->record(
+            'App\\Page',
+            5,
+            'index1',
+            'app_page_5',
+            IndexingFailure::REASON_EXCEPTION,
+            'boom',
+            $trace
+        );
+
+        $this->assertSame($trace, $failure->StackTrace);
+    }
+
+    public function testLaterAttemptWithoutTraceClearsStackTrace(): void
+    {
+        $service = IndexingFailureService::singleton();
+
+        // First attempt carries a trace; the follow-up (same class/id/index) does not.
+        $service->record(
+            'App\\Page',
+            5,
+            'index1',
+            'app_page_5',
+            IndexingFailure::REASON_EXCEPTION,
+            'boom',
+            '#0 trace line'
+        );
+        $service->record('App\\Page', 5, 'index1', 'app_page_5', IndexingFailure::REASON_UNACKNOWLEDGED, 'rejected');
+
+        $failure = IndexingFailure::get()->first();
+        $this->assertCount(1, IndexingFailure::get());
+        // StackTrace reflects only the latest attempt, which had none.
+        $this->assertEmpty($failure->StackTrace);
+    }
+
 }

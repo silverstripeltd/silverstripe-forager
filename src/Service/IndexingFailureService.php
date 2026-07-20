@@ -41,12 +41,15 @@ class IndexingFailureService
         string $indexSuffix,
         string $identifier,
         string $reasonType,
-        string $message
+        string $message,
+        ?string $trace = null
     ): IndexingFailure {
         $failure = $this->findOrCreate($sourceClass, $sourceId, $indexSuffix, $identifier);
 
         $failure->ReasonType = $reasonType;
         $failure->LastMessage = $message;
+        // Reflects the latest attempt: a trace-bearing failure sets it, a later non-trace attempt clears it.
+        $failure->StackTrace = $trace;
         $failure->FailureCount = (int) $failure->FailureCount + 1;
         $failure->Status = IndexingFailure::STATUS_OPEN;
         $failure->ResolvedAt = null;
@@ -66,7 +69,8 @@ class IndexingFailureService
         DocumentInterface $document,
         string $indexSuffix,
         string $reasonType,
-        string $message
+        string $message,
+        ?string $trace = null
     ): IndexingFailure {
         return $this->record(
             $document->getSourceClass(),
@@ -74,7 +78,8 @@ class IndexingFailureService
             $indexSuffix,
             $document->getIdentifier(),
             $reasonType,
-            $message
+            $message,
+            $trace
         );
     }
 

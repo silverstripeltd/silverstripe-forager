@@ -2,19 +2,23 @@ en:
   SilverStripe\Forager\Extensions\SearchFormFactoryExtension:
     FILE_IN_EXCLUDED_LIST: "This file is excluded from one or more search indexes."
   SilverStripe\Forager\Admin\SearchIndexAdmin:
-    TAB_OVERVIEW: "Overview"
-    TAB_FAILED: "Failed Documents"
-    TAB_FAILED_COUNT: "Failed Documents ({count})"
+    ACCESS_HELP: "Allow viewing of search configuration and status, and links to external resources."
+    Category: "Search Service"
+    ReIndexLabel: "Trigger Full ReIndex"
+    RetryFailedLabel: "Retry and clear failed indexing documents"
+    ViewStackTraceLabel: "View indexing failure stack traces"
+    ViewStackTraceHelp: "Stack traces can expose file paths and internal structure; grant only to trusted debuggers."
+    REINDEXED: "Reindex triggered for on all indexes"
     SETTINGS_HEADING: "Settings"
     TRACK_SHOULD_NOT_INDEX: "Record documents skipped because shouldIndex() / permission checks returned false"
     SAVE_SETTINGS: "Save failure settings"
     SETTINGS_SAVED: "Failure tracking settings saved"
-    GRID_TITLE: "Failed documents"
     RETRY_ALL: "Retry all open failures"
     CLEAR_RESOLVED: "Clear all resolved failures"
     RETRY_ALL_QUEUED: "Queued re-index for {count} document(s)"
     CLEARED_RESOLVED: "Cleared {count} resolved failure(s)"
-    RetryFailedLabel: "Retry and clear failed indexing documents"
+  SilverStripe\Forager\Models\IndexingFailure:
+    EDIT_SOURCE: "Edit source record"
   SilverStripe\Forager\GridField\IndexingFailureActions:
     RETRY_QUEUED: "Re-index queued."
     RETRY_MISSING: "Could not retry: the source record no longer exists."

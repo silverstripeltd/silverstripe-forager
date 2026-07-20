@@ -2,6 +2,9 @@
 
 namespace SilverStripe\Forager\Models;
 
+use SilverStripe\Core\Convert;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\LiteralField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Security\Permission;
@@ -17,6 +20,7 @@ use SilverStripe\Security\Permission;
  * @property string $DocumentIdentifier
  * @property string $ReasonType
  * @property string $LastMessage
+ * @property string $StackTrace
  * @property string $History
  * @property int $FailureCount
  * @property string $Status
@@ -39,6 +43,12 @@ class IndexingFailure extends DataObject
     public const string REASON_SHOULD_NOT_INDEX = 'should_not_index';
 
     /**
+     * Permission required to view the captured stack trace. A trace can expose file paths and internal
+     * structure, so it is gated more tightly than the rest of the (broadly-viewable) failure record.
+     */
+    public const string PERMISSION_VIEW_TRACE = 'SearchAdmin_ViewStackTrace';
+
+    /**
      * Maximum number of attempt lines retained in the History field. Oldest lines are trimmed.
      */
     public const int HISTORY_LIMIT = 20;
@@ -56,6 +66,7 @@ class IndexingFailure extends DataObject
         'DocumentIdentifier' => 'Varchar(255)',
         'ReasonType' => 'Varchar(50)',
         'LastMessage' => 'Text',
+        'StackTrace' => 'Text',
         'History' => 'Text',
         'FailureCount' => 'Int',
         'Status' => "Enum('Open,Resolved','Open')",
@@ -83,13 +94,55 @@ class IndexingFailure extends DataObject
     ];
 
     private static array $searchable_fields = [
-        'SourceClass',
-        'IndexSuffix',
-        'ReasonType',
-        'Status',
+        'SourceClass' => ['filter' => 'PartialMatchFilter'],
+        'SourceID' => ['filter' => 'ExactMatchFilter'],
+        'IndexSuffix' => ['filter' => 'PartialMatchFilter'],
+        'ReasonType' => ['filter' => 'ExactMatchFilter'],
+        'LastMessage' => ['filter' => 'PartialMatchFilter'],
+        'FailureCount' => ['filter' => 'ExactMatchFilter'],
+        'Status' => ['filter' => 'ExactMatchFilter'],
     ];
 
     private static string $default_sort = 'LastFailedAt DESC';
+
+    public function getCMSFields(): FieldList
+    {
+        $fields = parent::getCMSFields();
+
+        // The stack trace can leak file paths and internal structure, so it is gated behind a dedicated
+        // permission; members with section access but not this permission see the record without it.
+        if (!Permission::check(self::PERMISSION_VIEW_TRACE)) {
+            $fields->removeByName('StackTrace');
+        }
+
+        // Offer a jump to the source record's own CMS edit screen, when it still exists and exposes one.
+        $editLink = $this->getSourceEditLink();
+
+        if ($editLink) {
+            $fields->insertAfter(
+                'SourceID',
+                LiteralField::create(
+                    'SourceEditLink',
+                    sprintf(
+                        '<div class="mb-3"><a class="btn btn-outline-primary" href="%s">%s</a></div>',
+                        Convert::raw2att($editLink),
+                        _t(self::class . '.EDIT_SOURCE', 'Edit source record')
+                    )
+                )
+            );
+        }
+
+        return $fields;
+    }
+
+    /**
+     * The CMS edit link for the source DataObject this failure refers to, or null if the record no
+     * longer exists or does not expose an edit link.
+     */
+    public function getSourceEditLink(): ?string
+    {
+        return $this->getSourceDataObject()?->getCMSEditLink() ?: null;
+    }
 
     /**
      * Prepend a timestamped line to the History trail and trim to HISTORY_LIMIT lines (newest first).

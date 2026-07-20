@@ -3,7 +3,7 @@
 namespace SilverStripe\Forager\Admin;
 
 use Psr\Container\NotFoundExceptionInterface;
-use SilverStripe\Admin\LeftAndMain;
+use SilverStripe\Admin\ModelAdmin;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Injector\Injector;
@@ -27,14 +27,15 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\GridField\GridField;
-use SilverStripe\Forms\GridField\GridFieldConfig_RecordViewer;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
+use SilverStripe\Forms\GridField\GridFieldPrintButton;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\Forms\Tab;
-use SilverStripe\Forms\TabSet;
 use SilverStripe\Forms\ToggleCompositeField;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataQuery;
@@ -43,14 +44,36 @@ use SilverStripe\Security\PermissionProvider;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
-class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
+/**
+ * Search Service admin section.
+ *
+ * A {@see ModelAdmin} with two tabs:
+ *  - "Overview": a read-only dashboard (external links, documents-by-index, queued-job status) with a
+ *    global "Trigger Full Reindex on All" action. It is not a CRUD list, so it is rendered as a custom
+ *    edit form for a synthetic tab ({@see self::TAB_OVERVIEW}) rather than a GridField.
+ *  - "Failed Documents": a native ModelAdmin GridField over {@see IndexingFailure}, with per-row
+ *    Retry/Clear actions ({@see IndexingFailureActions}), a live settings toggle, and bulk
+ *    Retry-all/Clear-resolved actions. Because each ModelAdmin tab is its own edit form, these actions
+ *    live with the tab rather than in a single shared action bar.
+ */
+class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
 {
+
+    /**
+     * Synthetic tab key for the (non-DataObject) overview dashboard. Its `dataClass` points at the
+     * harmless single-record {@see IndexingFailureConfig} purely so init()/getList() have a real class
+     * to resolve; the overview form never renders a grid. It must NOT point at IndexingFailure, or
+     * getModelTabForModelClass() would resolve failure-record edit links to this tab instead.
+     */
+    private const string TAB_OVERVIEW = 'overview';
 
     private const string PERMISSION_ACCESS = 'CMS_ACCESS_SearchAdmin';
 
     private const string PERMISSION_REINDEX = 'SearchAdmin_ReIndex';
 
     private const string PERMISSION_RETRY = 'SearchAdmin_RetryFailedDocument';
+
+    private const string PERMISSION_VIEW_TRACE = 'SearchAdmin_ViewStackTrace';
 
     private static string $url_segment = 'search-indexing';
 
@@ -60,6 +83,16 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
     private static string $required_permission_codes = self::PERMISSION_ACCESS;
 
+    private static array $managed_models = [
+        self::TAB_OVERVIEW => [
+            'title' => 'Overview',
+            'dataClass' => IndexingFailureConfig::class,
+        ],
+        IndexingFailure::class => [
+            'title' => 'Failed Documents',
+        ],
+    ];
+
     private static array $allowed_actions = [
         'reindexAll',
         'saveFailureSettings',
@@ -67,7 +100,16 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
         'clearAllResolvedFailures',
     ];
 
+    // No CSV import; the search form is only meaningful on the failures grid.
+    public $showImportForm = false;
+
+    public $showSearchForm = [IndexingFailure::class];
+
     /**
+     * The overview tab is a dashboard, not a CRUD list, so it gets a bespoke edit form; every other tab
+     * (currently just the failures grid) falls through to the standard ModelAdmin GridField form, which
+     * we then augment with the settings toggle and bulk actions.
+     *
      * @throws IndexingServiceException
      * @throws NotFoundExceptionInterface
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint
@@ -75,64 +117,79 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
      */
     public function getEditForm($id = null, $fields = null): Form
     {
+        if ($this->modelTab === self::TAB_OVERVIEW) {
+            return $this->getOverviewForm();
+        }
+
         $form = parent::getEditForm($id, $fields);
+        $this->augmentFailedDocumentsForm($form);
+
+        return $form;
+    }
+
+    /**
+     * Build the read-only overview dashboard as a standalone edit form, wired into the same CMS chrome
+     * (pjax fragment, template, form action) that ModelAdmin uses for its GridField forms.
+     *
+     * @throws IndexingServiceException
+     * @throws NotFoundExceptionInterface
+     */
+    protected function getOverviewForm(): Form
+    {
         $canReindex = Permission::check(self::PERMISSION_REINDEX);
+        $fields = FieldList::create();
+        $actions = FieldList::create();
 
         /** @var IndexingInterface $indexService */
         $indexService = Injector::inst()->get(IndexingInterface::class);
         $externalURL = $indexService->getExternalURL();
         $docsURL = $indexService->getDocumentationURL();
 
-        $fields = [];
-
         if ($externalURL !== null || $docsURL !== null) {
-            $fields[] = HeaderField::create('ExternalLinksHeader', 'External Links')
-                ->setAttribute('style', 'font-weight: 300;');
+            $fields->push(
+                HeaderField::create('ExternalLinksHeader', 'External Links')
+                    ->setAttribute('style', 'font-weight: 300;')
+            );
 
             if ($externalURL !== null) {
-                $fields[] = LiteralField::create(
+                $fields->push(LiteralField::create(
                     'ExternalURL',
                     sprintf(
                         '<div><a href="%s" target="_blank" style="font-size: medium">%s</a></div>',
                         $externalURL,
                         $indexService->getExternalURLDescription() ?? 'External URL'
                     )
-                );
+                ));
             }
 
             if ($docsURL !== null) {
-                $fields[] = LiteralField::create(
+                $fields->push(LiteralField::create(
                     'DocsURL',
                     sprintf(
                         '<div><a href="%s" target="_blank" style="font-size: medium">Documentation URL</a></div>',
                         $docsURL
                     )
-                );
+                ));
             }
 
-            $fields[] = LiteralField::create(
+            $fields->push(LiteralField::create(
                 'Divider',
                 '<div class="clear" style="margin-top: 16px; height: 32px; border-top: 1px solid #ced5e1"></div>'
-            );
+            ));
         }
 
         $indexedDocumentsList = $this->buildIndexedDocumentsList();
 
         if (!$indexedDocumentsList->count() && !$indexedDocumentsList->dataClass()) {
             // No indexes have been configured
-
-            // Indexed documents warning field
-            $indexedDocumentsWarningField = LiteralField::create(
+            $fields->push(LiteralField::create(
                 'IndexedDocumentsWarning',
                 '<div class="alert alert-warning">' .
                 '<strong>No indexes found.</strong>' .
                 'Indexes must be configured before indexed documents can be listed or re-indexed' .
                 '</div>'
-            );
-
-            $fields[] = $indexedDocumentsWarningField;
+            ));
         } else {
-            // Indexed documents field
             $indexDocumentsField = GridField::create('IndexedDocuments', 'Documents by Index', $indexedDocumentsList);
             $indexDocumentsFieldConfig = $indexDocumentsField->getConfig();
             $indexDocumentsFieldConfig->removeComponentsByType(GridFieldFilterHeader::class);
@@ -140,17 +197,19 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
             if ($canReindex) {
                 $indexDocumentsFieldConfig->addComponent(new SearchReindexFormAction());
-                $action = FormAction::create('reindexAll', 'Trigger Full Reindex on All')->addExtraClass(
-                    'btn btn-danger btn-lg'
+                $actions->push(
+                    FormAction::create('reindexAll', 'Trigger Full Reindex on All')
+                        ->addExtraClass('btn btn-danger btn-lg')
                 );
-                $form->Actions()->add($action);
             }
 
-            $fields[] = $indexDocumentsField;
+            $fields->push($indexDocumentsField);
         }
 
-        $fields[] = HeaderField::create('QueuedJobsHeader', 'Queued Jobs Status')
-            ->setAttribute('style', 'font-weight: 300;');
+        $fields->push(
+            HeaderField::create('QueuedJobsHeader', 'Queued Jobs Status')
+                ->setAttribute('style', 'font-weight: 300;')
+        );
 
         $rootQJQuery = QueuedJobDescriptor::get()
             ->filter([
@@ -171,44 +230,113 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
 
         $stoppedStatuses = [QueuedJob::STATUS_BROKEN, QueuedJob::STATUS_PAUSED];
 
-        $fields[] = NumericField::create(
-            'InProgressJobs',
-            'In Progress',
-            $rootQJQuery->filter(['JobStatus' => $inProgressStatuses])->count()
-        )
-            ->setReadonly(true)
-            ->setRightTitle('i.e. status is one of: ' . implode(', ', $inProgressStatuses));
-
-        $fields[] = NumericField::create(
-            'StoppedJobs',
-            'Stopped',
-            $rootQJQuery->filter(['JobStatus' => $stoppedStatuses])->count()
-        )
-            ->setReadonly(true)
-            ->setRightTitle('i.e. status is one of: ' . implode(', ', $stoppedStatuses));
-
-        $overviewTab = Tab::create('Overview', ...$fields);
-        $overviewTab->setTitle(_t(self::class . '.TAB_OVERVIEW', 'Overview'));
-
-        $failedTab = Tab::create('FailedDocuments', ...$this->buildFailedDocumentsFields($form));
-        $openCount = IndexingFailure::get()->filter('Status', IndexingFailure::STATUS_OPEN)->count();
-        $failedTab->setTitle(
-            $openCount
-                ? _t(
-                    self::class . '.TAB_FAILED_COUNT',
-                    'Failed Documents ({count})',
-                    ['count' => $openCount]
-                )
-                : _t(self::class . '.TAB_FAILED', 'Failed Documents')
+        $fields->push(
+            NumericField::create(
+                'InProgressJobs',
+                'In Progress',
+                $rootQJQuery->filter(['JobStatus' => $inProgressStatuses])->count()
+            )
+                ->setReadonly(true)
+                ->setRightTitle('i.e. status is one of: ' . implode(', ', $inProgressStatuses))
         );
 
-        $fieldList = FieldList::create(TabSet::create('Root', $overviewTab, $failedTab));
+        $fields->push(
+            NumericField::create(
+                'StoppedJobs',
+                'Stopped',
+                $rootQJQuery->filter(['JobStatus' => $stoppedStatuses])->count()
+            )
+                ->setReadonly(true)
+                ->setRightTitle('i.e. status is one of: ' . implode(', ', $stoppedStatuses))
+        );
 
-        $this->extend('updateEditFormFieldList', $fieldList);
-
-        $form->setFields($fieldList);
+        $form = $this->makeTabForm($fields, $actions);
 
         $this->extend('updateEditForm', $form);
+
+        return $form;
+    }
+
+    /**
+     * Add the failure-tracking settings toggle (above the grid) and the bulk Retry/Clear actions to the
+     * native ModelAdmin failures form. The settings save is gated to ADMIN; the bulk actions to the
+     * retry permission.
+     */
+    protected function augmentFailedDocumentsForm(Form $form): void
+    {
+        $settings = IndexingFailureConfig::current();
+        $trackField = CheckboxField::create(
+            'TrackShouldNotIndex',
+            _t(
+                self::class . '.TRACK_SHOULD_NOT_INDEX',
+                'Record documents skipped because shouldIndex() / permission checks returned false'
+            )
+        )->setValue($settings->TrackShouldNotIndex);
+
+        if (!Permission::check('ADMIN')) {
+            $trackField = $trackField->performReadonlyTransformation();
+        } else {
+            $form->Actions()->push(
+                FormAction::create(
+                    'saveFailureSettings',
+                    _t(self::class . '.SAVE_SETTINGS', 'Save failure settings')
+                )->addExtraClass('btn btn-primary')
+            );
+        }
+
+        $form->Fields()->unshift(
+            ToggleCompositeField::create(
+                'FailureSettings',
+                _t(self::class . '.SETTINGS_HEADING', 'Settings'),
+                [$trackField]
+            )
+        );
+
+        if (Permission::check(self::PERMISSION_RETRY)) {
+            $form->Actions()->push(
+                FormAction::create(
+                    'retryAllOpenFailures',
+                    _t(self::class . '.RETRY_ALL', 'Retry all open failures')
+                )->addExtraClass('btn btn-info')
+            );
+            $form->Actions()->push(
+                FormAction::create(
+                    'clearAllResolvedFailures',
+                    _t(self::class . '.CLEAR_RESOLVED', 'Clear all resolved failures')
+                )->addExtraClass('btn btn-outline-secondary')
+            );
+        }
+    }
+
+    /**
+     * Native failures grid: drop the CSV/print buttons and the row delete action (Clear handles
+     * deletion), and add the per-row Retry/Clear actions.
+     */
+    protected function getGridFieldConfig(): GridFieldConfig
+    {
+        $config = parent::getGridFieldConfig();
+        $config->removeComponentsByType(GridFieldExportButton::class);
+        $config->removeComponentsByType(GridFieldPrintButton::class);
+        $config->removeComponentsByType(GridFieldDeleteAction::class);
+        $config->addComponent(new IndexingFailureActions());
+
+        return $config;
+    }
+
+    /**
+     * Build a form for one ModelAdmin tab using the same chrome ModelAdmin applies to its GridField
+     * forms, so the overview tab renders inside the standard CMS edit-form panel.
+     */
+    private function makeTabForm(FieldList $fields, FieldList $actions): Form
+    {
+        $form = Form::create($this, 'EditForm', $fields, $actions)
+            ->setHTMLID('Form_EditForm');
+        $form->addExtraClass('cms-edit-form cms-panel-padded center flexbox-area-grow');
+        $form->setTemplate($this->getTemplatesWithSuffix('_EditForm'));
+        $form->setFormAction(
+            Controller::join_links($this->getLinkForModelTab($this->modelTab), 'EditForm')
+        );
+        $form->setAttribute('data-pjax-fragment', 'CurrentForm');
 
         return $form;
     }
@@ -308,6 +436,20 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
                     'Search Service'
                 ),
             ],
+            self::PERMISSION_VIEW_TRACE => [
+                'name' => _t(
+                    self::class . '.ViewStackTraceLabel',
+                    'View indexing failure stack traces'
+                ),
+                'help' => _t(
+                    self::class . '.ViewStackTraceHelp',
+                    'Stack traces can expose file paths and internal structure; grant only to trusted debuggers.'
+                ),
+                'category' => _t(
+                    self::class . '.Category',
+                    'Search Service'
+                ),
+            ],
         ];
     }
 
@@ -401,73 +543,6 @@ class SearchIndexAdmin extends LeftAndMain implements PermissionProvider
                 ['count' => $count]
             ))
         );
-    }
-
-    /**
-     * Build the fields for the "Failed Documents" tab: the live settings toggle and the failures grid.
-     *
-     * @return array<int, \SilverStripe\Forms\FormField>
-     */
-    private function buildFailedDocumentsFields(Form $form): array
-    {
-        $fields = [];
-        $canManage = Permission::check(self::PERMISSION_RETRY);
-
-        // Live settings panel (collapsed by default).
-        $settings = IndexingFailureConfig::current();
-        $trackField = CheckboxField::create(
-            'TrackShouldNotIndex',
-            _t(
-                self::class . '.TRACK_SHOULD_NOT_INDEX',
-                'Record documents skipped because shouldIndex() / permission checks returned false'
-            )
-        )->setValue($settings->TrackShouldNotIndex);
-
-        if (!Permission::check('ADMIN')) {
-            $trackField = $trackField->performReadonlyTransformation();
-        } else {
-            $form->Actions()->push(
-                FormAction::create(
-                    'saveFailureSettings',
-                    _t(self::class . '.SAVE_SETTINGS', 'Save failure settings')
-                )->addExtraClass('btn btn-primary')
-            );
-        }
-
-        $fields[] = ToggleCompositeField::create(
-            'FailureSettings',
-            _t(self::class . '.SETTINGS_HEADING', 'Settings'),
-            [$trackField]
-        );
-
-        // The failures grid: all records, newest failure first; the Status filter reveals resolved rows.
-        $gridConfig = GridFieldConfig_RecordViewer::create();
-        $gridConfig->getComponentByType(GridFieldPaginator::class)?->setItemsPerPage(20);
-        $gridConfig->addComponent(new IndexingFailureActions());
-
-        $fields[] = GridField::create(
-            'IndexingFailures',
-            _t(self::class . '.GRID_TITLE', 'Failed documents'),
-            IndexingFailure::get(),
-            $gridConfig
-        );
-
-        if ($canManage) {
-            $form->Actions()->push(
-                FormAction::create(
-                    'retryAllOpenFailures',
-                    _t(self::class . '.RETRY_ALL', 'Retry all open failures')
-                )->addExtraClass('btn btn-info')
-            );
-            $form->Actions()->push(
-                FormAction::create(
-                    'clearAllResolvedFailures',
-                    _t(self::class . '.CLEAR_RESOLVED', 'Clear all resolved failures')
-                )->addExtraClass('btn btn-outline-secondary')
-            );
-        }
-
-        return $fields;
     }
 
 }
