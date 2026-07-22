@@ -6,6 +6,7 @@ use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\Admin\ModelAdmin;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Controller;
+use SilverStripe\Core\Convert;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\Exception\IndexingServiceException;
 use SilverStripe\Forager\Extensions\SearchServiceExtension;
@@ -107,6 +108,15 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
     public $showSearchForm = [IndexingFailure::class]; // phpcs:ignore SlevomatCodingStandard.TypeHints
 
     /**
+     * Per-index errors collected while building the documents-by-index list, keyed by index suffix.
+     * Populated by {@see self::buildIndexedDocumentsList()} so the overview can surface a message
+     * instead of letting a failed remote lookup fatal the whole admin section.
+     *
+     * @var array<string, string>
+     */
+    private array $documentListErrors = [];
+
+    /**
      * The overview tab is a dashboard, not a CRUD list, so it gets a bespoke edit form; every other tab
      * (currently just the failures grid) falls through to the standard ModelAdmin GridField form, which
      * we then augment with the settings toggle and bulk actions.
@@ -205,6 +215,28 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             }
 
             $fields->push($indexDocumentsField);
+        }
+
+        if ($this->documentListErrors) {
+            $messages = '';
+
+            foreach ($this->documentListErrors as $indexSuffix => $error) {
+                $messages .= sprintf(
+                    '<li><strong>%s:</strong> %s</li>',
+                    Convert::raw2xml($indexSuffix),
+                    Convert::raw2xml($error)
+                );
+            }
+
+            $fields->push(LiteralField::create(
+                'IndexedDocumentsRemoteWarning',
+                '<div class="alert alert-warning">' .
+                '<strong>Remote document counts could not be retrieved for one or more indexes.</strong> ' .
+                'The database counts above are still accurate. This usually means the index has not been ' .
+                'configured on the search service yet, or the service returned an unexpected response.' .
+                '<ul style="margin-top: 8px; margin-bottom: 0;">' . $messages . '</ul>' .
+                '</div>'
+            ));
         }
 
         $fields->push(
@@ -391,7 +423,18 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
                     $result->IndexName = IndexConfiguration::singleton()->environmentizeIndex($indexSuffix);
                     $result->IndexSuffix = $indexSuffix;
                     $result->DBDocs = $localCount;
-                    $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
+
+                    // The remote count is a live call to the indexing service; if it can't be
+                    // retrieved (e.g. the index isn't configured yet, or the service returns an
+                    // unexpected response) record the reason and carry on, so one bad index doesn't
+                    // fatal the whole admin section. The message is surfaced by getOverviewForm().
+                    try {
+                        $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
+                    } catch (IndexingServiceException $e) {
+                        $result->RemoteDocs = _t(self::class . '.REMOTE_DOCS_UNAVAILABLE', 'Unavailable');
+                        $this->documentListErrors[$indexSuffix] = $e->getMessage();
+                    }
+
                     $list->push($result);
                 }
             );
