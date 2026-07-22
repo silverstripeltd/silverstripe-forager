@@ -3,6 +3,7 @@
 namespace SilverStripe\Forager\Admin;
 
 use Psr\Container\NotFoundExceptionInterface;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Admin\ModelAdmin;
 use SilverStripe\CMS\Controllers\CMSMain;
 use SilverStripe\Control\Controller;
@@ -427,12 +428,22 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
                     // The remote count is a live call to the indexing service; if it can't be
                     // retrieved (e.g. the index isn't configured yet, or the service returns an
                     // unexpected response) record the reason and carry on, so one bad index doesn't
-                    // fatal the whole admin section. The message is surfaced by getOverviewForm().
+                    // fatal the whole admin section. The message is surfaced by getOverviewForm();
+                    // the full exception (with stack trace) is still logged for diagnostics.
                     try {
                         $result->RemoteDocs = $indexer->getDocumentTotal($indexSuffix);
                     } catch (IndexingServiceException $e) {
                         $result->RemoteDocs = _t(self::class . '.REMOTE_DOCS_UNAVAILABLE', 'Unavailable');
                         $this->documentListErrors[$indexSuffix] = $e->getMessage();
+
+                        Injector::inst()->get(LoggerInterface::class)->error(
+                            sprintf(
+                                'Could not retrieve remote document count for index "%s": %s',
+                                $indexSuffix,
+                                $e->getMessage()
+                            ),
+                            ['exception' => $e]
+                        );
                     }
 
                     $list->push($result);
