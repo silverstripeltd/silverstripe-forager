@@ -16,6 +16,14 @@ class SearchServiceExtensionOrphanTest extends SapphireTest
         DataObjectFake::class,
     ];
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Failure rows are real (non-TestOnly) records shared across tests; start each test clean so
+        // the unique (SourceClass, SourceID, IndexSuffix) index does not carry over.
+        IndexingFailure::get()->removeAll();
+    }
+
     public function testDeletingRecordRemovesItsFailures(): void
     {
         $this->mockConfig(true);
@@ -44,6 +52,30 @@ class SearchServiceExtensionOrphanTest extends SapphireTest
 
         $this->assertNull(IndexingFailure::get()->byID($failure->ID), 'Failure for the deleted record is removed');
         $this->assertNotNull(IndexingFailure::get()->byID($other->ID), 'Unrelated failure is untouched');
+    }
+
+    public function testDeletingRecordKeepsItsRemovalFailures(): void
+    {
+        $this->mockConfig(true);
+
+        $record = DataObjectFake::create(['Title' => 'Doomed']);
+        $record->write();
+
+        $failure = IndexingFailure::create();
+        $failure->SourceClass = DataObjectFake::class;
+        $failure->SourceID = (int) $record->ID;
+        $failure->IndexSuffix = 'index1';
+        $failure->DocumentIdentifier = 'dataobjectfake_' . $record->ID;
+        $failure->ReasonType = IndexingFailure::REASON_REMOVE_EXCEPTION;
+        $failure->Status = IndexingFailure::STATUS_OPEN;
+        $failure->write();
+
+        $record->delete();
+
+        $this->assertNotNull(
+            IndexingFailure::get()->byID($failure->ID),
+            'A failed removal outlives its record: the document is still in the index'
+        );
     }
 
 }

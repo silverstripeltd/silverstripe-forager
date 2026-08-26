@@ -206,6 +206,9 @@ class SearchServiceExtension extends Extension
      * Once the record is gone, any indexing-failure records that referenced it are moot, so remove
      * them. Without this, orphaned open failures would never be pruned (age-based pruning only ever
      * touches resolved records).
+     *
+     * Removal failures are kept: they mean the document is still in the index after the record went
+     * away, which is the case most worth seeing and retrying.
      */
     public function onAfterDelete(): void
     {
@@ -219,7 +222,7 @@ class SearchServiceExtension extends Extension
         IndexingFailure::get()->filter([
             'SourceClass' => $owner->ClassName,
             'SourceID' => $id,
-        ])->removeAll();
+        ])->exclude('ReasonType', IndexingFailure::REASON_REMOVE_EXCEPTION)->removeAll();
     }
 
     /**

@@ -195,6 +195,27 @@ class IndexingFailureServiceTest extends SapphireTest
         $this->assertFalse(IndexingFailureService::singleton()->retry($failure));
     }
 
+    public function testRetryOfRemovalDispatchesARemovalWithoutTheSourceRecord(): void
+    {
+        $config = $this->mockConfig(true);
+        // Run the job inline so the fake service records what the retry actually did.
+        $config->set('use_sync_jobs', true);
+        $service = $this->mockService();
+        $service->documents['dataobjectfake_99999'] = ['id' => 'dataobjectfake_99999'];
+
+        $failure = IndexingFailureService::singleton()->record(
+            DataObjectFake::class,
+            99999,
+            'index1',
+            'dataobjectfake_99999',
+            IndexingFailure::REASON_REMOVE_EXCEPTION,
+            'engine returned HTTP 500'
+        );
+
+        $this->assertTrue(IndexingFailureService::singleton()->retry($failure));
+        $this->assertArrayNotHasKey('dataobjectfake_99999', $service->documents);
+    }
+
     public function testRecordStoresStackTraceWhenProvided(): void
     {
         $service = IndexingFailureService::singleton();

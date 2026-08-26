@@ -17,6 +17,8 @@ en:
     CLEAR_RESOLVED: "Clear all resolved failures"
     RETRY_ALL_QUEUED: "Queued re-index for {count} document(s)"
     CLEARED_RESOLVED: "Cleared {count} resolved failure(s)"
+    CLEAR_ALL: "Clear all failures"
+    CLEARED_ALL: "Cleared {count} failure(s)"
   SilverStripe\Forager\Models\IndexingFailure:
     EDIT_SOURCE: "Edit source record"
   SilverStripe\Forager\GridField\IndexingFailureActions:

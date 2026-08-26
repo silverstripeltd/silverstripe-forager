@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Service;
 
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\DataObject\IdentifierDocument;
 use SilverStripe\Forager\Exception\DataObjectMissingException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Jobs\IndexJob;
@@ -108,21 +109,30 @@ class IndexingFailureService
     }
 
     /**
-     * Queue a fresh IndexJob to re-index the document this failure refers to. The failure row is left
-     * Open and clears itself via the normal resolve() path when the new job succeeds.
+     * Queue a fresh IndexJob for the document this failure refers to: a removal failure is retried as a
+     * removal, anything else as a re-index. The failure row is left Open and clears itself via the
+     * normal resolve() path when the new job succeeds.
      *
-     * @return bool False if the source record no longer exists (nothing to retry).
+     * @return bool False if there is nothing to retry (an indexing failure whose source record is gone).
      */
     public function retry(IndexingFailure $failure): bool
     {
         $record = $failure->getSourceDataObject();
+        $isRemoval = $failure->isRemoval();
 
-        if (!$record) {
+        if (!$record && !$isRemoval) {
             return false;
         }
 
-        $document = DataObjectDocument::create($record);
-        $job = IndexJob::create($failure->IndexSuffix, [$document], Indexer::METHOD_ADD);
+        // A removal only needs the identifier, so it can still be retried once the source record has
+        // been deleted — which is the state most removal failures are recorded in.
+        $document = $record
+            ? DataObjectDocument::create($record)
+            : IdentifierDocument::create($failure->DocumentIdentifier, $failure->SourceClass);
+        $method = $isRemoval
+            ? Indexer::METHOD_DELETE
+            : Indexer::METHOD_ADD;
+        $job = IndexJob::create($failure->IndexSuffix, [$document], $method);
 
         if (IndexConfiguration::singleton()->shouldUseSyncJobs()) {
             SyncJobRunner::singleton()->runJob($job, false);

@@ -43,6 +43,12 @@ class IndexingFailure extends DataObject
     public const string REASON_SHOULD_NOT_INDEX = 'should_not_index';
 
     /**
+     * A document the engine did not confirm it had removed. Retried as a removal rather than an
+     * index; {@see self::isRemoval()}.
+     */
+    public const string REASON_REMOVE_EXCEPTION = 'remove_exception';
+
+    /**
      * Permission required to view the captured stack trace. A trace can expose file paths and internal
      * structure, so it is gated more tightly than the rest of the (broadly-viewable) failure record.
      */
@@ -87,6 +93,7 @@ class IndexingFailure extends DataObject
         'SourceClass' => 'Class',
         'SourceID' => 'Record ID',
         'IndexSuffix' => 'Index',
+        'Status' => 'Status',
         'ReasonType' => 'Reason',
         'LastMessage' => 'Last message',
         'FailureCount' => 'Failures',
@@ -167,6 +174,15 @@ class IndexingFailure extends DataObject
      * Resolve the live DataObject this failure refers to, or null if it no longer exists or the
      * failure was not for a DataObject-backed document.
      */
+    /**
+     * Whether this failure came from removing the document rather than indexing it, which decides
+     * which way a retry runs.
+     */
+    public function isRemoval(): bool
+    {
+        return $this->ReasonType === self::REASON_REMOVE_EXCEPTION;
+    }
+
     public function getSourceDataObject(): ?DataObject
     {
         if (!$this->SourceClass || !$this->SourceID || !is_subclass_of($this->SourceClass, DataObject::class)) {

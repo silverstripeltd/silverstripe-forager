@@ -55,7 +55,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  *    edit form for a synthetic tab ({@see self::TAB_OVERVIEW}) rather than a GridField.
  *  - "Failed Documents": a native ModelAdmin GridField over {@see IndexingFailure}, with per-row
  *    Retry/Clear actions ({@see IndexingFailureActions}), a live settings toggle, and bulk
- *    Retry-all/Clear-resolved actions. Because each ModelAdmin tab is its own edit form, these actions
+ *    Retry-all/Clear-resolved/Clear-all actions. Because each ModelAdmin tab is its own edit form, these actions
  *    live with the tab rather than in a single shared action bar.
  */
 class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
@@ -100,6 +100,7 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         'saveFailureSettings',
         'retryAllOpenFailures',
         'clearAllResolvedFailures',
+        'clearAllFailures',
     ];
 
     // No CSV import; the search form is only meaningful on the failures grid.
@@ -338,6 +339,12 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
                     'clearAllResolvedFailures',
                     _t(self::class . '.CLEAR_RESOLVED', 'Clear all resolved failures')
                 )->addExtraClass('btn btn-outline-secondary')
+            );
+            $form->Actions()->push(
+                FormAction::create(
+                    'clearAllFailures',
+                    _t(self::class . '.CLEAR_ALL', 'Clear all failures')
+                )->addExtraClass('btn btn-outline-danger')
             );
         }
     }
@@ -595,6 +602,32 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             rawurlencode(_t(
                 self::class . '.CLEARED_RESOLVED',
                 'Cleared {count} resolved failure(s)',
+                ['count' => $count]
+            ))
+        );
+    }
+
+    /**
+     * Delete every failure record, open or resolved. The prune job only removes resolved rows, so this
+     * is the way back to an empty list when open failures have built up.
+     *
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
+     */
+    public function clearAllFailures($data, Form $form): void
+    {
+        if (!Permission::check(self::PERMISSION_RETRY)) {
+            return;
+        }
+
+        $failures = IndexingFailure::get();
+        $count = $failures->count();
+        $failures->removeAll();
+
+        Controller::curr()->getResponse()->addHeader(
+            'X-Status',
+            rawurlencode(_t(
+                self::class . '.CLEARED_ALL',
+                'Cleared {count} failure(s)',
                 ['count' => $count]
             ))
         );
