@@ -25,6 +25,7 @@ use SilverStripe\Forager\Service\IndexData;
 use SilverStripe\Forager\Service\IndexingFailureService;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\CompositeField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
@@ -38,11 +39,11 @@ use SilverStripe\Forms\GridField\GridFieldPrintButton;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
-use SilverStripe\Forms\ToggleCompositeField;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataQuery;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
+use SilverStripe\View\Requirements;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
@@ -117,6 +118,23 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
      * @var array<string, string>
      */
     private array $documentListErrors = [];
+
+    public function init(): void
+    {
+        parent::init();
+
+        // The module ships no stylesheet, and these rules only apply to the failures form: breathing
+        // room around the bulk actions, which otherwise sit flush against an empty grid or the window
+        // edge, and the rule that separates the settings section from the grid above it.
+        Requirements::customCSS(
+            '.search-failures-form > .btn-toolbar,'
+            . ' .search-failures-form .cms-content-actions .btn-toolbar { padding: 1.5rem 0; }'
+            . '.search-failures-form .search-failures-settings { margin-top: 2rem; padding-top: 1.5rem;'
+            . ' border-top: 1px solid #ced5e1; }'
+            . '.search-failures-settings .btn-toolbar { margin-top: 1rem; }',
+            'search-failures-form'
+        );
+    }
 
     /**
      * The overview tab is a dashboard, not a CRUD list, so it gets a bespoke edit form; every other tab
@@ -293,12 +311,15 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
     }
 
     /**
-     * Add the failure-tracking settings toggle (above the grid) and the bulk Retry/Clear actions to the
+     * Add the failure-tracking settings section below the grid, and the bulk Retry/Clear actions to the
      * native ModelAdmin failures form. The settings save is gated to ADMIN; the bulk actions to the
      * retry permission.
      */
     protected function augmentFailedDocumentsForm(Form $form): void
     {
+        $form->addExtraClass('search-failures-form');
+
+        $canSaveSettings = Permission::check('ADMIN');
         $settings = IndexingFailureConfig::current();
         $trackField = CheckboxField::create(
             'TrackShouldNotIndex',
@@ -308,23 +329,29 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             )
         )->setValue($settings->TrackShouldNotIndex);
 
-        if (!Permission::check('ADMIN')) {
+        if (!$canSaveSettings) {
             $trackField = $trackField->performReadonlyTransformation();
-        } else {
-            $form->Actions()->push(
+        }
+
+        $settingsFields = [
+            HeaderField::create('FailureSettingsHeading', _t(self::class . '.SETTINGS_HEADING', 'Settings'), 3),
+            $trackField,
+        ];
+
+        if ($canSaveSettings) {
+            // The CMS only submits buttons inside a .btn-toolbar over ajax; without one this save would
+            // post the form normally and render outside the admin chrome.
+            $settingsFields[] = CompositeField::create(
                 FormAction::create(
                     'saveFailureSettings',
                     _t(self::class . '.SAVE_SETTINGS', 'Save failure settings')
                 )->addExtraClass('btn btn-primary')
-            );
+            )->addExtraClass('btn-toolbar');
         }
 
-        $form->Fields()->unshift(
-            ToggleCompositeField::create(
-                'FailureSettings',
-                _t(self::class . '.SETTINGS_HEADING', 'Settings'),
-                [$trackField]
-            )
+        // Settings belong with their own save action, below the grid and separated by a rule.
+        $form->Fields()->push(
+            CompositeField::create($settingsFields)->addExtraClass('search-failures-settings')
         );
 
         if (Permission::check(self::PERMISSION_RETRY)) {
