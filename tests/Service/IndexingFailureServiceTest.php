@@ -2,13 +2,21 @@
 
 namespace SilverStripe\Forager\Tests\Service;
 
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
+use SilverStripe\Forager\Extensions\SearchServiceExtension;
+use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Models\IndexingFailure;
+use SilverStripe\Forager\Service\Indexer;
 use SilverStripe\Forager\Service\IndexingFailureService;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
+use SilverStripe\Forager\Tests\Fake\CountingServiceFake;
 use SilverStripe\Forager\Tests\Fake\DocumentFake;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
+use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
 class IndexingFailureServiceTest extends SapphireTest
 {
@@ -214,6 +222,155 @@ class IndexingFailureServiceTest extends SapphireTest
 
         $this->assertTrue(IndexingFailureService::singleton()->retry($failure));
         $this->assertArrayNotHasKey('dataobjectfake_99999', $service->documents);
+    }
+
+    public function testRetryAllBatchesRemainingFailuresIntoOneJobPerIndex(): void
+    {
+        $config = $this->mockConfig(true);
+        // Run inline so the fake service can count how many calls the retry actually made.
+        $config->set('use_sync_jobs', true);
+        $service = new CountingServiceFake();
+        Injector::inst()->registerService($service, IndexingInterface::class);
+        SearchServiceExtension::singleton()->setIndexService($service);
+
+        $failureService = IndexingFailureService::singleton();
+
+        foreach (range(1, 5) as $i) {
+            $record = DataObjectFake::create(['Title' => 'Retry ' . $i]);
+            $record->write();
+            $failureService->record(
+                DataObjectFake::class,
+                (int) $record->ID,
+                'index1',
+                DataObjectDocument::create($record)->getIdentifier(),
+                IndexingFailure::REASON_UNACKNOWLEDGED,
+                'rejected'
+            );
+        }
+
+        $service->addDocumentsCalls = 0;
+        $result = $failureService->retryAll(IndexingFailure::get());
+
+        $this->assertSame(5, $result['queued']);
+        $this->assertSame(0, $result['resumed']);
+        $this->assertSame(0, $result['skipped']);
+        $this->assertSame(
+            1,
+            $service->addDocumentsCalls,
+            'Five failures in one index should be sent as one batch, not one job per document'
+        );
+    }
+
+    public function testRetryAllSkipsFailuresWhoseSourceRecordIsGone(): void
+    {
+        $config = $this->mockConfig(true);
+        $config->set('use_sync_jobs', false);
+        $this->mockService();
+        $service = IndexingFailureService::singleton();
+
+        $service->record(
+            DataObjectFake::class,
+            99999,
+            'index1',
+            'dataobjectfake_99999',
+            IndexingFailure::REASON_UNACKNOWLEDGED,
+            'rejected'
+        );
+
+        $result = $service->retryAll(IndexingFailure::get());
+
+        $this->assertSame(0, $result['queued']);
+        $this->assertSame(1, $result['skipped']);
+    }
+
+    public function testRetryAllResumesTheBrokenJobHoldingTheDocument(): void
+    {
+        $config = $this->mockConfig(true);
+        $config->set('use_sync_jobs', false);
+        $this->mockService();
+        $service = IndexingFailureService::singleton();
+
+        $record = DataObjectFake::create(['Title' => 'Broken batch']);
+        $record->write();
+
+        $service->record(
+            DataObjectFake::class,
+            (int) $record->ID,
+            'index1',
+            DataObjectDocument::create($record)->getIdentifier(),
+            IndexingFailure::REASON_EXCEPTION,
+            'engine blew up'
+        );
+
+        $descriptor = $this->brokenIndexJobFor($record);
+        $result = $service->retryAll(IndexingFailure::get());
+
+        $this->assertSame(1, $result['resumed']);
+        $this->assertSame(0, $result['queued'], 'A resumed job already covers the document');
+
+        $descriptor = QueuedJobDescriptor::get()->byID($descriptor->ID);
+        $this->assertSame(QueuedJob::STATUS_NEW, $descriptor->JobStatus);
+        $this->assertEmpty($descriptor->Worker, 'The worker lock must be released or nothing picks it up');
+    }
+
+    public function testRetryAllQueuesAFreshJobWhenTheBrokenJobHasNothingLeft(): void
+    {
+        $config = $this->mockConfig(true);
+        $config->set('use_sync_jobs', false);
+        $this->mockService();
+        $service = IndexingFailureService::singleton();
+
+        $record = DataObjectFake::create(['Title' => 'Finished batch']);
+        $record->write();
+
+        $service->record(
+            DataObjectFake::class,
+            (int) $record->ID,
+            'index1',
+            DataObjectDocument::create($record)->getIdentifier(),
+            IndexingFailure::REASON_EXCEPTION,
+            'engine blew up'
+        );
+
+        // Broken with no remaining documents: the batch was fully processed, so there is nothing to resume.
+        $descriptor = $this->brokenIndexJobFor($record, false);
+        $result = $service->retryAll(IndexingFailure::get());
+
+        $this->assertSame(0, $result['resumed']);
+        $this->assertSame(1, $result['queued']);
+        $this->assertSame(
+            QueuedJob::STATUS_BROKEN,
+            QueuedJobDescriptor::get()->byID($descriptor->ID)->JobStatus,
+            'A job with nothing left to process is left alone'
+        );
+    }
+
+    /**
+     * A queued IndexJob for the record, put into the state a job is left in when it breaks part-way:
+     * one step processed, and (unless $withRemaining is false) its document still outstanding.
+     */
+    private function brokenIndexJobFor(DataObjectFake $record, bool $withRemaining = true): QueuedJobDescriptor
+    {
+        $document = DataObjectDocument::create($record);
+        $job = IndexJob::create('index1', [$document], Indexer::METHOD_ADD);
+        $job->setup();
+        $jobData = $job->getJobData()->jobData;
+
+        if (!$withRemaining) {
+            $jobData->remainingDocuments = [];
+        }
+
+        $descriptor = QueuedJobDescriptor::create();
+        $descriptor->Implementation = IndexJob::class;
+        $descriptor->JobStatus = QueuedJob::STATUS_BROKEN;
+        $descriptor->JobType = QueuedJob::IMMEDIATE;
+        $descriptor->TotalSteps = 1;
+        $descriptor->StepsProcessed = 1;
+        $descriptor->Worker = 'worker-1';
+        $descriptor->SavedJobData = serialize($jobData);
+        $descriptor->write();
+
+        return $descriptor;
     }
 
     public function testRecordStoresStackTraceWhenProvided(): void

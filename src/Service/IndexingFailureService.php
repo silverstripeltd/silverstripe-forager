@@ -2,14 +2,19 @@
 
 namespace SilverStripe\Forager\Service;
 
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forager\DataObject\DataObjectDocument;
 use SilverStripe\Forager\DataObject\IdentifierDocument;
 use SilverStripe\Forager\Exception\DataObjectMissingException;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Models\IndexingFailure;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
@@ -24,7 +29,14 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
 class IndexingFailureService
 {
 
+    use Configurable;
     use Injectable;
+
+    /**
+     * Upper bound on how many documents a single retry job carries. Documents are serialised into the
+     * job descriptor, so a retry covering thousands of rows is split across several jobs.
+     */
+    private static int $retry_documents_per_job = 500;
 
     /**
      * Number of failures record()ed since the counter was last reset. Used by IndexJob to enforce
@@ -132,15 +144,239 @@ class IndexingFailureService
         $method = $isRemoval
             ? Indexer::METHOD_DELETE
             : Indexer::METHOD_ADD;
-        $job = IndexJob::create($failure->IndexSuffix, [$document], $method);
-
-        if (IndexConfiguration::singleton()->shouldUseSyncJobs()) {
-            SyncJobRunner::singleton()->runJob($job, false);
-        } else {
-            QueuedJobService::singleton()->queueJob($job);
-        }
+        $this->dispatch(IndexJob::create($failure->IndexSuffix, [$document], $method));
 
         return true;
+    }
+
+    /**
+     * Retry a whole set of failures at once.
+     *
+     * Where the job that recorded a failure is still sitting Broken, that job is resumed rather than
+     * replaced: queuedjobs calls prepareForRestart() (not setup()) on a descriptor that has already
+     * processed a step, so the job carries on from the documents it had left and skips the ones it
+     * already indexed. Anything with no job to resume is gathered into one job per index and method,
+     * so a retry costs a couple of jobs rather than one per document.
+     *
+     * @param iterable<IndexingFailure> $failures
+     * @return array{resumed: int, queued: int, skipped: int} Jobs resumed, documents queued, and
+     *         failures that could not be retried because their source record is gone.
+     */
+    public function retryAll(iterable $failures): array
+    {
+        $pending = [];
+
+        foreach ($failures as $failure) {
+            $pending[(int) $failure->ID] = $failure;
+        }
+
+        $resumed = $this->resumeJobsFor($pending);
+        $queued = 0;
+        $skipped = 0;
+
+        foreach ($this->groupForRetry($pending) as $group) {
+            [$indexSuffix, $method, $documents, $missing] = $group;
+            $skipped += $missing;
+
+            foreach (array_chunk($documents, (int) $this->config()->get('retry_documents_per_job')) as $chunk) {
+                $this->dispatch(IndexJob::create($indexSuffix, $chunk, $method));
+                $queued += count($chunk);
+            }
+        }
+
+        return [
+            'resumed' => $resumed,
+            'queued' => $queued,
+            'skipped' => $skipped,
+        ];
+    }
+
+    /**
+     * Resume every Broken index job still holding one of these failures' documents, and drop the
+     * failures it covers from $pending — the resumed job will retry them.
+     *
+     * @param array<int, IndexingFailure> $pending
+     */
+    private function resumeJobsFor(array &$pending): int
+    {
+        if (!$pending) {
+            return 0;
+        }
+
+        // Keyed on index suffix + identifier, which is what a job's documents can be matched on.
+        $byDocument = [];
+
+        foreach ($pending as $failure) {
+            $byDocument[$failure->IndexSuffix . "\0" . $failure->DocumentIdentifier][] = (int) $failure->ID;
+        }
+
+        $resumed = 0;
+
+        $broken = QueuedJobDescriptor::get()->filter([
+            'JobStatus' => QueuedJob::STATUS_BROKEN,
+            'Implementation' => IndexJob::class,
+        ]);
+
+        foreach ($broken as $descriptor) {
+            if (!$pending) {
+                break;
+            }
+
+            $job = $this->restoreJob($descriptor);
+
+            if (!$job) {
+                continue;
+            }
+
+            $indexSuffix = $job->getIndexSuffix();
+            $remaining = $job->getRemainingDocuments();
+
+            // Nothing left to carry on with, so there is nothing this job would retry.
+            if (!$indexSuffix || !$remaining) {
+                continue;
+            }
+
+            $covered = [];
+
+            foreach ($remaining as $document) {
+                $key = $indexSuffix . "\0" . $document->getIdentifier();
+
+                foreach ($byDocument[$key] ?? [] as $id) {
+                    // Skip anything an already-resumed job covers, so one document does not resume two jobs.
+                    if (!isset($pending[$id])) {
+                        continue;
+                    }
+
+                    $covered[] = $id;
+                }
+            }
+
+            if (!$covered) {
+                continue;
+            }
+
+            $this->resume($descriptor);
+            $resumed++;
+
+            foreach ($covered as $id) {
+                unset($pending[$id]);
+            }
+        }
+
+        return $resumed;
+    }
+
+    /**
+     * Hand a Broken descriptor back to the queue. "New" is the only status that starts another attempt;
+     * the worker lock has to be released with it or nothing will pick the job up.
+     */
+    private function resume(QueuedJobDescriptor $descriptor): void
+    {
+        $descriptor->JobStatus = QueuedJob::STATUS_NEW;
+        $descriptor->Worker = null;
+        $descriptor->Expiry = null;
+        $descriptor->StartAfter = null;
+        $descriptor->write();
+    }
+
+    /**
+     * Rebuild a job from its descriptor the way QueuedJobService does, so its own accessors can be used
+     * instead of reaching into the serialised job data.
+     */
+    private function restoreJob(QueuedJobDescriptor $descriptor): ?IndexJob
+    {
+        $job = Injector::inst()->create($descriptor->Implementation);
+
+        if (!$job instanceof IndexJob) {
+            return null;
+        }
+
+        $data = @unserialize($descriptor->SavedJobData ?? '');
+
+        if (!$data) {
+            return null;
+        }
+
+        $job->setJobData($descriptor->TotalSteps, $descriptor->StepsProcessed, false, $data, []);
+
+        return $job;
+    }
+
+    /**
+     * Turn the remaining failures into one document set per index and method, resolving source records
+     * with one query per class rather than one per failure.
+     *
+     * @param array<int, IndexingFailure> $pending
+     * @return array<string, array{0: string, 1: int, 2: array<int, DocumentInterface>, 3: int}>
+     */
+    private function groupForRetry(array $pending): array
+    {
+        $recordsByClass = $this->fetchSourceRecords($pending);
+        $groups = [];
+
+        foreach ($pending as $failure) {
+            $isRemoval = $failure->isRemoval();
+            $record = $recordsByClass[$failure->SourceClass][(int) $failure->SourceID] ?? null;
+            $method = $isRemoval
+                ? Indexer::METHOD_DELETE
+                : Indexer::METHOD_ADD;
+            $key = $failure->IndexSuffix . "\0" . $method;
+            $groups[$key] ??= [$failure->IndexSuffix, $method, [], 0];
+
+            if (!$record && !$isRemoval) {
+                $groups[$key][3]++;
+
+                continue;
+            }
+
+            $groups[$key][2][] = $record
+                ? DataObjectDocument::create($record)
+                : IdentifierDocument::create($failure->DocumentIdentifier, $failure->SourceClass);
+        }
+
+        return $groups;
+    }
+
+    /**
+     * @param array<int, IndexingFailure> $pending
+     * @return array<string, array<int, DataObject>> Source records keyed by class then ID
+     */
+    private function fetchSourceRecords(array $pending): array
+    {
+        $idsByClass = [];
+
+        foreach ($pending as $failure) {
+            if (!$failure->SourceClass || !$failure->SourceID) {
+                continue;
+            }
+
+            if (!is_subclass_of($failure->SourceClass, DataObject::class)) {
+                continue;
+            }
+
+            $idsByClass[$failure->SourceClass][] = (int) $failure->SourceID;
+        }
+
+        $records = [];
+
+        foreach ($idsByClass as $class => $ids) {
+            foreach (DataObject::get($class)->byIDs(array_unique($ids)) as $record) {
+                $records[$class][(int) $record->ID] = $record;
+            }
+        }
+
+        return $records;
+    }
+
+    private function dispatch(IndexJob $job): void
+    {
+        if (IndexConfiguration::singleton()->shouldUseSyncJobs()) {
+            SyncJobRunner::singleton()->runJob($job, false);
+
+            return;
+        }
+
+        QueuedJobService::singleton()->queueJob($job);
     }
 
     /**

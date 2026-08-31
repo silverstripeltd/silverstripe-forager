@@ -580,7 +580,7 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
     }
 
     /**
-     * Queue a re-index for every open failure.
+     * Retry every open failure: resuming the jobs that broke where possible, and batching the rest.
      *
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
      */
@@ -590,23 +590,25 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             return;
         }
 
-        $service = IndexingFailureService::singleton();
-        $queued = 0;
+        $result = IndexingFailureService::singleton()->retryAll(
+            IndexingFailure::get()->filter('Status', IndexingFailure::STATUS_OPEN)
+        );
 
-        foreach (IndexingFailure::get()->filter('Status', IndexingFailure::STATUS_OPEN) as $failure) {
-            if ($service->retry($failure)) {
-                $queued++;
-            }
+        $message = _t(
+            self::class . '.RETRY_ALL_QUEUED',
+            'Resumed {resumed} job(s) and queued {queued} document(s) for re-index',
+            $result
+        );
+
+        if ($result['skipped']) {
+            $message .= ' ' . _t(
+                self::class . '.RETRY_ALL_SKIPPED',
+                '{skipped} skipped: the source record no longer exists.',
+                $result
+            );
         }
 
-        Controller::curr()->getResponse()->addHeader(
-            'X-Status',
-            rawurlencode(_t(
-                self::class . '.RETRY_ALL_QUEUED',
-                'Queued re-index for {count} document(s)',
-                ['count' => $queued]
-            ))
-        );
+        Controller::curr()->getResponse()->addHeader('X-Status', rawurlencode($message));
     }
 
     /**
