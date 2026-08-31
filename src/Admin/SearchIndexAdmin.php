@@ -344,7 +344,7 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             $settingsFields[] = CompositeField::create(
                 FormAction::create(
                     'saveFailureSettings',
-                    _t(self::class . '.SAVE_SETTINGS', 'Save failure settings')
+                    _t(self::class . '.SAVE_SETTINGS', 'Save settings')
                 )->addExtraClass('btn btn-primary')
             )->addExtraClass('btn-toolbar');
         }

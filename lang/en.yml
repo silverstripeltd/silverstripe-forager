@@ -11,7 +11,7 @@ en:
     REINDEXED: "Reindex triggered for on all indexes"
     SETTINGS_HEADING: "Settings"
     TRACK_SHOULD_NOT_INDEX: "Record documents skipped because shouldIndex() / permission checks returned false"
-    SAVE_SETTINGS: "Save failure settings"
+    SAVE_SETTINGS: "Save settings"
     SETTINGS_SAVED: "Failure tracking settings saved"
     RETRY_ALL: "Retry all open failures"
     CLEAR_RESOLVED: "Clear all resolved failures"
