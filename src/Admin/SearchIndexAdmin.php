@@ -325,9 +325,16 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             'TrackShouldNotIndex',
             _t(
                 self::class . '.TRACK_SHOULD_NOT_INDEX',
-                'Record documents skipped because shouldIndex() / permission checks returned false'
+                'Record documents skipped because they are not publicly viewable'
             )
-        )->setValue($settings->TrackShouldNotIndex);
+        )
+            ->setValue($settings->TrackShouldNotIndex)
+            ->setDescription(_t(
+                self::class . '.TRACK_SHOULD_NOT_INDEX_DESC',
+                'A record is skipped when it is not published, or when a visitor who is not logged in does'
+                . ' not have permission to view it. Recording these helps trace documents that are missing'
+                . ' from the index, at the cost of a row per skipped document.'
+            ));
 
         if (!$canSaveSettings) {
             $trackField = $trackField->performReadonlyTransformation();

@@ -96,7 +96,9 @@ class Indexer
                             $document,
                             $this->getIndexSuffix(),
                             IndexingFailure::REASON_SHOULD_NOT_INDEX,
-                            'shouldIndex() returned false; document removed from the index instead of added'
+                            'The record is not publicly viewable, so it was removed from the index'
+                            . ' instead of added. It is either not published, or a visitor who is not'
+                            . ' logged in does not have permission to view it.'
                         );
                     }
 
