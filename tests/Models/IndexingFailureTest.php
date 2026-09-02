@@ -51,6 +51,27 @@ class IndexingFailureTest extends SapphireTest
         );
     }
 
+    public function testReasonLabelMapsWithoutChangingTheStoredValue(): void
+    {
+        $failure = IndexingFailure::create();
+        $failure->ReasonType = IndexingFailure::REASON_SHOULD_NOT_INDEX;
+
+        $this->assertSame('Not publicly viewable', $failure->getReasonLabel());
+        $this->assertSame(
+            IndexingFailure::REASON_SHOULD_NOT_INDEX,
+            $failure->ReasonType,
+            'The stored value is what the column sorts and filters on, so it must be left alone'
+        );
+    }
+
+    public function testReasonLabelFallsBackToAnAdapterSuppliedReason(): void
+    {
+        $failure = IndexingFailure::create();
+        $failure->ReasonType = 'engine_specific_reason';
+
+        $this->assertSame('engine_specific_reason', $failure->getReasonLabel());
+    }
+
     public function testSourceEditLinkNullWhenSourceRecordMissing(): void
     {
         $failure = $this->makeFailure();

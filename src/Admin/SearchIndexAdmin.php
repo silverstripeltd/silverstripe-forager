@@ -31,6 +31,7 @@ use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
@@ -385,7 +386,9 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
 
     /**
      * Native failures grid: drop the CSV/print buttons and the row delete action (Clear handles
-     * deletion), and add the per-row Retry/Clear actions.
+     * deletion), add the per-row Retry/Clear actions, and render the stored reason as a readable
+     * label. Formatting the column leaves ReasonType itself in place, so the column stays sortable
+     * and filterable on the stored value.
      */
     protected function getGridFieldConfig(): GridFieldConfig
     {
@@ -394,6 +397,18 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         $config->removeComponentsByType(GridFieldPrintButton::class);
         $config->removeComponentsByType(GridFieldDeleteAction::class);
         $config->addComponent(new IndexingFailureActions());
+
+        $columns = $config->getComponentByType(GridFieldDataColumns::class);
+
+        if ($columns) {
+            $columns->setFieldFormatting([
+                // A column's formatted value is rendered as HTML, and an adapter-supplied reason falls
+                // through to the stored string, so escape it.
+                'ReasonType' => static function ($value, IndexingFailure $item): string {
+                    return Convert::raw2xml($item->getReasonLabel());
+                },
+            ]);
+        }
 
         return $config;
     }

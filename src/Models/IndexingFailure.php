@@ -175,6 +175,31 @@ class IndexingFailure extends DataObject
      * failure was not for a DataObject-backed document.
      */
     /**
+     * Display labels for the stored reason types, keyed by the value held in ReasonType.
+     *
+     * The stored values stay as they are so the column remains sortable and filterable; only the
+     * rendering is mapped ({@see SearchIndexAdmin::getGridFieldConfig()}). Engine adapters may record
+     * reasons of their own, which fall through to the stored value.
+     *
+     * @return array<string, string>
+     */
+    public static function reasonLabels(): array
+    {
+        return [
+            self::REASON_UNACKNOWLEDGED => _t(self::class . '.REASON_UNACKNOWLEDGED', 'Not acknowledged'),
+            self::REASON_CONTENT_ERROR => _t(self::class . '.REASON_CONTENT_ERROR', 'Rejected by the engine'),
+            self::REASON_EXCEPTION => _t(self::class . '.REASON_EXCEPTION', 'Indexing error'),
+            self::REASON_SHOULD_NOT_INDEX => _t(self::class . '.REASON_SHOULD_NOT_INDEX', 'Not publicly viewable'),
+            self::REASON_REMOVE_EXCEPTION => _t(self::class . '.REASON_REMOVE_EXCEPTION', 'Removal failed'),
+        ];
+    }
+
+    public function getReasonLabel(): string
+    {
+        return self::reasonLabels()[$this->ReasonType] ?? (string) $this->ReasonType;
+    }
+
+    /**
      * Whether this failure came from removing the document rather than indexing it, which decides
      * which way a retry runs.
      */

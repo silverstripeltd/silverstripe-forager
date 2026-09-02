@@ -23,6 +23,11 @@ en:
     CLEARED_ALL: "Cleared {count} failure(s)"
   SilverStripe\Forager\Models\IndexingFailure:
     EDIT_SOURCE: "Edit source record"
+    REASON_UNACKNOWLEDGED: "Not acknowledged"
+    REASON_CONTENT_ERROR: "Rejected by the engine"
+    REASON_EXCEPTION: "Indexing error"
+    REASON_SHOULD_NOT_INDEX: "Not publicly viewable"
+    REASON_REMOVE_EXCEPTION: "Removal failed"
   SilverStripe\Forager\GridField\IndexingFailureActions:
     RETRY_QUEUED: "Re-index queued."
     RETRY_MISSING: "Could not retry: the source record no longer exists."
