@@ -181,16 +181,28 @@ class IndexingFailure extends DataObject
      * rendering is mapped ({@see SearchIndexAdmin::getGridFieldConfig()}). Engine adapters may record
      * reasons of their own, which fall through to the stored value.
      *
+     * Each label starts with the same letter as the value it maps, so a column sorted on the stored
+     * value still reads alphabetically. A new reason needs a label that keeps that order.
+     *
      * @return array<string, string>
      */
     public static function reasonLabels(): array
     {
         return [
-            self::REASON_UNACKNOWLEDGED => _t(self::class . '.REASON_UNACKNOWLEDGED', 'Not acknowledged'),
-            self::REASON_CONTENT_ERROR => _t(self::class . '.REASON_CONTENT_ERROR', 'Rejected by the engine'),
-            self::REASON_EXCEPTION => _t(self::class . '.REASON_EXCEPTION', 'Indexing error'),
-            self::REASON_SHOULD_NOT_INDEX => _t(self::class . '.REASON_SHOULD_NOT_INDEX', 'Not publicly viewable'),
+            self::REASON_CONTENT_ERROR => _t(
+                self::class . '.REASON_CONTENT_ERROR',
+                'Content rejected by the engine'
+            ),
+            self::REASON_EXCEPTION => _t(self::class . '.REASON_EXCEPTION', 'Error during indexing'),
             self::REASON_REMOVE_EXCEPTION => _t(self::class . '.REASON_REMOVE_EXCEPTION', 'Removal failed'),
+            self::REASON_SHOULD_NOT_INDEX => _t(
+                self::class . '.REASON_SHOULD_NOT_INDEX',
+                'Skipped: not publicly viewable'
+            ),
+            self::REASON_UNACKNOWLEDGED => _t(
+                self::class . '.REASON_UNACKNOWLEDGED',
+                'Unacknowledged by the engine'
+            ),
         ];
     }
 
