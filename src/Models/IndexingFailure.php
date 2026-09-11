@@ -112,6 +112,15 @@ class IndexingFailure extends DataObject
 
     private static string $default_sort = 'LastFailedAt DESC';
 
+    public function searchableFields(): array
+    {
+        $fields = parent::searchableFields();
+
+        unset($fields['Status']['dataType']);
+
+        return $fields;
+    }
+
     public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();

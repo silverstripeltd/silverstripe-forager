@@ -33,10 +33,12 @@ use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig;
 use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldEditButton;
 use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\GridField\GridFieldPrintButton;
+use SilverStripe\Forms\GridField\GridFieldViewButton;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
@@ -134,6 +136,13 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             . ' border-top: 1px solid #ced5e1; }'
             . '.search-failures-settings .btn-toolbar { margin-top: 1rem; }',
             'search-failures-form'
+        );
+
+        // jQuery UI colours every anchor in the panel, outranking .btn and its hover state.
+        Requirements::customCSS(
+            '.cms a.btn.btn-outline-primary { color: var(--bs-btn-color); }'
+            . '.cms a.btn.btn-outline-primary:hover { color: var(--bs-btn-hover-color); }',
+            'search-source-link'
         );
     }
 
@@ -396,6 +405,8 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         $config->removeComponentsByType(GridFieldExportButton::class);
         $config->removeComponentsByType(GridFieldPrintButton::class);
         $config->removeComponentsByType(GridFieldDeleteAction::class);
+        $config->removeComponentsByType(GridFieldEditButton::class);
+        $config->addComponent(new GridFieldViewButton());
         $config->addComponent(new IndexingFailureActions());
 
         $columns = $config->getComponentByType(GridFieldDataColumns::class);
