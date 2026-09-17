@@ -38,7 +38,6 @@ use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\GridField\GridFieldPrintButton;
-use SilverStripe\Forms\GridField\GridFieldViewButton;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
@@ -134,7 +133,8 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
             . ' .search-failures-form .cms-content-actions .btn-toolbar { padding: 1.5rem 0; }'
             . '.search-failures-form .search-failures-settings { margin-top: 2rem; padding-top: 1.5rem;'
             . ' border-top: 1px solid #ced5e1; }'
-            . '.search-failures-settings .btn-toolbar { margin-top: 1rem; }',
+            . '.search-failures-settings .btn-toolbar { margin-top: 1rem; }'
+            . '.search-failures-form .search-failures-settings > .form__field-holder { margin-left: 0; }',
             'search-failures-form'
         );
 
@@ -406,7 +406,6 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         $config->removeComponentsByType(GridFieldPrintButton::class);
         $config->removeComponentsByType(GridFieldDeleteAction::class);
         $config->removeComponentsByType(GridFieldEditButton::class);
-        $config->addComponent(new GridFieldViewButton());
         $config->addComponent(new IndexingFailureActions());
 
         $columns = $config->getComponentByType(GridFieldDataColumns::class);
