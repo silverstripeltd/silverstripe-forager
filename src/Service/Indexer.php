@@ -10,6 +10,8 @@ use SilverStripe\Forager\Interfaces\DocumentAddHandler;
 use SilverStripe\Forager\Interfaces\DocumentInterface;
 use SilverStripe\Forager\Interfaces\DocumentRemoveHandler;
 use SilverStripe\Forager\Interfaces\IndexingInterface;
+use SilverStripe\Forager\Models\IndexingFailure;
+use SilverStripe\Forager\Models\IndexingFailureConfig;
 use SilverStripe\Forager\Service\Traits\ConfigurationAware;
 use SilverStripe\Forager\Service\Traits\ServiceAware;
 
@@ -86,6 +88,20 @@ class Indexer
 
                     $toUpdate[] = $document;
                 } else {
+                    // An add-intent document that resolves to shouldIndex()===false is removed from the
+                    // index instead of added. That is often correct, but is also a common
+                    // misconfiguration, so record it as a failure when debugging has been enabled.
+                    if (IndexingFailureConfig::isTrackingShouldNotIndex()) {
+                        IndexingFailureService::singleton()->recordForDocument(
+                            $document,
+                            $this->getIndexSuffix(),
+                            IndexingFailure::REASON_SHOULD_NOT_INDEX,
+                            'The record is not publicly viewable, so it was removed from the index'
+                            . ' instead of added. It is either not published, or a visitor who is not'
+                            . ' logged in does not have permission to view it.'
+                        );
+                    }
+
                     if ($document instanceof DocumentRemoveHandler) {
                         $document->onRemoveFromSearchIndexes(DocumentRemoveHandler::BEFORE_REMOVE);
                     }

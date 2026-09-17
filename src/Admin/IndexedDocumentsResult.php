@@ -8,7 +8,7 @@ use SilverStripe\Model\ModelData;
  * @property string $IndexName
  * @property string $IndexSuffix
  * @property int $DBDocs
- * @property int $RemoteDocs
+ * @property int|string $RemoteDocs Document count, or a short "Unavailable" message if the remote lookup failed
  */
 class IndexedDocumentsResult extends ModelData
 {

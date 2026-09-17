@@ -49,4 +49,18 @@ SilverStripe\Core\Injector\Injector:
         default:
           SilverstripeForagerLiveIndexDataContext: '%$SilverStripe\Forager\Service\LiveIndexDataContext'
 
+---
+Name: silverstripe-forager-queuedjobs
+After:
+  - '#queuedjobsettings'
+---
+Symbiote\QueuedJobs\Services\QueuedJobService:
+  default_jobs:
+    ForagerPruneIndexingFailures:
+      type: 'SilverStripe\Forager\Jobs\PruneIndexingFailuresJob'
+      filter:
+        JobTitle: 'Prune resolved indexing failures'
+      recreate: 1
+      startDateFormat: 'Y-m-d 02:00:00'
+      startTimeString: 'tomorrow'
 
