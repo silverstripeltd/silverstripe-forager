@@ -38,6 +38,7 @@ use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldFilterHeader;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\GridField\GridFieldPrintButton;
+use SilverStripe\Forms\GridField\GridFieldViewButton;
 use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\NumericField;
@@ -406,6 +407,7 @@ class SearchIndexAdmin extends ModelAdmin implements PermissionProvider
         $config->removeComponentsByType(GridFieldPrintButton::class);
         $config->removeComponentsByType(GridFieldDeleteAction::class);
         $config->removeComponentsByType(GridFieldEditButton::class);
+        $config->addComponent(new GridFieldViewButton());
         $config->addComponent(new IndexingFailureActions());
 
         $columns = $config->getComponentByType(GridFieldDataColumns::class);
