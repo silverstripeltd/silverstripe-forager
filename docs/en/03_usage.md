@@ -16,6 +16,9 @@ reindex (with `ADMIN` permissions).
 
 See `IndexingInterface` for how these external links are configured for your implementation.
 
+The **Failed Documents** tab lists records that could not be indexed, with actions to retry or clear
+them. See [Indexing failures](13_indexing_failures.md).
+
 ## Pages and other DataObjects
 
 Publish and unpublish events will instantiate an `IndexJob`, described below. If the
