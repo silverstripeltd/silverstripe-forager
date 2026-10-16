@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<ruleset name="silverstripe-forager-coding-standards">
+    <description>Coding standards for silverstripe-forager - using the Silverstripe Bespoke Coding Standard</description>
+
+    <!-- A vendor module keeps its code in src and tests rather than app, so we have to specify these paths here -->
+    <file>src</file>
+    <file>tests</file>
+
+    <!-- Don't sniff test classes, because they include PHP attributes that cause Slevomat to throw errors -->
+    <exclude-pattern>./tests/*</exclude-pattern>
+
+    <!--
+        The aim of the Silverstripe Bespoke Coding standard is to keep consistency between projects.
+        If you are adding a custom rule below, please consider raising a PR to add it to the standard at:
+        https://github.com/silverstripeltd/bespoke-standards
+     -->
+    <rule ref="./vendor/silverstripeltd/bespoke-standards/ruleset.xml">
+        <!-- Project decisions -->
+        <!-- Teams have mixed preferences around whether to enforce property promotion or not. -->
+        <exclude name="SlevomatCodingStandard.Classes.DisallowConstructorPropertyPromotion.DisallowedConstructorPropertyPromotion"/>
+        <!-- Don't require exit early -->
+        <exclude name="SlevomatCodingStandard.ControlStructures.EarlyExit.EarlyExitNotUsed"/>
+
+        <!-- Baseline: remove one at a time, fix the code, commit -->
+        <!-- 15 (15 fixable by phpcbf) -->
+        <exclude name="Silverstripe.Extension.DisallowOwnerProperty.OwnerProperty"/>
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+        <properties>
+            <property name="rootNamespaces" type="array">
+                <element key="src" value="SilverStripe\Forager"/>
+                <element key="tests" value="SilverStripe\Forager\Tests"/>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing">
+        <properties>
+            <property name="linesCountBeforeWhenFirstInCaseOrDefault" value="0"/>
+            <property name="linesCountAfterWhenLastInCaseOrDefault" value="1"/>
+            <property name="linesCountAfterWhenLastInLastCaseOrDefault" value="0"/>
+        </properties>
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable">
+        <properties>
+            <property name="ignoreUnusedValuesWhenOnlyKeysAreUsedInForeach" value="true"/>
+        </properties>
+    </rule>
+</ruleset>
