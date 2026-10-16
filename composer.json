@@ -22,7 +22,7 @@
     },
     "require-dev": {
         "silverstripe/recipe-testing": "^4",
-        "slevomat/coding-standard": "~8.18.0"
+        "silverstripeltd/bespoke-standards": "^1.6"
     },
     "autoload": {
         "psr-4": {
