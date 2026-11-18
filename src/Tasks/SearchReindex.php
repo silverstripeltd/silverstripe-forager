@@ -2,6 +2,7 @@
 
 namespace SilverStripe\Forager\Tasks;
 
+use InvalidArgumentException;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Forager\Jobs\ReindexJob;
@@ -34,27 +35,64 @@ class SearchReindex extends BuildTask
 
     protected function execute(InputInterface $input, PolyOutput $output): int
     {
-        $this->processTaskExecution($input->getOption('onlyClass'), $input->getOption('onlyIndex'));
+        try {
+            $this->processTaskExecution($input->getOption('onlyClass'), $input->getOption('onlyIndex'));
+        } catch (InvalidArgumentException $e) {
+            $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
+
+            return Command::FAILURE;
+        }
 
         return Command::SUCCESS;
     }
 
+    /**
+     * Queue one ReindexJob per index and class
+     *
+     * @param array|null $onlyClass Fully qualified class names to limit the reindex to. Empty means every class
+     * @param string|null $onlyIndex Index suffix to limit the reindex to. Null means every index
+     * @throws InvalidArgumentException When $onlyIndex is not a configured index, or a class in $onlyClass is not
+     *                                  included by any of the indexes being reindexed
+     */
     public function processTaskExecution(?array $onlyClass = [], ?string $onlyIndex = null): void
     {
         $indexConfiguration = $this->getConfiguration();
+        $onlyClass = array_values(array_unique($onlyClass ?? []));
+        $indexSuffixes = array_keys($indexConfiguration->getIndexConfigurations());
 
-        // Loop through all available indexes
-        foreach (array_keys($indexConfiguration->getIndexConfigurations()) as $indexSuffix) {
-            // limit to requested index only
-            if ($onlyIndex && ($indexSuffix !== $onlyIndex)) {
-                continue;
+        // limit to requested index only
+        if ($onlyIndex) {
+            if (!in_array($onlyIndex, $indexSuffixes, true)) {
+                throw new InvalidArgumentException(sprintf('Index "%s" is not configured', $onlyIndex));
             }
 
-            // If a specific class has been requested, then we'll limit ourselves to that, otherwise get all classes
-            // for the index
-            $classes = $onlyClass
-                ? [$onlyClass]
-                : $indexConfiguration->getIndexDataForSuffix($indexSuffix)->getClasses();
+            $indexSuffixes = [$onlyIndex];
+        }
+
+        // Classes included by each index being reindexed
+        $indexClasses = [];
+
+        foreach ($indexSuffixes as $indexSuffix) {
+            $indexClasses[$indexSuffix] = $indexConfiguration->getIndexDataForSuffix($indexSuffix)->getClasses();
+        }
+
+        // A class none of these indexes include would queue jobs that index nothing, so stop here instead
+        $unknownClasses = array_diff($onlyClass, array_merge(...array_values($indexClasses)));
+
+        if ($unknownClasses) {
+            throw new InvalidArgumentException(sprintf(
+                'Class %s is not included by %s',
+                implode(', ', $unknownClasses),
+                $onlyIndex ? sprintf('index "%s"', $onlyIndex) : 'any configured index'
+            ));
+        }
+
+        foreach ($indexClasses as $indexSuffix => $classes) {
+            // The Indexer accepts a document when any index includes its class, so a job must only name classes
+            // that this index includes
+            if ($onlyClass) {
+                $classes = array_intersect($classes, $onlyClass);
+            }
 
             foreach ($classes as $class) {
                 // Create a job for this class and index
@@ -81,14 +119,14 @@ class SearchReindex extends BuildTask
             new InputOption(
                 'onlyClass',
                 null,
-                InputOption::VALUE_OPTIONAL,
-                'Only index the provided classes'
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Only index the provided fully qualified class name. Repeat the option to index several classes'
             ),
             new InputOption(
                 'onlyIndex',
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'Only index the provided indexes'
+                'Only index the provided index suffix'
             ),
         ];
     }
