@@ -77,6 +77,40 @@ class SearchReindexTest extends SapphireTest
         $this->assertEquals($expected, $result);
     }
 
+    /**
+     * Check that the `onlyClass` option queues one job per index, each for that class alone
+     */
+    public function testTaskOnlyClass(): void
+    {
+        $this->mockConfig(true);
+
+        $commandOptions = SearchReindex::singleton()->getOptions();
+        $request = new HTTPRequest('GET', '/', ['onlyClass' => DataObjectFake::class]);
+        $input = new HttpRequestInput($request, $commandOptions);
+        $output = new PolyOutput(PolyOutput::FORMAT_ANSI);
+        $task = SearchReindex::create();
+
+        $task->run($input, $output);
+
+        $result = [];
+
+        foreach (QueuedJobDescriptor::get()->column('SavedJobData') as $jobDescriptor) {
+            $data = (array) unserialize($jobDescriptor);
+            $result[$data['indexSuffix']] = $data['onlyClasses'];
+        }
+
+        $expected = [
+            'index1' => [
+                DataObjectFake::class,
+            ],
+            'index2' => [
+                DataObjectFake::class,
+            ],
+        ];
+
+        $this->assertEquals($expected, $result);
+    }
+
     protected function setUp(): void
     {
         Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);

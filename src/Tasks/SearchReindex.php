@@ -39,7 +39,7 @@ class SearchReindex extends BuildTask
         return Command::SUCCESS;
     }
 
-    public function processTaskExecution(?array $onlyClass = [], ?string $onlyIndex = null): void
+    public function processTaskExecution(?string $onlyClass = null, ?string $onlyIndex = null): void
     {
         $indexConfiguration = $this->getConfiguration();
 

@@ -412,7 +412,7 @@ The following is a list of all public API changes from version 1.
 *   **Modified Public Methods:**
     *   `public function __construct(IndexingInterface $searchService, IndexConfiguration $config, BatchDocumentInterface $batchProcessor)`: Signature changed to `public function __construct(IndexConfiguration $config)`. Removed `$searchService` and `$batchProcessor` parameters.
 *   **Added Public Methods:**
-    *   `public function processTaskExecution(?array $onlyClass = [], ?string $onlyIndex = null): void`
+    *   `public function processTaskExecution(?string $onlyClass = null, ?string $onlyIndex = null): void`
     *   `public function getOptions(): array`
 ---
 
