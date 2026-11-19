@@ -8,6 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Tasks\SearchReindex;
 use SilverStripe\Forager\Tests\Fake\DataObjectFake;
 use SilverStripe\Forager\Tests\Fake\DataObjectFakeAlternate;
+use SilverStripe\Forager\Tests\Fake\DataObjectSubclassFake;
 use SilverStripe\Forager\Tests\SearchServiceTestTrait;
 use SilverStripe\PolyExecution\HttpRequestInput;
 use SilverStripe\PolyExecution\PolyOutput;
@@ -73,6 +74,53 @@ class SearchReindexTest extends SapphireTest
             ],
             $this->getQueuedJobs()
         );
+    }
+
+    /**
+     * A subclass of a configured class is included by every index that configures the parent
+     */
+    public function testTaskOnlyClassSubclass(): void
+    {
+        $this->mockConfig(true);
+
+        $this->assertSame(Command::SUCCESS, $this->runTask(['onlyClass' => DataObjectSubclassFake::class]));
+
+        $this->assertSame(
+            [
+                ['index1', DataObjectSubclassFake::class],
+                ['index2', DataObjectSubclassFake::class],
+            ],
+            $this->getQueuedJobs()
+        );
+    }
+
+    /**
+     * A leading backslash, a case difference, and a repeated name resolve to the declared class name once
+     */
+    public function testTaskOnlyClassNormalised(): void
+    {
+        $this->mockConfig(true);
+
+        $this->assertSame(
+            Command::SUCCESS,
+            $this->runTask(['onlyClass' => ['\\' . DataObjectFakeAlternate::class, strtolower(DataObjectFakeAlternate::class)]])
+        );
+
+        $this->assertSame(
+            [
+                ['index1', DataObjectFakeAlternate::class],
+            ],
+            $this->getQueuedJobs()
+        );
+    }
+
+    public function testTaskOnlyClassEmpty(): void
+    {
+        $this->mockConfig(true);
+
+        $this->assertSame(Command::SUCCESS, $this->runTask(['onlyClass' => '']));
+
+        $this->assertCount(3, $this->getQueuedJobs());
     }
 
     public function testTaskOnlyIndex(): void

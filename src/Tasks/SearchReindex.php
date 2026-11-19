@@ -4,6 +4,7 @@ namespace SilverStripe\Forager\Tasks;
 
 use InvalidArgumentException;
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Manifest\ClassLoader;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Forager\Jobs\ReindexJob;
 use SilverStripe\Forager\Service\IndexConfiguration;
@@ -49,7 +50,8 @@ class SearchReindex extends BuildTask
     /**
      * Queue one ReindexJob per index and class
      *
-     * @param array|null $onlyClass Fully qualified class names to limit the reindex to. Empty means every class
+     * @param array|null $onlyClass Class names to limit the reindex to. Empty means every class an index includes.
+     *                              An index includes a class when it is configured, or a parent of it is
      * @param string|null $onlyIndex Index suffix to limit the reindex to. Null means every index
      * @throws InvalidArgumentException When $onlyIndex is not a configured index, or a class in $onlyClass is not
      *                                  included by any of the indexes being reindexed
@@ -57,7 +59,7 @@ class SearchReindex extends BuildTask
     public function processTaskExecution(?array $onlyClass = [], ?string $onlyIndex = null): void
     {
         $indexConfiguration = $this->getConfiguration();
-        $onlyClass = array_values(array_unique($onlyClass ?? []));
+        $onlyClass = $this->normaliseClassNames($onlyClass ?? []);
         $indexSuffixes = array_keys($indexConfiguration->getIndexConfigurations());
 
         // limit to requested index only
@@ -69,11 +71,21 @@ class SearchReindex extends BuildTask
             $indexSuffixes = [$onlyIndex];
         }
 
-        // Classes included by each index being reindexed
+        // The classes to queue for each index being reindexed
         $indexClasses = [];
 
         foreach ($indexSuffixes as $indexSuffix) {
-            $indexClasses[$indexSuffix] = $indexConfiguration->getIndexDataForSuffix($indexSuffix)->getClasses();
+            $indexClasses[$indexSuffix] = $onlyClass
+                ? array_filter(
+                    $onlyClass,
+                    function (string $class) use ($indexConfiguration, $indexSuffix): bool {
+                        return array_key_exists(
+                            $indexSuffix,
+                            $indexConfiguration->getIndexConfigurationsForClassName($class)
+                        );
+                    }
+                )
+                : $indexConfiguration->getIndexDataForSuffix($indexSuffix)->getClasses();
         }
 
         // A class none of these indexes include would queue jobs that index nothing, so stop here instead
@@ -87,13 +99,9 @@ class SearchReindex extends BuildTask
             ));
         }
 
+        // The Indexer accepts a document when any index includes its class, so each job names only classes that
+        // its index includes
         foreach ($indexClasses as $indexSuffix => $classes) {
-            // The Indexer accepts a document when any index includes its class, so a job must only name classes
-            // that this index includes
-            if ($onlyClass) {
-                $classes = array_intersect($classes, $onlyClass);
-            }
-
             foreach ($classes as $class) {
                 // Create a job for this class and index
                 $job = ReindexJob::create($indexSuffix, [$class]);
@@ -111,6 +119,31 @@ class SearchReindex extends BuildTask
                 }
             }
         }
+    }
+
+    /**
+     * Class names as the manifest declares them, without a leading backslash, empty values or duplicates
+     *
+     * @param string[] $classes
+     * @return string[]
+     */
+    private function normaliseClassNames(array $classes): array
+    {
+        $manifest = ClassLoader::inst()->getManifest();
+        $normalised = [];
+
+        foreach ($classes as $class) {
+            $class = ltrim(trim($class), '\\');
+
+            if ($class === '') {
+                continue;
+            }
+
+            // A name the manifest does not know is kept as given, so the error message repeats it
+            $normalised[] = $manifest->getItemName($class) ?: $class;
+        }
+
+        return array_values(array_unique($normalised));
     }
 
     public function getOptions(): array
