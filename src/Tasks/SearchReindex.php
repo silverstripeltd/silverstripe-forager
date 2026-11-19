@@ -50,11 +50,12 @@ class SearchReindex extends BuildTask
     /**
      * Queue one ReindexJob per index and class
      *
-     * @param array|null $onlyClass Class names to limit the reindex to. Empty means every class an index includes.
-     *                              An index includes a class when it is configured, or a parent of it is
+     * An index includes a class when it configures the class or one of its parent classes
+     *
+     * @param array|null $onlyClass Class names to limit the reindex to. Empty means every class an index includes
      * @param string|null $onlyIndex Index suffix to limit the reindex to. Null means every index
-     * @throws InvalidArgumentException When $onlyIndex is not a configured index, or a class in $onlyClass is not
-     *                                  included by any of the indexes being reindexed
+     * @throws InvalidArgumentException When $onlyIndex is not a configured index, a class name in $onlyClass is
+     * empty, or a class in $onlyClass is not included by any of the indexes being reindexed
      */
     public function processTaskExecution(?array $onlyClass = [], ?string $onlyIndex = null): void
     {
@@ -122,10 +123,11 @@ class SearchReindex extends BuildTask
     }
 
     /**
-     * Class names as the manifest declares them, without a leading backslash, empty values or duplicates
+     * Class names as the manifest declares them, without a leading backslash or duplicates
      *
      * @param string[] $classes
      * @return string[]
+     * @throws InvalidArgumentException When a class name is empty
      */
     private function normaliseClassNames(array $classes): array
     {
@@ -135,8 +137,9 @@ class SearchReindex extends BuildTask
         foreach ($classes as $class) {
             $class = ltrim(trim($class), '\\');
 
+            // An empty name, such as one from an unset shell variable, must not widen the reindex to every class
             if ($class === '') {
-                continue;
+                throw new InvalidArgumentException('The onlyClass option was given without a class name');
             }
 
             // A name the manifest does not know is kept as given, so the error message repeats it

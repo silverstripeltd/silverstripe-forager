@@ -114,13 +114,15 @@ class SearchReindexTest extends SapphireTest
         );
     }
 
+    /**
+     * An option given without a class name is reported, and does not reindex every class
+     */
     public function testTaskOnlyClassEmpty(): void
     {
         $this->mockConfig(true);
 
-        $this->assertSame(Command::SUCCESS, $this->runTask(['onlyClass' => '']));
-
-        $this->assertCount(3, $this->getQueuedJobs());
+        $this->assertSame(Command::FAILURE, $this->runTask(['onlyClass' => '']));
+        $this->assertSame([], $this->getQueuedJobs());
     }
 
     public function testTaskOnlyIndex(): void

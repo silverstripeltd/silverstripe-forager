@@ -53,7 +53,8 @@ Most of these jobs can be run manually using sake tasks:
 - `sake tasks:SearchReindex`: Reindex all documents. Accepts an `--onlyIndex` option with an index suffix, and an
   `--onlyClass` option with a fully qualified class name, which can be repeated to reindex several classes. Each
   class is reindexed into the indexes that include it, or include one of its parent classes. The task stops with an
-  error when the index is not configured or a class is not included by the indexes being reindexed
+  error when the index is not configured, a class is not included by the indexes being reindexed, or `--onlyClass`
+  is given without a class name
 - `sake tasks:SearchClearIndex`: Clear all documents from a given index. Requires an `--index` option
 - `sake tasks:SearchConfigure`: Configure the search service (see below)
 
