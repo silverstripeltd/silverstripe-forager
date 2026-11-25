@@ -236,6 +236,13 @@ DNADesign\ElementalUserForms\Model\ElementForm:
     search_indexable: false
 ```
 
+Publishing, unpublishing or archiving a block re-indexes the page that it's on, including blocks nested inside other blocks (for example, in a layout block). You can turn this off with:
+
+```yaml
+SilverStripe\Forager\Service\IndexConfiguration:
+    index_parent_page_of_elements: false
+```
+
 ## Batch size
 
 Documents are sent to the search provider to be indexed. These requests are batched together to allow provider modules to reduce API calls. You can control the batch size globally and at a per class level.
