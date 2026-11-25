@@ -8,6 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Forager\Jobs\IndexJob;
 use SilverStripe\Forager\Service\IndexConfiguration;
 use SilverStripe\Forager\Tests\Fake\ElementFake;
+use SilverStripe\Forager\Tests\Fake\IndexedElementFake;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
@@ -18,6 +19,7 @@ class IndexParentPageExtensionTest extends SapphireTest
 
     protected static $extra_dataobjects = [ // phpcs:ignore
         ElementFake::class,
+        IndexedElementFake::class,
     ];
 
     /**
@@ -106,6 +108,28 @@ class IndexParentPageExtensionTest extends SapphireTest
         $element->publishSingle();
         $element->doArchive();
         $this->assertSame([$page->ID, $page->ID], $this->indexed, 'Republish, then archive');
+    }
+
+    public function testElementNestedInIndexedElementIndexesPage(): void
+    {
+        $page = SiteTree::create(['Title' => 'Page']);
+        $page->write();
+        $page->publishSingle();
+
+        $parent = IndexedElementFake::create(['Title' => 'Layout', 'ParentPageID' => $page->ID]);
+        $parent->write();
+        $parent->publishSingle();
+
+        $element = ElementFake::create(['Title' => 'Nested', 'ParentElementID' => $parent->ID]);
+        $element->write();
+
+        $this->indexed = [];
+        $element->publishSingle();
+        $this->assertSame([$page->ID], $this->indexed, 'Publish');
+
+        $this->indexed = [];
+        $element->doUnpublish();
+        $this->assertSame([$page->ID], $this->indexed, 'Unpublish');
     }
 
     public function testDisabledDoesNotIndexPage(): void

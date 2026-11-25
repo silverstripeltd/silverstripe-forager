@@ -48,8 +48,9 @@ class IndexParentPageExtension extends Extension
         /** @var DataObject|null $parent */
         $parent = $this->getOwner()->getPage();
 
-        // A nested element's page is the element that holds it, so keep walking up until we reach the actual page
-        while ($parent && !$parent->hasExtension(SearchServiceExtension::class) && $parent->hasMethod('getPage')) {
+        // A nested element's page is the element that holds it, so keep walking up while we're still on an element.
+        // Elements can have SearchServiceExtension themselves (when indexed as their own documents), so don't stop
+        while ($parent && $parent->hasExtension(self::class)) {
             $parent = $parent->getPage();
         }
 
